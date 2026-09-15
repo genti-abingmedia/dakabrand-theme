@@ -1,0 +1,7 @@
+{
+  "local_theme_dir": "theme",
+  "remote_theme_dir": "/wp-content/themes/dakabrand",
+  "theme_slug": "dakabrand",
+  "auto_publish_after_theme_change": false
+}
+
