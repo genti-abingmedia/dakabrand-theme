@@ -109,9 +109,19 @@ Assign these menu locations in WordPress:
 - `Footer services` contains contact and policy links.
 - `Footer navigation (legacy)` remains as the fallback for existing installs.
 
-The responsive shell contains the app announcement, sticky header, mobile
-shortcut bar, service benefits, newsletter, link groups, and social links. It
-is rendered by every StaticBridge view, including the front page.
+The responsive shell contains the app announcement, sticky header, five-item
+mobile app toolbar, service benefits, newsletter, link groups, and social links.
+The front page is an intentional exception to the header and footer only: it
+renders a full-viewport, swipeable MAN/WOMAN shopping gateway while retaining
+the mobile toolbar for fast access to Home, Women, Shop, Man, and Cart.
+
+The `/man/` page uses a dedicated theme-native campaign view with locally owned
+hero/editorial assets, category shortcuts, and dynamic WooCommerce sections for
+New In, Top Deals, and Limited Stock.
+
+The `/woman/` page follows the same campaign pattern with Women-specific local
+assets and collection links. Homepage campaign imagery links directly to the
+Women and Men landing pages.
 
 ### Newsletter proxy contract
 

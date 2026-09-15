@@ -17,6 +17,8 @@ object before calling the function. The current contract version is available as
 Supported views:
 
 - `front-page`
+- `man`
+- `woman`
 - `index`
 - `page`
 - `product`
@@ -49,3 +51,17 @@ Newsletter integrations should provide a URL through the
 `staticbridge_newsletter_endpoint` filter. The endpoint accepts a JSON object
 with an `email` property and may return a user-facing `message` in a successful
 JSON response.
+
+The `front-page` view is an immersive MAN/WOMAN gateway. It intentionally omits
+the header and footer, retains the mobile app toolbar, and keeps `wp_head()`,
+`wp_body_open()`, and `wp_footer()` so plugins and generated documents continue
+to work correctly.
+
+The `/man/` route uses `page-man.php` and the `man` render view. A guarded
+theme-level route also serves it on static/proxy installs that do not have a
+matching WordPress page row. Its campaign imagery is owned by the theme, while
+New In, Top Deals, and Limited Stock remain dynamic WooCommerce product queries.
+
+The `/woman/` route follows the same theme-native campaign contract with
+Women-specific imagery, category links, and WooCommerce queries. The two
+homepage campaign images lead to `/woman/` and `/man/` respectively.

@@ -11,6 +11,7 @@ if (!defined('ABSPATH')) {
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
+<?php if (!staticbridge_is_immersive_front_page()) : ?>
 <a class="skip-link" href="#main"><?php esc_html_e('Skip to content', 'dakabrand'); ?></a>
 
 <div class="announcement-bar" aria-label="<?php esc_attr_e('DakaBrand apps', 'dakabrand'); ?>">
@@ -92,3 +93,4 @@ if (!defined('ABSPATH')) {
         <a class="mobile-navigation__account" href="<?php echo esc_url(home_url('/my-account/')); ?>"><?php esc_html_e('My account', 'dakabrand'); ?></a>
     </div>
 </div>
+<?php endif; ?>

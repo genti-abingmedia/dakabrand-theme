@@ -132,9 +132,91 @@
         });
     }
 
+    function enhanceMobileTabs() {
+        var path = window.location.pathname.replace(/\/+$/, '') || '/';
+        var active = 'shop';
+
+        if (path === '/') {
+            active = 'home';
+        } else if (path === '/woman' || path.indexOf('/product-category/women') === 0) {
+            active = 'women';
+        } else if (path === '/man' || path.indexOf('/product-category/man') === 0) {
+            active = 'man';
+        } else if (path.indexOf('/cart') === 0) {
+            active = 'cart';
+        }
+
+        document.querySelectorAll('[data-mobile-tab]').forEach(function (tab) {
+            var isActive = tab.getAttribute('data-mobile-tab') === active;
+            tab.classList.toggle('is-active', isActive);
+            if (isActive) {
+                tab.setAttribute('aria-current', 'page');
+            } else {
+                tab.removeAttribute('aria-current');
+            }
+        });
+    }
+
+    function enhanceGatewaySwitcher() {
+        var gateway = document.querySelector('.home-gateway');
+        var switcher = document.querySelector('[data-gateway-switcher]');
+        var panels;
+        var links;
+        var reduceMotion;
+
+        if (!gateway || !switcher) {
+            return;
+        }
+
+        panels = Array.from(gateway.querySelectorAll('[data-gateway-panel]'));
+        links = Array.from(switcher.querySelectorAll('a'));
+        reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function selectPanel(panel) {
+            links.forEach(function (link) {
+                if (link.getAttribute('href') === '#' + panel.id) {
+                    link.setAttribute('aria-current', 'true');
+                } else {
+                    link.removeAttribute('aria-current');
+                }
+            });
+        }
+
+        links.forEach(function (link) {
+            link.addEventListener('click', function (event) {
+                var panel = document.querySelector(link.getAttribute('href'));
+                event.preventDefault();
+                if (panel) {
+                    panel.scrollIntoView({
+                        behavior: reduceMotion ? 'auto' : 'smooth',
+                        block: 'nearest',
+                        inline: 'start'
+                    });
+                    selectPanel(panel);
+                }
+            });
+        });
+
+        if ('IntersectionObserver' in window) {
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+                        selectPanel(entry.target);
+                    }
+                });
+            }, { root: gateway, threshold: [0.6] });
+
+            panels.forEach(function (panel) {
+                observer.observe(panel);
+            });
+        }
+    }
+
     enhanceMobileNavigation();
     enhanceStickyHeader();
     enhanceNewsletter();
+    enhanceMobileTabs();
+    enhanceGatewaySwitcher();
     refreshCartCount();
 
     window.addEventListener('storage', function (event) {

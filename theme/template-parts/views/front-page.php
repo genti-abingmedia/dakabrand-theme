@@ -3,27 +3,48 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-$products = new WP_Query(array(
-    'post_type'      => 'product',
-    'post_status'    => 'publish',
-    'posts_per_page' => 12,
-));
+$home_sections = array(
+    array(
+        'key'       => 'woman',
+        'label'     => __('Woman', 'dakabrand'),
+        'image'     => 'home-woman.jpg',
+        'landing'   => '/woman/',
+        'category'  => '/product-category/women/',
+        'preorder'  => '/product-category/women/?stock_status=onbackorder%3Aonbackorder',
+        'in_stock'  => '/product-category/women/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
+        'offer'     => '/product-category/women/big-offer-women/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
+    ),
+    array(
+        'key'       => 'man',
+        'label'     => __('Man', 'dakabrand'),
+        'image'     => 'home-man.jpg',
+        'landing'   => '/man/',
+        'category'  => '/product-category/man/',
+        'preorder'  => '/product-category/man/?stock_status=onbackorder%3Aonbackorder',
+        'in_stock'  => '/product-category/man/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
+        'offer'     => '/product-category/man/big-offer/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
+    ),
+);
 ?>
-<main id="main" class="site-main site-shell" data-static-view="front-page">
-    <header class="page-header">
-        <h1><?php echo esc_html(get_bloginfo('name')); ?></h1>
-        <?php if (get_bloginfo('description')) : ?>
-            <p><?php echo esc_html(get_bloginfo('description')); ?></p>
-        <?php endif; ?>
-    </header>
+<main id="main" class="home-gateway" data-static-view="front-page">
+    <h1 class="screen-reader-text"><?php echo esc_html(get_bloginfo('name')); ?></h1>
+    <nav class="home-gateway__mobile-switcher" aria-label="<?php esc_attr_e('Choose a collection', 'dakabrand'); ?>" data-gateway-switcher>
+        <a href="#home-woman" aria-current="true"><?php esc_html_e('Woman', 'dakabrand'); ?></a>
+        <a href="#home-man"><?php esc_html_e('Man', 'dakabrand'); ?></a>
+    </nav>
 
-    <section aria-labelledby="latest-products-heading">
-        <h2 id="latest-products-heading"><?php esc_html_e('Latest products', 'dakabrand'); ?></h2>
-        <div class="product-grid" data-product-grid>
-            <?php while ($products->have_posts()) : $products->the_post(); ?>
-                <?php get_template_part('template-parts/components/product-card'); ?>
-            <?php endwhile; ?>
-        </div>
-    </section>
+    <?php foreach ($home_sections as $section) : ?>
+        <section id="home-<?php echo esc_attr($section['key']); ?>" class="home-gateway__panel home-gateway__panel--<?php echo esc_attr($section['key']); ?>" aria-labelledby="home-<?php echo esc_attr($section['key']); ?>-title" data-gateway-panel>
+            <a class="home-gateway__image-link" href="<?php echo esc_url(home_url($section['landing'])); ?>" aria-label="<?php echo esc_attr(sprintf(__('Shop %s', 'dakabrand'), $section['label'])); ?>">
+                <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/' . $section['image']); ?>" alt="" width="1163" height="1236" fetchpriority="high">
+            </a>
+            <h2 class="screen-reader-text" id="home-<?php echo esc_attr($section['key']); ?>-title"><?php echo esc_html($section['label']); ?></h2>
+
+            <nav class="home-gateway__actions" aria-label="<?php echo esc_attr(sprintf(__('%s collections', 'dakabrand'), $section['label'])); ?>">
+                <a class="home-gateway__button home-gateway__button--dark" href="<?php echo esc_url(home_url($section['preorder'])); ?>"><?php esc_html_e('Preorder Only', 'dakabrand'); ?></a>
+                <a class="home-gateway__button" href="<?php echo esc_url(home_url($section['in_stock'])); ?>"><?php esc_html_e('Shop New Collection', 'dakabrand'); ?></a>
+                <a class="home-gateway__button home-gateway__button--offer" href="<?php echo esc_url(home_url($section['offer'])); ?>"><?php esc_html_e('Big Offer', 'dakabrand'); ?></a>
+            </nav>
+        </section>
+    <?php endforeach; ?>
 </main>
-<?php wp_reset_postdata(); ?>

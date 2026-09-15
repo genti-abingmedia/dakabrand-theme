@@ -3,6 +3,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 ?>
+<?php if (!staticbridge_is_immersive_front_page()) : ?>
 <footer class="site-footer" data-component="site-footer">
     <section class="footer-benefits" aria-label="<?php esc_attr_e('Shopping benefits', 'dakabrand'); ?>">
         <div class="site-shell footer-benefits__grid">
@@ -89,11 +90,14 @@ if (!defined('ABSPATH')) {
         </div>
     </div>
 </footer>
+<?php endif; ?>
 
-<nav class="mobile-tabs d-lg-none" aria-label="<?php esc_attr_e('Mobile shortcuts', 'dakabrand'); ?>">
-    <a href="<?php echo esc_url(home_url('/')); ?>"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v10h-6v-7H9v7H3V11Z"/></svg><span><?php esc_html_e('Home', 'dakabrand'); ?></span></a>
-    <a href="<?php echo esc_url(home_url('/shop/')); ?>"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 4h18v17H3zM3 10h18M9 4v17"/></svg><span><?php esc_html_e('Shop', 'dakabrand'); ?></span></a>
-    <a href="<?php echo esc_url(home_url('/cart/')); ?>" data-cart-link><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6L5 8ZM9 9V6a3 3 0 0 1 6 0v3"/></svg><span><?php esc_html_e('Cart', 'dakabrand'); ?></span><span class="cart-count" data-cart-count aria-live="polite">0</span></a>
+<nav class="mobile-tabs d-lg-none" aria-label="<?php esc_attr_e('Mobile app navigation', 'dakabrand'); ?>" data-mobile-tabs>
+    <a href="<?php echo esc_url(home_url('/')); ?>" data-mobile-tab="home"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v10h-6v-7H9v7H3V11Z"/></svg><span><?php esc_html_e('Home', 'dakabrand'); ?></span></a>
+    <a href="<?php echo esc_url(home_url('/product-category/women/')); ?>" data-mobile-tab="women"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M7 21c0-4 2-7 5-7s5 3 5 7M12 12v9M9 18h6"/></svg><span><?php esc_html_e('Women', 'dakabrand'); ?></span></a>
+    <a class="mobile-tabs__primary" href="<?php echo esc_url(home_url('/shop/')); ?>" data-mobile-tab="shop"><span class="mobile-tabs__primary-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 8h16l-1 13H5L4 8ZM9 9V6a3 3 0 0 1 6 0v3"/></svg></span><span><?php esc_html_e('Shop', 'dakabrand'); ?></span></a>
+    <a href="<?php echo esc_url(home_url('/product-category/man/')); ?>" data-mobile-tab="man"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10" cy="10" r="5"/><path d="m14 6 6-4M16 2h4v4M10 15v7M7 19h6"/></svg><span><?php esc_html_e('Man', 'dakabrand'); ?></span></a>
+    <a href="<?php echo esc_url(home_url('/cart/')); ?>" data-mobile-tab="cart" data-cart-link><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6L5 8ZM9 9V6a3 3 0 0 1 6 0v3"/></svg><span><?php esc_html_e('Cart', 'dakabrand'); ?></span><span class="cart-count" data-cart-count aria-live="polite">0</span></a>
 </nav>
 <?php wp_footer(); ?>
 </body>

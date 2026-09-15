@@ -8,6 +8,8 @@ $card_product = wc_get_product(get_the_ID());
 if (!$card_product instanceof WC_Product || !$card_product->is_visible()) {
     return;
 }
+
+$card_categories = wc_get_product_category_list($card_product->get_id(), ', ');
 ?>
 <article
     class="product-card"
@@ -17,6 +19,9 @@ if (!$card_product instanceof WC_Product || !$card_product->is_visible()) {
 >
     <a class="product-card__link" href="<?php echo esc_url(get_permalink($card_product->get_id())); ?>">
         <?php echo wp_kses_post($card_product->get_image('woocommerce_thumbnail')); ?>
+        <?php if ($card_categories) : ?>
+            <p class="product-card__category"><?php echo wp_kses_post($card_categories); ?></p>
+        <?php endif; ?>
         <h2><?php echo esc_html($card_product->get_name()); ?></h2>
     </a>
 

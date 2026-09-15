@@ -14,6 +14,8 @@ function staticbridge_render_document(string $view, array $context = array()): v
 {
     $allowed_views = array(
         'front-page',
+        'man',
+        'woman',
         'index',
         'page',
         'product',
@@ -26,6 +28,7 @@ function staticbridge_render_document(string $view, array $context = array()): v
     }
 
     set_query_var('staticbridge_context', $context);
+    set_query_var('staticbridge_view', $view);
 
     get_header();
 
@@ -51,6 +54,8 @@ function staticbridge_render_contract(): array
         'version' => STATICBRIDGE_RENDER_API_VERSION,
         'views'   => array(
             'front_page'      => 'front-page',
+            'man_page'        => 'man',
+            'woman_page'      => 'woman',
             'page'            => 'page',
             'product'         => 'product',
             'product_archive' => 'product-archive',
@@ -60,4 +65,3 @@ function staticbridge_render_contract(): array
         ),
     );
 }
-

@@ -47,6 +47,88 @@ function staticbridge_theme_setup(): void
 add_action('after_setup_theme', 'staticbridge_theme_setup');
 
 /**
+ * The storefront gateway intentionally omits visible global navigation.
+ * The explicit view check keeps generated front-page documents deterministic.
+ */
+function staticbridge_is_immersive_front_page(): bool
+{
+    return 'front-page' === get_query_var('staticbridge_view') || is_front_page();
+}
+
+/**
+ * Keep the campaign route available on static/proxy installs without a page row.
+ */
+function staticbridge_is_man_request(): bool
+{
+    global $wp;
+
+    return isset($wp->request) && 'man' === trim((string) $wp->request, '/');
+}
+
+function staticbridge_is_woman_request(): bool
+{
+    global $wp;
+
+    return isset($wp->request) && 'woman' === trim((string) $wp->request, '/');
+}
+
+function staticbridge_man_template(string $template): string
+{
+    if (!staticbridge_is_man_request()) {
+        return $template;
+    }
+
+    global $wp_query;
+
+    if ($wp_query instanceof WP_Query) {
+        $wp_query->is_404  = false;
+        $wp_query->is_page = true;
+    }
+
+    status_header(200);
+
+    return get_theme_file_path('/page-man.php');
+}
+add_filter('template_include', 'staticbridge_man_template', 99);
+
+function staticbridge_woman_template(string $template): string
+{
+    if (!staticbridge_is_woman_request()) {
+        return $template;
+    }
+
+    global $wp_query;
+
+    if ($wp_query instanceof WP_Query) {
+        $wp_query->is_404  = false;
+        $wp_query->is_page = true;
+    }
+
+    status_header(200);
+
+    return get_theme_file_path('/page-woman.php');
+}
+add_filter('template_include', 'staticbridge_woman_template', 99);
+
+function staticbridge_man_canonical_redirect($redirect_url)
+{
+    return staticbridge_is_man_request() || staticbridge_is_woman_request() ? false : $redirect_url;
+}
+add_filter('redirect_canonical', 'staticbridge_man_canonical_redirect');
+
+function staticbridge_man_document_title(array $title): array
+{
+    if (staticbridge_is_man_request()) {
+        $title['title'] = __('Man', 'dakabrand');
+    } elseif (staticbridge_is_woman_request()) {
+        $title['title'] = __('Woman', 'dakabrand');
+    }
+
+    return $title;
+}
+add_filter('document_title_parts', 'staticbridge_man_document_title');
+
+/**
  * Provide useful storefront links until an administrator assigns a menu.
  * WordPress passes the wp_nav_menu() arguments as an object to fallbacks.
  */
