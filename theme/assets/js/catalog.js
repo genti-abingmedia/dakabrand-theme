@@ -5,9 +5,9 @@
     if (!root) return;
 
     var API = 'https://filter.gliterin.net/public/filter';
-    var STOREFRONT = 'https://dakabrand.uk';
+    var STOREFRONT = 'https://static-daka.gliterindemo.com';
     var VIEWS = {
-        large: { pageSize: 15 },
+        large: { pageSize: 20 },
         small: { pageSize: 25 },
         list: { pageSize: 10 }
     };
@@ -24,6 +24,10 @@
         toolbar: root.querySelector('[data-catalog-toolbar]'),
         count: root.querySelector('[data-catalog-count]'),
         sort: root.querySelector('[data-catalog-sort]'),
+        sortTrigger: root.querySelector('[data-catalog-sort-trigger]'),
+        sortValue: root.querySelector('[data-catalog-sort-value]'),
+        sortMenu: root.querySelector('[data-catalog-sort-menu]'),
+        sortOptions: root.querySelectorAll('[data-catalog-sort-option]'),
         active: root.querySelector('[data-catalog-active]'),
         facets: root.querySelector('[data-catalog-facets]'),
         filters: root.querySelector('[data-catalog-filters]'),
@@ -104,6 +108,21 @@
         nodes.toggleFilters.setAttribute('aria-pressed', String(hidden));
         nodes.toggleFilters.title = hidden ? 'Show filters' : 'Hide filters';
         nodes.toggleFiltersLabel.textContent = nodes.toggleFilters.title;
+    }
+
+    function setSortMenu(open) {
+        nodes.sortMenu.hidden = !open;
+        nodes.sortTrigger.setAttribute('aria-expanded', String(open));
+        nodes.sort.classList.toggle('is-open', open);
+    }
+
+    function updateSortControl(value) {
+        var selected = value === 'price-asc' || value === 'price-desc' ? value : '';
+        nodes.sortOptions.forEach(function (option) {
+            var isSelected = option.dataset.value === selected;
+            option.setAttribute('aria-selected', String(isSelected));
+            if (isSelected) nodes.sortValue.textContent = option.textContent;
+        });
     }
 
     function showStatus(message, loading, retry) {
@@ -476,7 +495,7 @@
         nodes.heading.textContent = keyword ? 'Results for “' + keyword + '”' : defaultHeading;
         nodes.toolbar.hidden = false;
         updateDisplayControls();
-        nodes.sort.value = ['price-asc', 'price-desc'].includes(params.get('orderby')) ? params.get('orderby') : '';
+        updateSortControl(params.get('orderby'));
         var count = Math.max(0, number(data.count));
         nodes.count.textContent = (count >= 10000 ? '10,000+' : count.toLocaleString('en-GB')) + (count === 1 ? ' product' : ' products');
         renderFacets(data);
@@ -557,7 +576,21 @@
         }
     }
 
-    nodes.sort.addEventListener('change', function () { updateParam('orderby', nodes.sort.value, true); });
+    nodes.sortTrigger.addEventListener('click', function () { setSortMenu(nodes.sortMenu.hidden); });
+    nodes.sortOptions.forEach(function (option) {
+        option.addEventListener('click', function () {
+            setSortMenu(false);
+            updateParam('orderby', option.dataset.value, true);
+        });
+    });
+    document.addEventListener('click', function (event) {
+        if (!nodes.sort.contains(event.target)) setSortMenu(false);
+    });
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape' || nodes.sortMenu.hidden) return;
+        setSortMenu(false);
+        nodes.sortTrigger.focus();
+    });
     nodes.toggleFilters.addEventListener('click', function () {
         updateParam('catalog_filters', filtersAreHidden(new URLSearchParams(window.location.search)) ? '' : 'hidden', false);
     });

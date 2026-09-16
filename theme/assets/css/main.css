@@ -76,8 +76,8 @@ button, input { font: inherit; }
 }
 .announcement-bar__track a {
     display: block;
-    min-width: 25%;
-    padding: .52rem 3rem;
+    min-width: 16.6667%;
+    padding: .42rem 2.5rem;
     color: #fff;
     text-align: center;
     text-decoration: none;
@@ -88,13 +88,9 @@ button, input { font: inherit; }
 @keyframes announcement-scroll { to { transform: translateX(-50%); } }
 
 .site-header {
-    position: sticky;
-    top: 0;
-    z-index: 1030;
+    position: relative;
     background: rgba(255,255,255,.98);
-    transition: box-shadow 180ms ease;
 }
-.site-header.is-scrolled { box-shadow: 0 12px 30px rgba(0,0,0,.07); }
 .site-promo { border-bottom: 1px solid var(--brand-line); font-size: .82rem; }
 .site-promo__inner { position: relative; min-height: 2.5rem; }
 .site-promo__inner p {
@@ -820,6 +816,7 @@ button, input { font: inherit; }
 @media (max-width: 991.98px) {
     :root { --header-height: 4rem; }
     body { padding-bottom: calc(var(--mobile-toolbar-height) + 1.4rem + env(safe-area-inset-bottom)); }
+    .site-header__actions .header-cart { display: none; }
     .site-shell { width: min(calc(100% - 1.5rem),var(--site-width)); }
     .site-header__inner { grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 1rem; }
     .site-branding { grid-column: 2; justify-self: center; }
