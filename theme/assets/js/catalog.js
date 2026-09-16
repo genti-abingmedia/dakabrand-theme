@@ -6,7 +6,11 @@
 
     var API = 'https://filter.gliterin.net/public/filter';
     var STOREFRONT = 'https://dakabrand.uk';
-    var PAGE_SIZE = 20;
+    var VIEWS = {
+        large: { pageSize: 15 },
+        small: { pageSize: 25 },
+        list: { pageSize: 10 }
+    };
     var MAX_PAGE = 500;
     var cache = new Map();
     var controller = null;
@@ -25,6 +29,9 @@
         filters: root.querySelector('[data-catalog-filters]'),
         backdrop: root.querySelector('[data-catalog-backdrop]'),
         openFilters: root.querySelector('[data-catalog-open-filters]'),
+        toggleFilters: root.querySelector('[data-catalog-toggle-filters]'),
+        toggleFiltersLabel: root.querySelector('[data-catalog-toggle-filters-label]'),
+        viewButtons: root.querySelectorAll('[data-catalog-view]'),
         status: root.querySelector('[data-catalog-status]'),
         grid: root.querySelector('[data-catalog-grid]'),
         pagination: root.querySelector('[data-catalog-pagination]')
@@ -42,6 +49,15 @@
         return Number.isInteger(parsed) ? Math.min(MAX_PAGE, Math.max(1, parsed)) : 1;
     }
 
+    function catalogView(params) {
+        var view = params.get('catalog_view');
+        return Object.prototype.hasOwnProperty.call(VIEWS, view) ? view : 'large';
+    }
+
+    function filtersAreHidden(params) {
+        return params.get('catalog_filters') === 'hidden';
+    }
+
     function browserUrl(params) {
         var url = new URL(window.location.href);
         url.search = params.toString();
@@ -52,9 +68,11 @@
         var params = new URLSearchParams(window.location.search);
         var url = new URL(window.location.pathname, STOREFRONT);
         params.delete('limit');
+        params.delete('catalog_view');
+        params.delete('catalog_filters');
         if (!['price-asc', 'price-desc'].includes(params.get('orderby'))) params.delete('orderby');
         params.set('page', String(pageNumber(params)));
-        params.set('limit', String(PAGE_SIZE));
+        params.set('limit', String(VIEWS[catalogView(new URLSearchParams(window.location.search))].pageSize));
         url.search = params.toString();
         return url.href;
     }
@@ -72,6 +90,20 @@
         else params.delete(name);
         if (resetPage) params.delete('page');
         navigate(params);
+    }
+
+    function updateDisplayControls() {
+        var params = new URLSearchParams(window.location.search);
+        var view = catalogView(params);
+        var hidden = filtersAreHidden(params);
+        root.dataset.catalogView = view;
+        root.classList.toggle('catalog--filters-hidden', hidden);
+        nodes.viewButtons.forEach(function (button) {
+            button.setAttribute('aria-pressed', String(button.dataset.catalogView === view));
+        });
+        nodes.toggleFilters.setAttribute('aria-pressed', String(hidden));
+        nodes.toggleFilters.title = hidden ? 'Show filters' : 'Hide filters';
+        nodes.toggleFiltersLabel.textContent = nodes.toggleFilters.title;
     }
 
     function showStatus(message, loading, retry) {
@@ -420,7 +452,7 @@
 
     function renderPagination(count) {
         var page = pageNumber(new URLSearchParams(window.location.search));
-        var pages = Math.min(MAX_PAGE, Math.ceil(count / PAGE_SIZE));
+        var pages = Math.min(MAX_PAGE, Math.ceil(count / VIEWS[catalogView(new URLSearchParams(window.location.search))].pageSize));
         nodes.pagination.replaceChildren();
         nodes.pagination.hidden = pages <= 1;
         if (pages <= 1) return;
@@ -443,6 +475,7 @@
         var defaultHeading = nodes.heading.dataset.defaultHeading || 'Shop';
         nodes.heading.textContent = keyword ? 'Results for “' + keyword + '”' : defaultHeading;
         nodes.toolbar.hidden = false;
+        updateDisplayControls();
         nodes.sort.value = ['price-asc', 'price-desc'].includes(params.get('orderby')) ? params.get('orderby') : '';
         var count = Math.max(0, number(data.count));
         nodes.count.textContent = (count >= 10000 ? '10,000+' : count.toLocaleString('en-GB')) + (count === 1 ? ' product' : ' products');
@@ -525,6 +558,14 @@
     }
 
     nodes.sort.addEventListener('change', function () { updateParam('orderby', nodes.sort.value, true); });
+    nodes.toggleFilters.addEventListener('click', function () {
+        updateParam('catalog_filters', filtersAreHidden(new URLSearchParams(window.location.search)) ? '' : 'hidden', false);
+    });
+    nodes.viewButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            updateParam('catalog_view', button.dataset.catalogView === 'large' ? '' : button.dataset.catalogView, true);
+        });
+    });
     nodes.openFilters.addEventListener('click', function () { setDrawer(true); });
     root.querySelectorAll('[data-catalog-close-filters]').forEach(function (button) {
         button.addEventListener('click', function () { setDrawer(false); });

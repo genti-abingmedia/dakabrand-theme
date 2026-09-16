@@ -49,7 +49,7 @@ if (!defined('ABSPATH')) {
                 <?php endif; ?>
             </div>
 
-            <?php $active_fashion_department = staticbridge_is_man_request() ? 'men' : 'women'; ?>
+            <?php $active_fashion_department = staticbridge_is_department_context('man') ? 'men' : 'women'; ?>
             <nav class="fashion-navigation d-none d-lg-block" aria-label="<?php esc_attr_e('Shop by department', 'dakabrand'); ?>" data-fashion-navigation>
                 <div class="fashion-navigation__departments" role="tablist" aria-label="<?php esc_attr_e('Departments', 'dakabrand'); ?>">
                     <a class="fashion-navigation__department<?php echo 'women' === $active_fashion_department ? ' is-current' : ''; ?>" href="<?php echo esc_url(home_url('/woman/')); ?>" role="tab" aria-selected="<?php echo 'women' === $active_fashion_department ? 'true' : 'false'; ?>" data-fashion-department="women"><?php esc_html_e('Women', 'dakabrand'); ?></a>

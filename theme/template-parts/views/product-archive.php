@@ -24,6 +24,26 @@ $archive_description = $is_category ? term_description() : '';
             </button>
             <p class="catalog-count" data-catalog-count aria-live="polite"></p>
         </div>
+        <div class="catalog-toolbar__views" aria-label="<?php esc_attr_e('Catalog display options', 'dakabrand'); ?>">
+            <button class="catalog-view-button" type="button" data-catalog-toggle-filters aria-pressed="false" title="<?php esc_attr_e('Hide filters', 'dakabrand'); ?>">
+                <span class="screen-reader-text" data-catalog-toggle-filters-label><?php esc_html_e('Hide filters', 'dakabrand'); ?></span>
+                <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/icons/sidebar-left-svgrepo-com.svg'); ?>" alt="" aria-hidden="true">
+            </button>
+            <div class="catalog-view-buttons" role="group" aria-label="<?php esc_attr_e('Product layout', 'dakabrand'); ?>">
+                <button class="catalog-view-button" type="button" data-catalog-view="large" aria-pressed="true" title="<?php esc_attr_e('Large grid: 3 columns', 'dakabrand'); ?>">
+                    <span class="screen-reader-text"><?php esc_html_e('Large grid', 'dakabrand'); ?></span>
+                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/icons/grid1-svgrepo-com.svg'); ?>" alt="" aria-hidden="true">
+                </button>
+                <button class="catalog-view-button" type="button" data-catalog-view="small" aria-pressed="false" title="<?php esc_attr_e('Small grid: 5 columns', 'dakabrand'); ?>">
+                    <span class="screen-reader-text"><?php esc_html_e('Small grid', 'dakabrand'); ?></span>
+                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/icons/grid-svgrepo-com.svg'); ?>" alt="" aria-hidden="true">
+                </button>
+                <button class="catalog-view-button" type="button" data-catalog-view="list" aria-pressed="false" title="<?php esc_attr_e('List view', 'dakabrand'); ?>">
+                    <span class="screen-reader-text"><?php esc_html_e('List view', 'dakabrand'); ?></span>
+                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/icons/list-ul-alt-svgrepo-com.svg'); ?>" alt="" aria-hidden="true">
+                </button>
+            </div>
+        </div>
         <label class="catalog-sort">
             <span><?php esc_html_e('Sort by', 'dakabrand'); ?></span>
             <select data-catalog-sort>

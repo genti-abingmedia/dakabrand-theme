@@ -72,6 +72,53 @@ function staticbridge_is_woman_request(): bool
     return isset($wp->request) && 'woman' === trim((string) $wp->request, '/');
 }
 
+/**
+ * Identify a department from the current product category or product's category
+ * ancestry. This keeps the header department state intact beyond campaign pages.
+ */
+function staticbridge_is_department_context(string $department): bool
+{
+    $department = sanitize_title($department);
+
+    if ('man' === $department && staticbridge_is_man_request()) {
+        return true;
+    }
+
+    if ('woman' === $department && staticbridge_is_woman_request()) {
+        return true;
+    }
+
+    if (!taxonomy_exists('product_cat')) {
+        return false;
+    }
+
+    $term_ids = array();
+
+    if (is_tax('product_cat')) {
+        $term = get_queried_object();
+        if ($term instanceof WP_Term) {
+            $term_ids[] = (int) $term->term_id;
+        }
+    } elseif (is_singular('product')) {
+        $terms = get_the_terms(get_queried_object_id(), 'product_cat');
+        if (is_array($terms)) {
+            $term_ids = wp_list_pluck($terms, 'term_id');
+        }
+    }
+
+    foreach ($term_ids as $term_id) {
+        $candidate_ids = array_merge(array((int) $term_id), get_ancestors((int) $term_id, 'product_cat'));
+        foreach ($candidate_ids as $candidate_id) {
+            $candidate = get_term((int) $candidate_id, 'product_cat');
+            if ($candidate instanceof WP_Term && $department === $candidate->slug) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 function staticbridge_man_template(string $template): string
 {
     if (!staticbridge_is_man_request()) {
