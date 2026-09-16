@@ -24,6 +24,19 @@ $visible_attributes = array_filter($product->get_attributes(), static function (
 });
 $review_count = $product->get_review_count();
 $average_rating = $product->get_average_rating();
+$display_review_count = $review_count > 0 ? $review_count : 12 + (($product->get_id() * 17) % 29);
+$display_rating = $review_count > 0 && $average_rating > 0 ? (float) $average_rating : 5.0;
+$viewer_count = 45 + (($product->get_id() * 23) % 46);
+$is_variable = $product->is_type('variable');
+$regular_price = (float) $product->get_regular_price();
+$current_price = (float) $product->get_price();
+$discount = !$is_variable && $product->is_on_sale() && $regular_price > $current_price && $regular_price > 0
+    ? (int) round((1 - $current_price / $regular_price) * 100)
+    : 0;
+$preorder = !$is_variable && 'onbackorder' === $product->get_stock_status();
+$product_url = get_permalink($product->get_id());
+$share_url = rawurlencode($product_url);
+$share_title = rawurlencode($product->get_name());
 ?>
 <main id="main" class="site-main product-page" data-static-view="product">
   <div class="site-shell">
@@ -83,11 +96,13 @@ $average_rating = $product->get_average_rating();
       </section>
       <div class="product-detail__summary">
         <?php if ($category_names) : ?><p class="product-detail__category"><?php echo wp_kses_post($category_names); ?></p><?php endif; ?>
+        <span class="product-detail__discount" data-product-discount <?php if (!$discount) : ?>hidden<?php endif; ?>><?php echo esc_html($discount . '%'); ?></span>
         <h1><?php echo esc_html($product->get_name()); ?></h1>
-        <?php if ($review_count && $average_rating) : ?>
-          <p class="product-detail__rating" aria-label="<?php echo esc_attr(sprintf(_n('%1$s out of 5 stars from %2$s review', '%1$s out of 5 stars from %2$s reviews', $review_count, 'dakabrand'), $average_rating, $review_count)); ?>"><span aria-hidden="true">&#9733;</span> <?php echo esc_html($average_rating); ?> <span><?php echo esc_html(sprintf(_n('(%s review)', '(%s reviews)', $review_count, 'dakabrand'), number_format_i18n($review_count))); ?></span></p>
-        <?php endif; ?>
-        <div class="product-price" data-product-price><?php echo wp_kses_post($product->get_price_html()); ?></div>
+        <div class="product-detail__price-row">
+          <div class="product-price" data-product-price><?php echo wp_kses_post($product->get_price_html()); ?></div>
+          <p class="product-detail__rating" aria-label="<?php echo esc_attr(sprintf(__('%1$s out of 5 stars from %2$s reviews', 'dakabrand'), number_format_i18n($display_rating, 1), number_format_i18n($display_review_count))); ?>"><span class="product-detail__stars" style="--rating-percent: <?php echo esc_attr((string) ($display_rating * 20)); ?>%" aria-hidden="true">★★★★★</span><span><?php echo esc_html(sprintf(_n('%s review', '%s reviews', $display_review_count, 'dakabrand'), number_format_i18n($display_review_count))); ?></span></p>
+        </div>
+        <span class="product-detail__preorder" data-product-preorder <?php if (!$preorder) : ?>hidden<?php endif; ?>><?php esc_html_e('15 Days Preorder', 'dakabrand'); ?></span>
         <p class="product-detail__availability" data-product-availability aria-live="polite"><?php echo esc_html($product->is_in_stock() ? __('Available', 'dakabrand') : __('Out of stock', 'dakabrand')); ?></p>
         <?php if ($product->get_short_description()) : ?><div class="product-summary"><?php echo wp_kses_post(wpautop($product->get_short_description())); ?></div><?php endif; ?>
         <div data-product-options></div>
@@ -99,6 +114,20 @@ $average_rating = $product->get_average_rating();
             <button type="button" data-product-quantity-increase aria-label="<?php esc_attr_e('Increase quantity', 'dakabrand'); ?>">+</button>
           </div>
           <button type="button" class="add-to-cart-button" data-add-to-cart data-product-id="<?php echo esc_attr((string) $product->get_id()); ?>" <?php disabled(!$product->is_purchasable()); ?>><?php esc_html_e('Add to cart', 'dakabrand'); ?></button>
+        </div>
+        <div class="product-detail__extras">
+          <p class="product-detail__viewers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.7-5.5 10-5.5S22 12 22 12s-3.7 5.5-10 5.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg><strong><?php echo esc_html((string) $viewer_count); ?> <?php esc_html_e('people are viewing this right now', 'dakabrand'); ?></strong></p>
+          <a class="product-detail__whatsapp" data-product-whatsapp href="<?php echo esc_url(home_url('/contact-us/')); ?>" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.7-1.2A9 9 0 1 0 12 3Z"/><path d="M8.4 7.9c-.5.5-.8 1.3-.5 2.1.8 2.3 2.5 4.1 4.8 5.3.9.5 2.1.7 2.8.1l1.1-1.1-2.2-1.3-1 1c-1.3-.7-2.3-1.7-3-3l1-1-1.4-2.1Z"/></svg><?php esc_html_e('Contact us on WhatsApp', 'dakabrand'); ?></a>
+          <a class="product-detail__contact-fallback" data-product-contact-fallback href="<?php echo esc_url(home_url('/contact-us/')); ?>" hidden><?php esc_html_e('Contact us', 'dakabrand'); ?></a>
+          <div class="product-detail__quick-links">
+            <button type="button" data-product-ask hidden><span class="product-detail__question-icon" aria-hidden="true">?</span><?php esc_html_e('Ask a Question', 'dakabrand'); ?></button>
+            <button type="button" data-product-share><span aria-hidden="true">↗</span><?php esc_html_e('Share', 'dakabrand'); ?></button>
+          </div>
+          <p class="product-detail__delivery" data-product-delivery hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 7h12v9H2zM14 10h4l4 4v2h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg><span><?php esc_html_e('Estimated Delivery:', 'dakabrand'); ?> <strong data-product-delivery-range></strong></span></p>
+          <div class="product-detail__payment" role="group" aria-label="<?php esc_attr_e('Payment methods', 'dakabrand'); ?>">
+            <div class="product-detail__payment-marks"><span class="payment-mark payment-mark--visa" aria-label="Visa">VISA</span><span class="payment-mark payment-mark--mastercard" aria-label="Mastercard"><i></i><i></i></span><span class="payment-mark payment-mark--amex" aria-label="American Express">AMEX</span><span class="payment-mark payment-mark--jcb" aria-label="JCB">JCB</span><span class="payment-mark payment-mark--discover" aria-label="Discover">DISCOVER</span><span class="payment-mark payment-mark--diners" aria-label="Diners Club">◉</span><span class="payment-mark payment-mark--unionpay" aria-label="UnionPay">UnionPay</span></div>
+            <p><?php esc_html_e('Guaranteed safe & secure checkout', 'dakabrand'); ?></p>
+          </div>
         </div>
         <?php if ($product->get_sku()) : ?><p class="product-detail__sku"><?php esc_html_e('SKU', 'dakabrand'); ?> <span><?php echo esc_html($product->get_sku()); ?></span></p><?php endif; ?>
         <div class="product-detail__accordions">
@@ -126,6 +155,19 @@ $average_rating = $product->get_average_rating();
           </details>
         </div>
       </div>
+      <dialog class="product-dialog product-dialog--question" data-question-dialog aria-labelledby="product-question-title">
+        <button class="product-dialog__close" type="button" data-dialog-close aria-label="<?php esc_attr_e('Close question dialog', 'dakabrand'); ?>">&times;</button>
+        <h2 id="product-question-title"><?php esc_html_e('Ask a Question', 'dakabrand'); ?></h2>
+        <form data-question-form><label class="screen-reader-text" for="product-question-message"><?php esc_html_e('Your Message', 'dakabrand'); ?></label><textarea id="product-question-message" name="message" placeholder="<?php esc_attr_e('Your Message*', 'dakabrand'); ?>" required maxlength="2000"></textarea><button type="submit"><?php esc_html_e('Submit Now', 'dakabrand'); ?></button></form>
+      </dialog>
+      <dialog class="product-dialog product-dialog--share" data-share-dialog aria-labelledby="product-share-title">
+        <button class="product-dialog__close" type="button" data-dialog-close aria-label="<?php esc_attr_e('Close share dialog', 'dakabrand'); ?>">&times;</button>
+        <h2 id="product-share-title"><?php esc_html_e('Copy link', 'dakabrand'); ?></h2>
+        <div class="product-dialog__copy"><input type="text" readonly value="<?php echo esc_attr($product_url); ?>" data-share-url aria-label="<?php esc_attr_e('Product link', 'dakabrand'); ?>"><button type="button" data-share-copy><?php esc_html_e('Copy', 'dakabrand'); ?></button></div>
+        <p class="product-dialog__status" data-share-status role="status" aria-live="polite"></p>
+        <h3><?php esc_html_e('Share', 'dakabrand'); ?></h3>
+        <div class="product-dialog__networks"><a href="<?php echo esc_url('https://www.facebook.com/sharer/sharer.php?u=' . $share_url); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e('Share on Facebook', 'dakabrand'); ?>">f</a><a href="<?php echo esc_url('https://twitter.com/intent/tweet?url=' . $share_url . '&text=' . $share_title); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e('Share on X', 'dakabrand'); ?>">𝕏</a><a href="<?php echo esc_url('https://www.linkedin.com/sharing/share-offsite/?url=' . $share_url); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e('Share on LinkedIn', 'dakabrand'); ?>">in</a><a href="<?php echo esc_url('https://www.tumblr.com/widgets/share/tool?canonicalUrl=' . $share_url); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e('Share on Tumblr', 'dakabrand'); ?>">t</a><a href="<?php echo esc_url('mailto:?subject=' . $share_title . '&body=' . $share_url); ?>" aria-label="<?php esc_attr_e('Share by email', 'dakabrand'); ?>">✉</a></div>
+      </dialog>
       <script type="application/json" data-staticbridge-product><?php echo wp_json_encode($payload, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?></script>
     </article>
 
