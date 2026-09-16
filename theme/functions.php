@@ -160,9 +160,9 @@ function staticbridge_footer_information_fallback($args = array()): void
     ?>
     <ul class="footer-menu">
         <li><a href="<?php echo esc_url(home_url('/my-account/')); ?>"><?php esc_html_e('My Account', 'dakabrand'); ?></a></li>
-        <li><a href="<?php echo esc_url(home_url('/cart/')); ?>"><?php esc_html_e('My Cart', 'dakabrand'); ?></a></li>
+        <li><a href="<?php echo esc_url(home_url('/cart/')); ?>" data-cart-link><?php esc_html_e('My Cart', 'dakabrand'); ?></a></li>
         <li><a href="<?php echo esc_url(home_url('/wishlist/')); ?>"><?php esc_html_e('Wishlist', 'dakabrand'); ?></a></li>
-        <li><a href="<?php echo esc_url(home_url('/checkout/')); ?>"><?php esc_html_e('Checkout', 'dakabrand'); ?></a></li>
+        <li><a href="<?php echo esc_url(home_url('/shop/')); ?>"><?php esc_html_e('Shop', 'dakabrand'); ?></a></li>
     </ul>
     <?php
 }
@@ -173,6 +173,7 @@ function staticbridge_enqueue_assets(): void
     $bootstrap_js_path  = get_template_directory() . '/assets/vendor/bootstrap/bootstrap.bundle.min.js';
     $css_path = get_template_directory() . '/assets/css/main.css';
     $js_path  = get_template_directory() . '/assets/js/main.js';
+    $cart_js_path = get_template_directory() . '/assets/js/cart.js';
 
     wp_enqueue_style(
         'staticbridge-bootstrap',
@@ -204,6 +205,14 @@ function staticbridge_enqueue_assets(): void
         true
     );
 
+    wp_enqueue_script(
+        'staticbridge-cart',
+        get_template_directory_uri() . '/assets/js/cart.js',
+        array('staticbridge-main'),
+        file_exists($cart_js_path) ? (string) filemtime($cart_js_path) : STATICBRIDGE_THEME_VERSION,
+        true
+    );
+
     $is_catalog = 'product-archive' === get_query_var('staticbridge_view')
         || is_post_type_archive('product')
         || is_tax('product_cat')
@@ -228,10 +237,25 @@ function staticbridge_enqueue_assets(): void
         );
     }
 
+    $is_product = 'product' === get_query_var('staticbridge_view')
+        || (function_exists('is_product') && is_product());
+    if ($is_product) {
+        $product_js_path = get_template_directory() . '/assets/js/product.js';
+        wp_enqueue_script(
+            'staticbridge-product',
+            get_template_directory_uri() . '/assets/js/product.js',
+            array('staticbridge-cart'),
+            file_exists($product_js_path) ? (string) filemtime($product_js_path) : STATICBRIDGE_THEME_VERSION,
+            true
+        );
+    }
+
     wp_localize_script('staticbridge-main', 'StaticBridgeConfig', array(
         'renderApiVersion' => STATICBRIDGE_RENDER_API_VERSION,
         'apiBase'          => home_url('/api/'),
         'cartStorageKey'   => 'staticbridge_cart_v1',
+        'cartUrl'          => home_url('/cart/'),
+        'shopUrl'          => home_url('/shop/'),
         /**
          * The future proxy can provide an absolute or same-origin endpoint.
          * An empty value keeps the form visible but prevents false submissions.

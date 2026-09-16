@@ -44,8 +44,10 @@ The target contract is strict: theme PHP and browser JavaScript must not call
 WooCommerce functions, instantiate WooCommerce classes, or depend on WooCommerce
 template globals. A separate proxy/generator layer may use WooCommerce APIs. It
 must normalize the data and pass a stable, presentation-ready context to the
-theme. Cart mutations and other interactive commerce operations go through the
-proxy rather than WooCommerce browser endpoints.
+theme. The cart drawer is currently a browser-only exception: it stores
+provisional items in localStorage, does not reserve stock, and is not connected
+to WooCommerce checkout. A future proxy stock check can attach to its
+validation boundary; other interactive commerce operations require the proxy.
 
 The initial remote theme mirror is intentionally preserved unchanged. It
 currently uses `WC_Product`, `wc_get_product()`, WooCommerce product-loop helpers,
@@ -188,6 +190,7 @@ network responses are shown as accessible inline errors.
 ```bash
 find theme -name '*.php' -print0 | xargs -0 -n1 php -l
 python3 -m unittest -v tests/test_theme_ftp.py tests/test_theme_structure.py tests/test_local_wordpress.py
+node --test tests/test_cart.js
 python3 scripts/theme_ftp.py status
 ```
 

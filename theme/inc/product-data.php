@@ -10,8 +10,28 @@ if (!defined('ABSPATH')) {
 function staticbridge_product_data(WC_Product $product): array
 {
     $variations = array();
+    $options = array();
 
     if ($product->is_type('variable')) {
+        foreach ($product->get_variation_attributes() as $attribute_name => $values) {
+            $choices = array();
+            foreach ($values as $value) {
+                $label = (string) $value;
+                if (taxonomy_exists($attribute_name)) {
+                    $term = get_term_by('slug', $value, $attribute_name);
+                    if ($term instanceof WP_Term) {
+                        $label = $term->name;
+                    }
+                }
+                $choices[] = array('value' => (string) $value, 'label' => $label);
+            }
+            $options[] = array(
+                'key'     => wc_variation_attribute_name($attribute_name),
+                'label'   => wc_attribute_label($attribute_name),
+                'choices' => $choices,
+            );
+        }
+
         foreach ($product->get_children() as $variation_id) {
             $variation = wc_get_product($variation_id);
 
@@ -31,6 +51,10 @@ function staticbridge_product_data(WC_Product $product): array
 
     return array(
         'product_id'   => $product->get_id(),
+        'name'         => $product->get_name(),
+        'permalink'    => get_permalink($product->get_id()),
+        'image'        => wp_get_attachment_image_url($product->get_image_id(), 'woocommerce_thumbnail') ?: wc_placeholder_img_src(),
+        'currency'     => get_woocommerce_currency(),
         'slug'         => $product->get_slug(),
         'sku'          => $product->get_sku(),
         'type'         => $product->get_type(),
@@ -39,7 +63,7 @@ function staticbridge_product_data(WC_Product $product): array
         'sale_price'   => $product->get_sale_price(),
         'stock_status' => $product->get_stock_status(),
         'purchasable'  => $product->is_purchasable(),
+        'options'      => $options,
         'variations'   => $variations,
     );
 }
-

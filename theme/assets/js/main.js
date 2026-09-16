@@ -75,6 +75,47 @@
         window.addEventListener('scroll', update, { passive: true });
     }
 
+    function enhanceFashionNavigation() {
+        var navigation = document.querySelector('[data-fashion-navigation]');
+
+        if (!navigation) return;
+
+        var collections = Array.from(navigation.querySelectorAll('[data-fashion-collection]'));
+
+        function closeMegaMenus(collection) {
+            (collection ? [collection] : collections).forEach(function (item) {
+                item.querySelectorAll('[data-mega-panel], [data-mega-trigger]').forEach(function (element) {
+                    element.classList.remove('is-open', 'is-mega-active');
+                });
+            });
+        }
+
+        function openMegaMenu(collection, name) {
+            closeMegaMenus(collection);
+            collection.querySelectorAll('[data-mega-trigger="' + name + '"]').forEach(function (trigger) {
+                trigger.classList.add('is-mega-active');
+            });
+            collection.querySelectorAll('[data-mega-panel="' + name + '"]').forEach(function (panel) {
+                panel.classList.add('is-open');
+            });
+        }
+
+        collections.forEach(function (collection) {
+            collection.querySelectorAll('[data-mega-trigger]').forEach(function (trigger) {
+                var name = trigger.getAttribute('data-mega-trigger');
+                trigger.addEventListener('mouseenter', function () { openMegaMenu(collection, name); });
+                trigger.addEventListener('focus', function () { openMegaMenu(collection, name); });
+            });
+            collection.addEventListener('mouseleave', function () { closeMegaMenus(collection); });
+            collection.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    closeMegaMenus(collection);
+                    collection.querySelector('[data-mega-trigger]')?.focus();
+                }
+            });
+        });
+    }
+
     function enhanceSiteSearch() {
         var search = document.querySelector('[data-site-search]');
         if (!search) return;
@@ -232,6 +273,7 @@
 
     enhanceMobileNavigation();
     enhanceStickyHeader();
+    enhanceFashionNavigation();
     enhanceSiteSearch();
     enhanceNewsletter();
     enhanceMobileTabs();

@@ -43,4 +43,7 @@ $card_categories = wc_get_product_category_list($card_product->get_id(), ', ');
             <?php esc_html_e('Choose options', 'dakabrand'); ?>
         </a>
     <?php endif; ?>
+    <?php if ($card_product->is_type('simple')) : ?>
+        <script type="application/json" data-staticbridge-product><?php echo wp_json_encode(staticbridge_product_data($card_product), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?></script>
+    <?php endif; ?>
 </article>

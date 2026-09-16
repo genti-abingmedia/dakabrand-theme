@@ -43,6 +43,23 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("staticbridge_newsletter_endpoint", functions)
         self.assertIn("newsletterEndpoint", functions)
 
+    def test_cart_drawer_is_shared_and_product_data_supports_it(self) -> None:
+        header = self.read("header.php")
+        footer = self.read("footer.php")
+        functions = self.read("functions.php")
+        product_data = self.read("inc/product-data.php")
+        card = self.read("template-parts/components/product-card.php")
+
+        self.assertIn('data-cart-open', header)
+        self.assertIn('data-cart-drawer', footer)
+        self.assertIn('data-cart-items', footer)
+        self.assertIn('data-cart-subtotal', footer)
+        self.assertIn("'staticbridge-cart'", functions)
+        self.assertIn("'cartStorageKey'", functions)
+        self.assertIn("'options'", product_data)
+        self.assertIn("'currency'", product_data)
+        self.assertIn('data-staticbridge-product', card)
+
     def test_shell_has_no_minimog_or_elementor_runtime_dependency(self) -> None:
         shell = "\n".join((self.read("header.php"), self.read("footer.php"), self.read("functions.php")))
 

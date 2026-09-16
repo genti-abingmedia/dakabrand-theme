@@ -99,6 +99,21 @@ if (!defined('ABSPATH')) {
     <a href="<?php echo esc_url(home_url('/product-category/man/')); ?>" data-mobile-tab="man"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10" cy="10" r="5"/><path d="m14 6 6-4M16 2h4v4M10 15v7M7 19h6"/></svg><span><?php esc_html_e('Man', 'dakabrand'); ?></span></a>
     <a href="<?php echo esc_url(home_url('/cart/')); ?>" data-mobile-tab="cart" data-cart-link><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6L5 8ZM9 9V6a3 3 0 0 1 6 0v3"/></svg><span><?php esc_html_e('Cart', 'dakabrand'); ?></span><span class="cart-count" data-cart-count aria-live="polite">0</span></a>
 </nav>
+<aside class="offcanvas offcanvas-end cart-drawer" tabindex="-1" id="cart-drawer" aria-labelledby="cart-drawer-title" data-cart-drawer>
+    <div class="offcanvas-header cart-drawer__header">
+        <h2 class="offcanvas-title" id="cart-drawer-title"><?php esc_html_e('Your cart', 'dakabrand'); ?> <span data-cart-drawer-count></span></h2>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="<?php esc_attr_e('Close cart', 'dakabrand'); ?>"></button>
+    </div>
+    <div class="offcanvas-body cart-drawer__body">
+        <p class="cart-drawer__status" data-cart-status role="status" aria-live="polite" hidden></p>
+        <div data-cart-items></div>
+    </div>
+    <div class="cart-drawer__footer" data-cart-footer hidden>
+        <div class="cart-drawer__subtotal"><span><?php esc_html_e('Subtotal', 'dakabrand'); ?></span><strong data-cart-subtotal></strong></div>
+        <p><?php esc_html_e('Prices and availability are provisional. Items are not reserved.', 'dakabrand'); ?></p>
+        <button type="button" data-bs-dismiss="offcanvas"><?php esc_html_e('Continue shopping', 'dakabrand'); ?></button>
+    </div>
+</aside>
 <?php wp_footer(); ?>
 </body>
 </html>
