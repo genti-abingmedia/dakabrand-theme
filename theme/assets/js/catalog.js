@@ -148,7 +148,7 @@
         try {
             var url = new URL(value);
             if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
-            if (productLink && url.hostname !== 'dakabrand.uk' && url.hostname !== 'www.dakabrand.uk') return '';
+            if (productLink && !['dakabrand.uk', 'www.dakabrand.uk', 'static-daka.gliterindemo.com'].includes(url.hostname)) return '';
             return url.href;
         } catch (error) {
             return '';
