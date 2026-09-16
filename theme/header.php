@@ -62,12 +62,20 @@ if (!defined('ABSPATH')) {
             </div>
 
             <div class="site-header__actions">
-                <a class="header-action" href="<?php echo esc_url(home_url('/my-account/')); ?>" aria-label="<?php esc_attr_e('My account', 'dakabrand'); ?>">
+                <details class="site-search" data-site-search>
+                    <summary class="header-action" aria-label="<?php esc_attr_e('Search products', 'dakabrand'); ?>">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.7"/><path d="m16 16 5 5"/></svg>
+                    </summary>
+                    <form class="site-search__form" role="search" action="<?php echo esc_url(home_url('/shop/')); ?>" method="get">
+                        <label for="site-search-keyword"><?php esc_html_e('Search products', 'dakabrand'); ?></label>
+                        <div class="site-search__field">
+                            <input id="site-search-keyword" type="search" name="keyword" placeholder="<?php esc_attr_e('What are you looking for?', 'dakabrand'); ?>" required>
+                            <button type="submit"><?php esc_html_e('Search', 'dakabrand'); ?></button>
+                        </div>
+                    </form>
+                </details>
+                <a class="header-action header-account" href="<?php echo esc_url(home_url('/my-account/')); ?>" aria-label="<?php esc_attr_e('My account', 'dakabrand'); ?>">
                     <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-                </a>
-                <a class="header-action cart-link" href="<?php echo esc_url(home_url('/cart/')); ?>" aria-label="<?php esc_attr_e('Cart', 'dakabrand'); ?>" data-cart-link>
-                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6L5 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
-                    <span class="cart-count" data-cart-count aria-live="polite">0</span>
                 </a>
             </div>
         </div>

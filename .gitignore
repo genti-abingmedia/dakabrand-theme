@@ -5,4 +5,4 @@ __pycache__/
 *.py[cod]
 .ftp-tmp-*
 *.upload-*.tmp
-
+.DS_Store

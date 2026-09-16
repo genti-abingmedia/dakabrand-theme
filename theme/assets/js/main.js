@@ -75,6 +75,24 @@
         window.addEventListener('scroll', update, { passive: true });
     }
 
+    function enhanceSiteSearch() {
+        var search = document.querySelector('[data-site-search]');
+        if (!search) return;
+
+        search.addEventListener('toggle', function () {
+            if (search.open) search.querySelector('input[name="keyword"]').focus();
+        });
+        document.addEventListener('click', function (event) {
+            if (search.open && !search.contains(event.target)) search.open = false;
+        });
+        search.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                search.open = false;
+                search.querySelector('summary').focus();
+            }
+        });
+    }
+
     function setNewsletterStatus(status, message, isError) {
         status.textContent = message;
         status.classList.toggle('is-error', Boolean(isError));
@@ -214,6 +232,7 @@
 
     enhanceMobileNavigation();
     enhanceStickyHeader();
+    enhanceSiteSearch();
     enhanceNewsletter();
     enhanceMobileTabs();
     enhanceGatewaySwitcher();

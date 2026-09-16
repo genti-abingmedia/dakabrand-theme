@@ -204,6 +204,30 @@ function staticbridge_enqueue_assets(): void
         true
     );
 
+    $is_catalog = 'product-archive' === get_query_var('staticbridge_view')
+        || is_post_type_archive('product')
+        || is_tax('product_cat')
+        || (function_exists('is_shop') && is_shop());
+
+    if ($is_catalog) {
+        $catalog_css_path = get_template_directory() . '/assets/css/catalog.css';
+        $catalog_js_path = get_template_directory() . '/assets/js/catalog.js';
+
+        wp_enqueue_style(
+            'staticbridge-catalog',
+            get_template_directory_uri() . '/assets/css/catalog.css',
+            array('staticbridge-main'),
+            file_exists($catalog_css_path) ? (string) filemtime($catalog_css_path) : STATICBRIDGE_THEME_VERSION
+        );
+        wp_enqueue_script(
+            'staticbridge-catalog',
+            get_template_directory_uri() . '/assets/js/catalog.js',
+            array('staticbridge-main'),
+            file_exists($catalog_js_path) ? (string) filemtime($catalog_js_path) : STATICBRIDGE_THEME_VERSION,
+            true
+        );
+    }
+
     wp_localize_script('staticbridge-main', 'StaticBridgeConfig', array(
         'renderApiVersion' => STATICBRIDGE_RENDER_API_VERSION,
         'apiBase'          => home_url('/api/'),

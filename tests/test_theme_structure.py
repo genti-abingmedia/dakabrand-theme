@@ -26,10 +26,10 @@ class ThemeStructureTests(unittest.TestCase):
         for location in ("primary", "footer", "footer_information", "footer_services"):
             self.assertIn(f"'{location}'", functions)
 
-    def test_header_preserves_wordpress_and_cart_contracts(self) -> None:
+    def test_header_preserves_wordpress_and_navigation_contracts(self) -> None:
         header = self.read("header.php")
 
-        for contract in ("wp_head()", "wp_body_open()", "data-cart-link", "data-cart-count"):
+        for contract in ("wp_head()", "wp_body_open()"):
             self.assertIn(contract, header)
         self.assertIn('id="mobile-navigation"', header)
         self.assertIn("wp_nav_menu", header)

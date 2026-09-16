@@ -1,9 +1,9 @@
 # DakaBrand storefront theme
 
-This repository contains only the deployable DakaBrand WordPress theme and the
-tooling needed to compare it with the hosted copy. WordPress core, plugins,
-uploads, database data, generated pages, and infrastructure configuration do not
-belong in this repository.
+This repository contains the deployable DakaBrand WordPress theme, a disposable
+local WordPress/WooCommerce environment, and tooling to compare the theme with
+the hosted copy. WordPress core, plugins, uploads, database data, and generated
+pages remain outside version control in local Docker volumes.
 
 ## Architecture
 
@@ -61,7 +61,53 @@ tests/test_theme_ftp.py        local safety and classification tests
 .codex/theme-deploy.json       fixed local and remote theme boundaries
 backups/                       ignored local pull/deploy backups
 .env                           ignored FTPS credentials
+compose.yaml                   isolated local WordPress/WooCommerce stack
+scripts/local-wordpress.sh     local setup, lifecycle, WP-CLI, and smoke tests
 ```
+
+## Local WordPress environment
+
+Docker is the only prerequisite. The first setup downloads WordPress,
+MariaDB, WP-CLI, and WooCommerce, then activates this repository's theme and
+creates a small, idempotent demo catalog:
+
+```bash
+scripts/local-wordpress.sh setup
+```
+
+Open <http://localhost:8080> or <http://localhost:8080/wp-admin/>. The default
+local-only login is `admin` / `admin`. Override it, the email, or port when
+needed:
+
+```bash
+DAKABRAND_LOCAL_PORT=8081 \
+DAKABRAND_ADMIN_USER=developer \
+DAKABRAND_ADMIN_PASSWORD='choose-a-local-password' \
+scripts/local-wordpress.sh setup
+```
+
+Theme files are bind-mounted read-only into WordPress, so saving a file under
+`theme/` is immediately reflected in the browser without copying or uploading.
+WordPress and database state persist in Docker volumes.
+
+```bash
+scripts/local-wordpress.sh start
+scripts/local-wordpress.sh stop
+scripts/local-wordpress.sh status
+scripts/local-wordpress.sh logs
+scripts/local-wordpress.sh test
+scripts/local-wordpress.sh wp option get siteurl
+```
+
+To rebuild only the disposable local site from scratch, use the deliberately
+guarded reset command:
+
+```bash
+DAKABRAND_CONFIRM_RESET=yes scripts/local-wordpress.sh reset
+```
+
+The local workflow never invokes `scripts/theme_ftp.py`. FTP remains a separate,
+explicit publish step after local checks and visual review are complete.
 
 ## FTPS workflow
 
@@ -141,7 +187,7 @@ network responses are shown as accessible inline errors.
 
 ```bash
 find theme -name '*.php' -print0 | xargs -0 -n1 php -l
-python3 -m unittest -v tests/test_theme_ftp.py tests/test_theme_structure.py
+python3 -m unittest -v tests/test_theme_ftp.py tests/test_theme_structure.py tests/test_local_wordpress.py
 python3 scripts/theme_ftp.py status
 ```
 
