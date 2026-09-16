@@ -108,3 +108,53 @@ test('recently viewed excludes current product and stays hidden for first visit'
     assert.equal(list.children[0].children[0].href, '/other/');
     assert.deepEqual(JSON.parse(storage.staticbridge_recent_products_v1).map(item => item.id), [10, 11]);
 });
+
+test('variable product updates price, availability, and purchase state', () => {
+    const select = element();
+    select.dataset.optionKey = 'attribute_size';
+    select.value = '';
+    const price = element();
+    price.innerHTML = '$99–$119';
+    const availability = element();
+    const button = element();
+    const size40 = element();
+    size40.dataset = { optionGroup: 'attribute_size', optionValue: 'EU 40' };
+    const size42 = element();
+    size42.dataset = { optionGroup: 'attribute_size', optionValue: 'EU 42' };
+    const script = { textContent: JSON.stringify({
+        type: 'variable', options: [{ key: 'attribute_size', label: 'Size' }],
+        variations: [
+            { attributes: { attribute_size: 'EU 40' }, price_html: '$99', stock_status: 'instock', purchasable: true },
+            { attributes: { attribute_size: 'EU 42' }, price_html: '$119', stock_status: 'outofstock', purchasable: true }
+        ]
+    }) };
+    const detail = {
+        querySelector(selector) {
+            return ({ '[data-staticbridge-product]': script, '[data-product-price]': price,
+                '[data-product-availability]': availability, '[data-add-to-cart]': button })[selector];
+        },
+        querySelectorAll(selector) {
+            if (selector === '[data-option-key]') return [select];
+            if (selector === '[data-option-choice]') return [size40, size42];
+            return [];
+        }
+    };
+    run([], detail, null);
+    assert.equal(button.disabled, true);
+    assert.equal(button.textContent, 'Choose size');
+    assert.equal(size40.disabled, false);
+    assert.equal(size42.disabled, true);
+    select.value = 'EU 40';
+    select.handlers.change();
+    assert.equal(price.innerHTML, '$99');
+    assert.equal(button.disabled, false);
+    assert.equal(availability.textContent, 'Available');
+    assert.equal(size40.classList.contains('is-selected'), true);
+    select.value = 'EU 42';
+    select.handlers.change();
+    assert.equal(button.disabled, true);
+    assert.equal(availability.textContent, 'Out of stock');
+    select.value = '';
+    select.handlers.change();
+    assert.equal(price.innerHTML, '$99–$119');
+});

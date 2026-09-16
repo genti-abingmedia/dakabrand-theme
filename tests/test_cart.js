@@ -24,6 +24,16 @@ test('same variation and options merge, distinct options have distinct keys', ()
     assert.notEqual(cart.lineKey(red), cart.lineKey(simple));
 });
 
+test('requested product quantities are positive whole numbers for cart-line merging', () => {
+    assert.equal(cart.requestedQuantity(3), 3);
+    assert.equal(cart.requestedQuantity('2.8'), 2);
+    assert.equal(cart.requestedQuantity(0), 1);
+    assert.equal(cart.requestedQuantity('not-a-number'), 1);
+    const existing = { ...simple, quantity: 2 };
+    const requested = cart.requestedQuantity(3);
+    assert.equal(existing.quantity + requested, 5);
+});
+
 test('variation matching requires valid selections and permits WooCommerce wildcard values', () => {
     const product = {
         options: [

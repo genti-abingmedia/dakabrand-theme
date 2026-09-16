@@ -64,6 +64,11 @@
         }) || null;
     }
 
+    function requestedQuantity(value) {
+        var quantity = Math.floor(number(value));
+        return quantity > 0 ? quantity : 1;
+    }
+
     // Replace this one boundary with a live stock request when the API is available.
     // The caller passes the resulting total quantity, not just the increment.
     async function validateStock(item, requestedQuantity) {
@@ -76,7 +81,7 @@
 
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = { lineKey: lineKey, normalizeCart: normalizeCart, cartCount: cartCount, cartTotal: cartTotal,
-            findVariation: findVariation, validateStock: validateStock };
+            findVariation: findVariation, requestedQuantity: requestedQuantity, validateStock: validateStock };
         return;
     }
 
@@ -173,7 +178,7 @@
             Object.keys(item.labels).forEach(function (key) {
                 details.appendChild(element('span', 'cart-item__option', key + ': ' + item.labels[key]));
             });
-            details.appendChild(element('strong', 'cart-item__price', formatPrice(item.unitPrice * item.quantity, item.currency)));
+            details.appendChild(element('strong', 'cart-item__price', formatPrice(item.unitPrice, item.currency)));
 
             var controls = element('div', 'cart-item__controls');
             var minus = element('button', '', '−');
@@ -222,23 +227,72 @@
             var target = detail.querySelector('[data-product-options]');
             if (!product || product.type !== 'variable' || !target) return;
             (product.options || []).forEach(function (option) {
-                var label = element('label', 'product-option');
-                var title = element('span', '', option.label);
-                var select = element('select');
-                select.dataset.optionKey = option.key;
-                select.required = true;
-                var prompt = element('option', '', 'Choose ' + option.label);
-                prompt.value = '';
-                select.appendChild(prompt);
-                (option.choices || []).forEach(function (choice) {
-                    var item = element('option', '', choice.label);
-                    item.value = choice.value;
-                    select.appendChild(item);
-                });
-                label.append(title, select);
-                target.appendChild(label);
+                var normalizedLabel = String(option.label || '').toLowerCase();
+                var kind = /colou?r/.test(normalizedLabel) ? 'swatches' : /size/.test(normalizedLabel) ? 'tiles' : 'select';
+                var wrapper = element('fieldset', 'product-option product-option--' + kind);
+                var title = element('legend', '', option.label);
+                var field = element('input', 'product-option__value');
+                field.type = 'hidden';
+                field.dataset.optionKey = option.key;
+                field.value = '';
+                wrapper.append(title, field);
+
+                if (kind === 'select') {
+                    var select = element('select');
+                    select.setAttribute('aria-label', option.label);
+                    var prompt = element('option', '', 'Choose ' + option.label);
+                    prompt.value = '';
+                    select.appendChild(prompt);
+                    (option.choices || []).forEach(function (choice) {
+                        var item = element('option', '', choice.label);
+                        item.value = choice.value;
+                        select.appendChild(item);
+                    });
+                    select.addEventListener('change', function () {
+                        field.value = select.value;
+                        field.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                    wrapper.appendChild(select);
+                } else {
+                    var choices = element('div', 'product-option__choices');
+                    choices.setAttribute('role', 'group');
+                    choices.setAttribute('aria-label', option.label);
+                    (option.choices || []).forEach(function (choice) {
+                        var item = element('button', 'product-option__choice');
+                        item.type = 'button';
+                        item.dataset.optionChoice = '';
+                        item.dataset.optionGroup = option.key;
+                        item.dataset.optionValue = choice.value;
+                        item.setAttribute('aria-pressed', 'false');
+                        item.setAttribute('aria-label', option.label + ': ' + choice.label);
+                        if (kind === 'swatches') {
+                            item.classList.add('product-option__choice--swatch');
+                            item.style.setProperty('--swatch-color', swatchColor(choice.label));
+                            item.appendChild(element('span', 'screen-reader-text', choice.label));
+                        } else item.textContent = choice.label;
+                        item.addEventListener('click', function () {
+                            if (item.disabled) return;
+                            field.value = choice.value;
+                            field.dispatchEvent(new Event('change', { bubbles: true }));
+                        });
+                        choices.appendChild(item);
+                    });
+                    wrapper.appendChild(choices);
+                }
+                target.appendChild(wrapper);
             });
         });
+    }
+
+    function swatchColor(label) {
+        var key = String(label || '').toLowerCase().replace(/[^a-z]/g, '');
+        var colors = {
+            black: '#171717', white: '#f7f7f3', ivory: '#e8e2d4', cream: '#e8dfca',
+            beige: '#cbb99c', brown: '#76513a', tan: '#b78761', grey: '#929292', gray: '#929292',
+            red: '#ad2924', burgundy: '#632831', pink: '#d8a5ac', orange: '#c46a31', yellow: '#d8b643',
+            green: '#55725e', olive: '#747447', blue: '#536f91', navy: '#1d2a42', purple: '#76526e'
+        };
+        return colors[key] || '#d7d1c7';
     }
 
     function productMessage(button, message, isError) {
@@ -252,6 +306,11 @@
         }
         output.textContent = message;
         output.classList.toggle('is-error', Boolean(isError));
+    }
+
+    function productQuantity(container) {
+        var field = container.querySelector('[data-product-quantity]');
+        return requestedQuantity(field ? field.value : 1);
     }
 
     async function addProduct(button) {
@@ -309,16 +368,16 @@
             currency: String(product.currency || 'GBP'),
             stockStatus: String(stockSource.stock_status || ''),
             purchasable: stockSource.purchasable === true,
-            quantity: 1
+            quantity: productQuantity(container)
         };
 
         try {
             items = readCart();
             previous = items.find(function (entry) { return lineKey(entry) === lineKey(item); });
-            check = await validateStock(item, previous ? previous.quantity + 1 : 1);
+            check = await validateStock(item, previous ? previous.quantity + item.quantity : item.quantity);
             if (!check.ok) throw new Error(check.message);
             if (previous) {
-                previous.quantity += 1;
+                previous.quantity += item.quantity;
                 previous.unitPrice = item.unitPrice;
                 previous.stockStatus = item.stockStatus;
                 previous.purchasable = item.purchasable;

@@ -43,6 +43,7 @@ function staticbridge_product_data(WC_Product $product): array
                 'variation_id' => $variation->get_id(),
                 'attributes'   => $variation->get_variation_attributes(),
                 'price'        => $variation->get_price(),
+                'price_html'   => wp_kses_post($variation->get_price_html()),
                 'stock_status' => $variation->get_stock_status(),
                 'purchasable'  => $variation->is_purchasable(),
             );
