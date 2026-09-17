@@ -16,6 +16,12 @@ test('normalizes saved lines and computes count and subtotal after reload', () =
     assert.equal(cart.normalizeCart([{ ...simple, quantity: 0 }, null]).length, 0);
 });
 
+test('shared cart summary handles a single currency and mixed currencies', () => {
+    const usd = { ...simple, productId: 11, quantity: 2, unitPrice: 20 };
+    assert.deepEqual(cart.cartSummary([simple, usd]), { count: 3, total: 189, currency: 'USD' });
+    assert.deepEqual(cart.cartSummary([simple, { ...usd, currency: 'GBP' }]), { count: 3, total: 189, currency: null });
+});
+
 test('same variation and options merge, distinct options have distinct keys', () => {
     const red = { ...simple, productId: 20, variationId: 101, attributes: { attribute_pa_color: 'red' } };
     const blue = { ...red, attributes: { attribute_pa_color: 'blue' } };

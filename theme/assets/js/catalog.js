@@ -7,16 +7,18 @@
     var API = 'https://filter.gliterin.net/public/filter';
     var STOREFRONT = 'https://static-daka.gliterindemo.com';
     var VIEWS = {
-        large: { pageSize: 20 },
-        small: { pageSize: 25 },
+        large: { pageSize: 15 },
+        small: { pageSize: 20 },
+        dense: { pageSize: 25 },
         list: { pageSize: 10 }
     };
     var MAX_PAGE = 500;
+    var CATALOG_BATCH_SIZE = 500;
     var cache = new Map();
     var controller = null;
     var requestNumber = 0;
     var currentData = null;
-    var openFacets = new Set(['size', 'categories', 'brands']);
+    var openFacets = new Set(['size', 'categories', 'brands', 'price']);
     var drawerOpen = false;
     var drawerOpener = null;
     var nodes = {
@@ -55,7 +57,7 @@
 
     function catalogView(params) {
         var view = params.get('catalog_view');
-        return Object.prototype.hasOwnProperty.call(VIEWS, view) ? view : 'large';
+        return Object.prototype.hasOwnProperty.call(VIEWS, view) ? view : 'small';
     }
 
     function filtersAreHidden(params) {
@@ -68,15 +70,16 @@
         return url;
     }
 
-    function sourceUrl() {
+    function sourceUrl(page, limit) {
         var params = new URLSearchParams(window.location.search);
         var url = new URL(window.location.pathname, STOREFRONT);
         params.delete('limit');
         params.delete('catalog_view');
         params.delete('catalog_filters');
+        params.delete('price'); // The catalog applies price ranges after loading the products.
         if (!['price-asc', 'price-desc'].includes(params.get('orderby'))) params.delete('orderby');
-        params.set('page', String(pageNumber(params)));
-        params.set('limit', String(VIEWS[catalogView(new URLSearchParams(window.location.search))].pageSize));
+        params.set('page', String(page));
+        params.set('limit', String(limit));
         url.search = params.toString();
         return url.href;
     }
@@ -105,7 +108,7 @@
         nodes.viewButtons.forEach(function (button) {
             button.setAttribute('aria-pressed', String(button.dataset.catalogView === view));
         });
-        nodes.toggleFilters.setAttribute('aria-pressed', String(hidden));
+        nodes.toggleFilters.setAttribute('aria-pressed', String(!hidden));
         nodes.toggleFilters.title = hidden ? 'Show filters' : 'Hide filters';
         nodes.toggleFiltersLabel.textContent = nodes.toggleFilters.title;
     }
@@ -229,6 +232,31 @@
         }
     }
 
+    function selectedPriceRange(params) {
+        var value = params.get('price');
+        if (!value) return null;
+        var parts = value.split(',');
+        if (parts.length !== 2 || parts.some(function (part) { return !part.trim(); })) return null;
+        var low = Number(parts[0]);
+        var high = Number(parts[1]);
+        return Number.isFinite(low) && Number.isFinite(high) && low <= high ? [low, high] : null;
+    }
+
+    function productPrice(product, rules, includeOutOfStock) {
+        var pricing = displayPricing(product, rules, includeOutOfStock);
+        return pricing.sale || pricing.price;
+    }
+
+    function formatRangePrice(value, currency) {
+        try {
+            return new Intl.NumberFormat('en-GB', {
+                style: 'currency', currency: currency || 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 2
+            }).format(value);
+        } catch (error) {
+            return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(value);
+        }
+    }
+
     function makeCard(product, rules, includeOutOfStock, index, whatsappNumber) {
         var article = element('article', 'catalog-card');
         var href = validUrl(product.permalink, true);
@@ -312,43 +340,45 @@
         return options;
     }
 
-    function makePriceFacet(facet, container) {
-        var options = facet.options || {};
-        var minimum = number(options.min);
-        var maximum = number(options.max);
-        var form = element('form', 'catalog-price');
-        var fields = element('div', 'catalog-price__inputs');
-        var minInput = element('input');
-        var maxInput = element('input');
-        [minInput, maxInput].forEach(function (input) {
-            input.type = 'number';
-            input.min = String(minimum);
-            input.max = String(maximum);
-            input.step = 'any';
-            input.required = true;
-        });
-        minInput.value = String(number(options.selected_min ?? minimum));
-        maxInput.value = String(number(options.selected_max ?? maximum));
-        minInput.setAttribute('aria-label', 'Minimum price');
-        maxInput.setAttribute('aria-label', 'Maximum price');
-        fields.append(minInput, element('span', '', '–'), maxInput);
-        var apply = element('button', '', 'Apply');
-        apply.type = 'submit';
-        form.append(fields, apply);
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            var low = Number(minInput.value);
-            var high = Number(maxInput.value);
-            if (!Number.isFinite(low) || !Number.isFinite(high) || low < minimum || high > maximum || low > high) {
-                minInput.setCustomValidity('Choose a valid price range.');
-                minInput.reportValidity();
-                return;
-            }
-            minInput.setCustomValidity('');
-            updateParam(facet.slug, low === minimum && high === maximum ? '' : low + ',' + high, true);
-        });
-        minInput.addEventListener('input', function () { minInput.setCustomValidity(''); });
-        container.appendChild(form);
+    function makePriceFacet(facet, container, data, rules) {
+        var prices = (data.products || []).map(function (product) {
+            return productPrice(product, rules, Boolean(data.include_out_of_stock));
+        }).filter(Number.isFinite);
+        if (!prices.length) return;
+
+        var step = number((facet.options || {}).slider_step) || 1;
+        var minimum = prices.reduce(function (lowest, price) { return Math.min(lowest, price); }, Infinity);
+        var maximum = prices.reduce(function (highest, price) { return Math.max(highest, price); }, -Infinity);
+        var start = Math.floor(minimum / step) * step;
+        var width = Math.max(step, Math.ceil((maximum - start) / (3 * step)) * step);
+        var currency = (data.products || []).find(function (product) { return product.currency; });
+        currency = currency ? currency.currency : 'EUR';
+        var selected = new URLSearchParams(window.location.search).get(facet.slug);
+        var options = element('div', 'catalog-facet__options catalog-price');
+
+        for (var index = 0; index < 3; index += 1) {
+            var low = Number((start + index * width).toFixed(2));
+            if (index && low >= maximum) break;
+            var high = Number(Math.min(maximum, low + width).toFixed(2));
+            if (high === low) high = Number((low + step).toFixed(2));
+            var count = prices.filter(function (price) { return price >= low && price <= high; }).length;
+            if (!count) continue;
+            var value = low + ',' + high;
+            var label = element('label', 'catalog-facet__option');
+            var input = element('input');
+            input.type = 'checkbox';
+            input.name = facet.slug;
+            input.value = value;
+            input.checked = selected === value;
+            label.append(input,
+                element('span', '', formatRangePrice(low, currency) + ' – ' + formatRangePrice(high, currency)),
+                element('span', 'catalog-facet__count', '(' + count.toLocaleString('en-GB') + ')'));
+            input.addEventListener('change', function () {
+                updateParam(facet.slug, this.checked ? this.value : '', true);
+            });
+            options.appendChild(label);
+        }
+        container.appendChild(options);
     }
 
     function makeOptionFacet(facet, container) {
@@ -378,7 +408,7 @@
         container.appendChild(options);
     }
 
-    function renderFacets(data) {
+    function renderFacets(data, rules) {
         nodes.facets.replaceChildren();
         (data.filter || []).filter(function (facet) { return facet.show_in_filter && facet.slug; }).forEach(function (facet) {
             var details = element('details', 'catalog-facet' + (facet.display === 'box' ? ' catalog-facet--box' : ''));
@@ -389,7 +419,7 @@
                 if (details.open) openFacets.add(facet.slug);
                 else openFacets.delete(facet.slug);
             });
-            if (facet.display === 'range') makePriceFacet(facet, details);
+            if (facet.display === 'range') makePriceFacet(facet, details, data, rules);
             else makeOptionFacet(facet, details);
             nodes.facets.appendChild(details);
         });
@@ -496,14 +526,22 @@
         nodes.toolbar.hidden = false;
         updateDisplayControls();
         updateSortControl(params.get('orderby'));
-        var count = Math.max(0, number(data.count));
-        nodes.count.textContent = (count >= 10000 ? '10,000+' : count.toLocaleString('en-GB')) + (count === 1 ? ' product' : ' products');
-        renderFacets(data);
-        renderActive(data);
         var rules = Array.isArray(data.discount_rules) ? data.discount_rules.slice().sort(function (a, b) {
             return number(b.exclusive) - number(a.exclusive) || number(a.priority) - number(b.priority);
         }) : [];
-        var cards = (data.products || []).map(function (product, index) {
+        var range = selectedPriceRange(params);
+        var products = (data.products || []).filter(function (product) {
+            if (!range) return true;
+            var price = productPrice(product, rules, Boolean(data.include_out_of_stock));
+            return price >= range[0] && price <= range[1];
+        });
+        var count = products.length;
+        nodes.count.textContent = (count >= 10000 ? '10,000+' : count.toLocaleString('en-GB')) + (count === 1 ? ' product' : ' products');
+        renderFacets(data, rules);
+        renderActive(data);
+        var pageSize = VIEWS[catalogView(params)].pageSize;
+        var start = (pageNumber(params) - 1) * pageSize;
+        var cards = products.slice(start, start + pageSize).map(function (product, index) {
             return makeCard(product, rules, Boolean(data.include_out_of_stock), index, data.whatsapp_number);
         }).filter(Boolean);
         nodes.grid.replaceChildren.apply(nodes.grid, cards);
@@ -513,13 +551,28 @@
         else showStatus('No products found. Try removing a filter.', false, false);
     }
 
+    function fetchCatalogPage(page, limit, signal) {
+        return fetch(API + '?url=' + encodeURIComponent(sourceUrl(page, limit)), { signal: signal })
+            .then(function (response) {
+                if (!response.ok) throw new Error('Catalog request failed');
+                return response.json();
+            })
+            .then(function (payload) {
+                var data = payload && payload.result;
+                if (!data || !Array.isArray(data.products) || !Array.isArray(data.filter) || !Number.isFinite(Number(data.count))) {
+                    throw new Error('Invalid catalog response');
+                }
+                return data;
+            });
+    }
+
     function load(force) {
         var params = new URLSearchParams(window.location.search);
         if (params.has('page') && String(pageNumber(params)) !== params.get('page')) {
             params.set('page', String(pageNumber(params)));
             window.history.replaceState({}, '', browserUrl(params).href);
         }
-        var key = sourceUrl();
+        var key = sourceUrl(1, CATALOG_BATCH_SIZE);
         requestNumber += 1;
         var thisRequest = requestNumber;
         if (controller) controller.abort();
@@ -531,17 +584,24 @@
         nodes.grid.setAttribute('aria-busy', 'true');
         showStatus('Loading products…', true, false);
         controller = new AbortController();
-        fetch(API + '?url=' + encodeURIComponent(key), { signal: controller.signal })
-            .then(function (response) {
-                if (!response.ok) throw new Error('Catalog request failed');
-                return response.json();
-            })
-            .then(function (payload) {
-                if (thisRequest !== requestNumber) return;
-                var data = payload && payload.result;
-                if (!data || !Array.isArray(data.products) || !Array.isArray(data.filter) || !Number.isFinite(Number(data.count))) {
-                    throw new Error('Invalid catalog response');
+        var signal = controller.signal;
+        fetchCatalogPage(1, CATALOG_BATCH_SIZE, signal)
+            .then(function (data) {
+                var total = Math.max(0, number(data.count));
+                var batchSize = data.products.length;
+                if (!batchSize || batchSize >= total) return data;
+                var requests = [];
+                var pages = Math.min(MAX_PAGE, Math.ceil(total / batchSize));
+                for (var page = 2; page <= pages; page += 1) {
+                    requests.push(fetchCatalogPage(page, batchSize, signal));
                 }
+                return Promise.all(requests).then(function (batches) {
+                    batches.forEach(function (batch) { data.products.push.apply(data.products, batch.products); });
+                    return data;
+                });
+            })
+            .then(function (data) {
+                if (thisRequest !== requestNumber) return;
                 cache.set(key, data);
                 if (cache.size > 6) cache.delete(cache.keys().next().value);
                 render(data);
@@ -596,7 +656,7 @@
     });
     nodes.viewButtons.forEach(function (button) {
         button.addEventListener('click', function () {
-            updateParam('catalog_view', button.dataset.catalogView === 'large' ? '' : button.dataset.catalogView, true);
+            updateParam('catalog_view', button.dataset.catalogView === 'small' ? '' : button.dataset.catalogView, true);
         });
     });
     nodes.openFilters.addEventListener('click', function () { setDrawer(true); });

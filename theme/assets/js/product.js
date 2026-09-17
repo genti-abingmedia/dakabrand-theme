@@ -361,15 +361,26 @@
             var article = document.createElement('article');
             var link = document.createElement('a');
             var image = document.createElement('img');
-            var title = document.createElement('h3');
-            article.className = 'recent-product';
+            var category = document.createElement('p');
+            var title = document.createElement('h2');
+            var price = document.createElement('div');
+            article.className = 'product-card recent-product';
+            link.className = 'product-card__link';
             link.href = item.url;
             image.src = item.image;
             image.alt = '';
             image.loading = 'lazy';
+            category.className = 'product-card__category';
+            category.textContent = item.category || '';
             title.textContent = item.name;
-            link.append(image, title);
+            price.className = 'product-price';
+            price.setAttribute('data-product-price', '');
+            price.textContent = item.priceText || '';
+            link.append(image);
+            if (item.category) link.append(category);
+            link.append(title);
             article.appendChild(link);
+            if (item.priceText) article.appendChild(price);
             list.appendChild(article);
         });
         section.hidden = !list.children.length;
@@ -386,7 +397,14 @@
         var currentId = Number(product.product_id);
         var previous = readRecent().filter(function (item) { return item && item.id !== currentId; });
         renderRecent(section, previous);
-        recordRecent({ id: currentId, name: product.name, url: product.permalink, image: product.image });
+        recordRecent({
+            id: currentId,
+            name: product.name,
+            url: product.permalink,
+            image: product.image,
+            category: product.category,
+            priceText: product.price_text
+        });
     }
 
     document.querySelectorAll('[data-product-gallery]').forEach(function (gallery) {

@@ -54,11 +54,33 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn('data-cart-drawer', footer)
         self.assertIn('data-cart-items', footer)
         self.assertIn('data-cart-subtotal', footer)
+        self.assertIn("home_url('/checkout/')", footer)
         self.assertIn("'staticbridge-cart'", functions)
         self.assertIn("'cartStorageKey'", functions)
         self.assertIn("'options'", product_data)
         self.assertIn("'currency'", product_data)
         self.assertIn('data-staticbridge-product', card)
+
+    def test_cart_route_uses_a_localstorage_theme_view(self) -> None:
+        functions = self.read("functions.php")
+        render_api = self.read("inc/render-api.php")
+        route = self.read("page-cart.php")
+        view = self.read("template-parts/views/cart.php")
+
+        self.assertIn("staticbridge_is_cart_request", functions)
+        self.assertIn("staticbridge_cart_template", functions)
+        self.assertIn("get_theme_file_path('/page-cart.php')", functions)
+        self.assertIn("staticbridge_render_document('cart')", route)
+        self.assertIn("'cart'", render_api)
+        for target in (
+            'data-cart-page',
+            'data-cart-page-status',
+            'data-cart-page-items',
+            'data-cart-page-summary',
+            'data-cart-page-subtotal',
+        ):
+            self.assertIn(target, view)
+        self.assertIn("home_url('/checkout/')", view)
 
     def test_shell_has_no_minimog_or_elementor_runtime_dependency(self) -> None:
         shell = "\n".join((self.read("header.php"), self.read("footer.php"), self.read("functions.php")))

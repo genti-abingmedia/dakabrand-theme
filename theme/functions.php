@@ -73,6 +73,16 @@ function staticbridge_is_woman_request(): bool
 }
 
 /**
+ * The browser cart is deliberately independent of WooCommerce's server cart.
+ */
+function staticbridge_is_cart_request(): bool
+{
+    global $wp;
+
+    return isset($wp->request) && 'cart' === trim((string) $wp->request, '/');
+}
+
+/**
  * Identify a department from the current product category or product's category
  * ancestry. This keeps the header department state intact beyond campaign pages.
  */
@@ -86,6 +96,21 @@ function staticbridge_is_department_context(string $department): bool
 
     if ('woman' === $department && staticbridge_is_woman_request()) {
         return true;
+    }
+
+    /*
+     * Product-category URLs retain their department in the permalink. This
+     * fallback covers imported category terms whose parent relationship has
+     * not been preserved, while the ancestry check below remains the source
+     * of truth for normal WooCommerce category and product requests.
+     */
+    if (is_tax('product_cat') && isset($_SERVER['REQUEST_URI'])) {
+        $request_path = (string) wp_parse_url(wp_unslash($_SERVER['REQUEST_URI']), PHP_URL_PATH);
+        $department_path = '/product-category/' . $department;
+
+        if ($request_path === $department_path || 0 === strpos($request_path, $department_path . '/')) {
+            return true;
+        }
     }
 
     if (!taxonomy_exists('product_cat')) {
@@ -157,9 +182,28 @@ function staticbridge_woman_template(string $template): string
 }
 add_filter('template_include', 'staticbridge_woman_template', 99);
 
+function staticbridge_cart_template(string $template): string
+{
+    if (!staticbridge_is_cart_request()) {
+        return $template;
+    }
+
+    global $wp_query;
+
+    if ($wp_query instanceof WP_Query) {
+        $wp_query->is_404  = false;
+        $wp_query->is_page = true;
+    }
+
+    status_header(200);
+
+    return get_theme_file_path('/page-cart.php');
+}
+add_filter('template_include', 'staticbridge_cart_template', 99);
+
 function staticbridge_man_canonical_redirect($redirect_url)
 {
-    return staticbridge_is_man_request() || staticbridge_is_woman_request() ? false : $redirect_url;
+    return staticbridge_is_man_request() || staticbridge_is_woman_request() || staticbridge_is_cart_request() ? false : $redirect_url;
 }
 add_filter('redirect_canonical', 'staticbridge_man_canonical_redirect');
 
@@ -169,6 +213,8 @@ function staticbridge_man_document_title(array $title): array
         $title['title'] = __('Man', 'dakabrand');
     } elseif (staticbridge_is_woman_request()) {
         $title['title'] = __('Woman', 'dakabrand');
+    } elseif (staticbridge_is_cart_request()) {
+        $title['title'] = __('Cart', 'dakabrand');
     }
 
     return $title;

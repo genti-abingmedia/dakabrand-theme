@@ -174,7 +174,7 @@ $share_title = rawurlencode($product->get_name());
     <?php if ($related instanceof WP_Query && $related->have_posts()) : ?>
       <section class="product-recommendations" aria-labelledby="related-products-title">
         <div class="product-section__heading"><div><p class="product-section__eyebrow"><?php esc_html_e('Keep exploring', 'dakabrand'); ?></p><h2 id="related-products-title"><?php esc_html_e('Related products', 'dakabrand'); ?></h2></div></div>
-        <div class="product-grid product-recommendations__grid">
+        <div class="man-product-grid product-grid product-recommendations__grid">
           <?php while ($related->have_posts()) : $related->the_post(); get_template_part('template-parts/components/product-card'); endwhile; ?>
         </div>
       </section>
@@ -182,7 +182,7 @@ $share_title = rawurlencode($product->get_name());
     <?php endif; ?>
     <section class="product-recommendations product-recommendations--recent" data-recent-products hidden aria-labelledby="recent-products-title">
       <div class="product-section__heading"><div><p class="product-section__eyebrow"><?php esc_html_e('Continue browsing', 'dakabrand'); ?></p><h2 id="recent-products-title"><?php esc_html_e('Recently viewed', 'dakabrand'); ?></h2></div></div>
-      <div class="product-grid product-recommendations__grid" data-recent-products-list></div>
+      <div class="man-product-grid product-grid product-recommendations__grid" data-recent-products-list></div>
     </section>
   </div>
 </main>

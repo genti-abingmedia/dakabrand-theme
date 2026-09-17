@@ -11,6 +11,12 @@ function staticbridge_product_data(WC_Product $product): array
 {
     $variations = array();
     $options = array();
+    $plain_price = static function ($amount): string {
+        return html_entity_decode(wp_strip_all_tags(wc_price($amount)), ENT_QUOTES, get_bloginfo('charset'));
+    };
+    $minimum_price = $plain_price($product->is_type('variable') ? $product->get_variation_price('min', true) : $product->get_price());
+    $maximum_price = $product->is_type('variable') ? $plain_price($product->get_variation_price('max', true)) : $minimum_price;
+    $price_text = $minimum_price === $maximum_price ? $minimum_price : $minimum_price . ' – ' . $maximum_price;
 
     if ($product->is_type('variable')) {
         foreach ($product->get_variation_attributes() as $attribute_name => $values) {
@@ -57,6 +63,8 @@ function staticbridge_product_data(WC_Product $product): array
         'name'         => $product->get_name(),
         'permalink'    => get_permalink($product->get_id()),
         'image'        => wp_get_attachment_image_url($product->get_image_id(), 'woocommerce_thumbnail') ?: wc_placeholder_img_src(),
+        'category'     => wp_strip_all_tags(wc_get_product_category_list($product->get_id(), ', ')),
+        'price_text'   => $price_text,
         'currency'     => get_woocommerce_currency(),
         'slug'         => $product->get_slug(),
         'sku'          => $product->get_sku(),

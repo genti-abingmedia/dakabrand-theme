@@ -19,6 +19,7 @@ Supported views:
 - `front-page`
 - `man`
 - `woman`
+- `cart`
 - `index`
 - `page`
 - `product`
@@ -41,11 +42,13 @@ Frontend developers may change markup and design freely, but should preserve:
 
 ## Browser cart
 
-The cart drawer is shared by every view. `assets/js/cart.js` stores an array of
+The cart drawer is shared by every view, and `/cart/` is a theme-native
+localStorage-rendered page. `assets/js/cart.js` stores an array of
 cart lines under `staticbridge_cart_v1` in localStorage; each line has a product
 ID, optional variation ID and selected attributes, display data, unit price,
 currency, stock snapshot, and quantity. The header, mobile tab, and cart links
-open the drawer. It does not synchronize with WooCommerce or provide checkout.
+open the drawer. It does not synchronize with WooCommerce. The cart page's
+checkout link intentionally does not transfer its browser cart to WooCommerce.
 
 `validateStock(item, requestedQuantity)` in `cart.js` is the asynchronous
 boundary for a future live-stock API. Today it only checks the rendered

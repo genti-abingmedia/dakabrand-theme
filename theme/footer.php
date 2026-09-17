@@ -111,6 +111,7 @@ if (!defined('ABSPATH')) {
     <div class="cart-drawer__footer" data-cart-footer hidden>
         <div class="cart-drawer__subtotal"><span><?php esc_html_e('Subtotal', 'dakabrand'); ?></span><strong data-cart-subtotal></strong></div>
         <p><?php esc_html_e('Prices and availability are provisional. Items are not reserved.', 'dakabrand'); ?></p>
+        <a class="cart-drawer__checkout" href="<?php echo esc_url(home_url('/checkout/')); ?>"><?php esc_html_e('Proceed to checkout', 'dakabrand'); ?></a>
         <button type="button" data-bs-dismiss="offcanvas"><?php esc_html_e('Continue shopping', 'dakabrand'); ?></button>
     </div>
 </aside>
