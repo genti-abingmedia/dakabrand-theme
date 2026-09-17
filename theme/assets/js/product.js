@@ -1,7 +1,6 @@
 (function () {
     'use strict';
 
-    var storageKey = 'staticbridge_recent_products_v1';
     var contactApi = 'https://filter.gliterin.net/public/filter';
     var contactSource = 'https://static-daka.gliterindemo.com/shop/?page=1&limit=1';
 
@@ -338,75 +337,6 @@
         sync();
     }
 
-    function readRecent() {
-        try {
-            var entries = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            return Array.isArray(entries) ? entries : [];
-        } catch (error) { return []; }
-    }
-
-    function recordRecent(product) {
-        try {
-            var entries = readRecent().filter(function (item) { return item && item.id !== product.id; });
-            entries.unshift(product);
-            localStorage.setItem(storageKey, JSON.stringify(entries.slice(0, 8)));
-        } catch (error) { /* Storage can be disabled; the product page still works. */ }
-    }
-
-    function renderRecent(section, entries) {
-        var list = section.querySelector('[data-recent-products-list]');
-        if (!list) return;
-        entries.slice(0, 4).forEach(function (item) {
-            if (!item || !item.name || !item.url || !item.image) return;
-            var article = document.createElement('article');
-            var link = document.createElement('a');
-            var image = document.createElement('img');
-            var category = document.createElement('p');
-            var title = document.createElement('h2');
-            var price = document.createElement('div');
-            article.className = 'product-card recent-product';
-            link.className = 'product-card__link';
-            link.href = item.url;
-            image.src = item.image;
-            image.alt = '';
-            image.loading = 'lazy';
-            category.className = 'product-card__category';
-            category.textContent = item.category || '';
-            title.textContent = item.name;
-            price.className = 'product-price';
-            price.setAttribute('data-product-price', '');
-            price.textContent = item.priceText || '';
-            link.append(image);
-            if (item.category) link.append(category);
-            link.append(title);
-            article.appendChild(link);
-            if (item.priceText) article.appendChild(price);
-            list.appendChild(article);
-        });
-        section.hidden = !list.children.length;
-    }
-
-    function enhanceRecent() {
-        var detail = document.querySelector('.product-detail');
-        var section = document.querySelector('[data-recent-products]');
-        var script = detail && detail.querySelector('[data-staticbridge-product]');
-        var product;
-        if (!section || !script) return;
-        try { product = JSON.parse(script.textContent); } catch (error) { return; }
-        if (!product || !product.product_id || !product.permalink) return;
-        var currentId = Number(product.product_id);
-        var previous = readRecent().filter(function (item) { return item && item.id !== currentId; });
-        renderRecent(section, previous);
-        recordRecent({
-            id: currentId,
-            name: product.name,
-            url: product.permalink,
-            image: product.image,
-            category: product.category,
-            priceText: product.price_text
-        });
-    }
-
     document.querySelectorAll('[data-product-gallery]').forEach(function (gallery) {
         enhanceGallery(gallery);
         enhanceLightbox(gallery);
@@ -418,5 +348,4 @@
         enhancePurchaseDetails(detail);
         enhanceProductActions(detail);
     }
-    enhanceRecent();
 }());

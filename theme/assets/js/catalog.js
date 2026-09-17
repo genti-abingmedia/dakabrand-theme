@@ -2,10 +2,11 @@
     'use strict';
 
     var root = document.querySelector('[data-catalog]');
-    if (!root) return;
+    var rails = document.querySelectorAll('[data-product-grid][data-catalog-source]');
+    if (!root && !rails.length) return;
 
     var API = 'https://filter.gliterin.net/public/filter';
-    var STOREFRONT = 'https://static-daka.gliterindemo.com';
+    var STOREFRONT = (window.StaticBridgeConfig || {}).catalogSourceOrigin || 'https://static-daka.gliterindemo.com';
     var VIEWS = {
         large: { pageSize: 15 },
         small: { pageSize: 20 },
@@ -21,7 +22,7 @@
     var openFacets = new Set(['size', 'categories', 'brands', 'price']);
     var drawerOpen = false;
     var drawerOpener = null;
-    var nodes = {
+    var nodes = root ? {
         heading: root.querySelector('[data-catalog-heading]'),
         toolbar: root.querySelector('[data-catalog-toolbar]'),
         count: root.querySelector('[data-catalog-count]'),
@@ -41,7 +42,7 @@
         status: root.querySelector('[data-catalog-status]'),
         grid: root.querySelector('[data-catalog-grid]'),
         pagination: root.querySelector('[data-catalog-pagination]')
-    };
+    } : null;
 
     function element(tag, className, value) {
         var node = document.createElement(tag);
@@ -151,7 +152,13 @@
         try {
             var url = new URL(value);
             if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
-            if (productLink && !['dakabrand.uk', 'www.dakabrand.uk', 'static-daka.gliterindemo.com'].includes(url.hostname)) return '';
+            if (productLink) {
+                var source = new URL(STOREFRONT);
+                if (![window.location.hostname, source.hostname, 'dakabrand.uk', 'www.dakabrand.uk'].includes(url.hostname)) return '';
+                if (url.hostname === source.hostname && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+                    url = new URL(url.pathname + url.search + url.hash, window.location.origin);
+                }
+            }
             return url.href;
         } catch (error) {
             return '';
@@ -329,6 +336,96 @@
         }
         article.appendChild(details);
         return article;
+    }
+
+    function makeRailCard(product, rules, includeOutOfStock) {
+        var href = validUrl(product.permalink, true);
+        if (!href) return null;
+        var card = element('article', 'product-card');
+        var link = element('a', 'product-card__link');
+        var imageUrl = validUrl(product.product_image, false);
+        var price = displayPricing(product, rules, includeOutOfStock);
+        var stock = (product.stock_status && product.stock_status.values) || [];
+        var purchasable = product.type === 'simple' && (product.is_in_stock === true || stock.includes('onbackorder')) &&
+            (stock.includes('instock') || stock.includes('onbackorder'));
+        var category = ((product.taxonomies || {}).categories || [])[0];
+        card.dataset.productCard = '';
+        card.dataset.productId = String(product.id);
+        card.dataset.productType = String(product.type || '');
+        link.href = href;
+        if (imageUrl) {
+            var image = element('img');
+            image.src = imageUrl;
+            image.alt = String(product.name || '');
+            image.width = 300;
+            image.height = 300;
+            image.loading = 'lazy';
+            link.appendChild(image);
+        }
+        if (category) link.appendChild(element('p', 'product-card__category', category.name || category.label || ''));
+        link.appendChild(element('h2', '', product.name || 'Product'));
+        card.appendChild(link);
+        if (price.price > 0) {
+            var priceNode = element('div', 'product-price');
+            if (price.sale) {
+                priceNode.appendChild(element('s', '', formatPrice(price.price, product.currency)));
+                priceNode.appendChild(element('strong', '', formatPrice(price.sale, product.currency)));
+            } else priceNode.textContent = formatPrice(price.price, product.currency);
+            card.appendChild(priceNode);
+        }
+        if (purchasable) {
+            var button = element('button', '', 'Add to cart');
+            button.type = 'button';
+            button.dataset.addToCart = '';
+            button.dataset.productId = String(product.id);
+            card.appendChild(button);
+            var payload = {
+                product_id: Number(product.id), name: String(product.name || 'Product'), permalink: href,
+                image: imageUrl, currency: String(product.currency || 'GBP'), type: 'simple',
+                price: price.sale || price.price, stock_status: stock.includes('onbackorder') ? 'onbackorder' : 'instock',
+                purchasable: true
+            };
+            var script = element('script');
+            script.type = 'application/json';
+            script.dataset.staticbridgeProduct = '';
+            script.textContent = JSON.stringify(payload);
+            card.appendChild(script);
+        } else {
+            var choose = element('a', '', product.type === 'variable' ? 'Choose options' : 'View product');
+            choose.href = href;
+            card.appendChild(choose);
+        }
+        return card;
+    }
+
+    function loadRail(grid) {
+        var status = grid.parentElement.querySelector('[data-catalog-rail-status]');
+        var limit = Math.max(1, Math.min(20, Number(grid.dataset.catalogLimit) || 10));
+        var excluded = Number(grid.dataset.catalogExclude) || 0;
+        var requested = new URL(grid.dataset.catalogSource, window.location.origin);
+        var source = new URL(requested.pathname + requested.search, STOREFRONT);
+        source.searchParams.set('page', '1');
+        source.searchParams.set('limit', String(limit + (excluded ? 1 : 0)));
+        grid.setAttribute('aria-busy', 'true');
+        fetch(API + '?url=' + encodeURIComponent(source.href))
+            .then(function (response) { if (!response.ok) throw new Error('Catalog request failed'); return response.json(); })
+            .then(function (payload) {
+                var data = payload && payload.result;
+                if (!data || !Array.isArray(data.products)) throw new Error('Invalid catalog response');
+                var rules = Array.isArray(data.discount_rules) ? data.discount_rules : [];
+                var cards = data.products.filter(function (product) { return Number(product.id) !== excluded; })
+                    .slice(0, limit).map(function (product) {
+                        return makeRailCard(product, rules, Boolean(data.include_out_of_stock));
+                    }).filter(Boolean);
+                grid.replaceChildren.apply(grid, cards);
+                status.textContent = cards.length ? '' : 'No products found.';
+                status.hidden = Boolean(cards.length);
+            })
+            .catch(function () {
+                status.textContent = 'We could not load products right now.';
+                status.hidden = false;
+            })
+            .finally(function () { grid.setAttribute('aria-busy', 'false'); });
     }
 
     function sortedOptions(facet) {
@@ -635,6 +732,9 @@
             if (drawerOpener && drawerOpener.focus) drawerOpener.focus();
         }
     }
+
+    rails.forEach(loadRail);
+    if (!root) return;
 
     nodes.sortTrigger.addEventListener('click', function () { setSortMenu(nodes.sortMenu.hidden); });
     nodes.sortOptions.forEach(function (option) {

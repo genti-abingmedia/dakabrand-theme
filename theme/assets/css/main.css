@@ -825,6 +825,58 @@ body.has-product-lightbox { overflow: hidden; }
 .cart-page__empty a { display: inline-block; }
 @media (max-width: 760px) { .cart-page__layout { grid-template-columns: 1fr; gap: 1.5rem; } .cart-page__summary { position: static; } }
 
+.checkout-page { padding-top: clamp(2.5rem,6vw,5.5rem); padding-bottom: clamp(4rem,8vw,7rem); }
+.checkout-page__header { margin-bottom: 2rem; padding-bottom: 1.35rem; border-bottom: 1px solid var(--brand-line); }
+.checkout-page__eyebrow { margin: 0 0 .35rem; color: var(--brand-muted); font-size: .75rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+.checkout-page__header h1 { margin: 0; font-size: clamp(2rem,4vw,3.2rem); font-weight: 500; }
+.checkout-page__header h1 span { color: var(--brand-muted); font-size: .9rem; font-weight: 400; vertical-align: middle; }
+.checkout-page__status { margin: 0 0 1.25rem; padding: .8rem 1rem; color: #285438; background: #eef7ef; font-size: .85rem; }
+.checkout-page__status.is-error { color: #8e1515; background: #fff0f0; }
+.checkout-page__layout { display: grid; grid-template-columns: minmax(0,1.22fr) minmax(19rem,.78fr); align-items: start; gap: clamp(2.5rem,5vw,5.5rem); }
+.checkout-form__section { margin-bottom: 2.25rem; }
+.checkout-form__section h2, .checkout-order h2 { margin: 0 0 1.15rem; font-size: 1.3rem; font-weight: 500; letter-spacing: -.02em; }
+.checkout-form__grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); column-gap: 1.25rem; row-gap: 1.4rem; }
+.checkout-form__grid p { margin: 0; }
+.checkout-form__grid label { display: block; margin-bottom: .5rem; font-size: .95rem; font-weight: 500; }
+.checkout-form__grid label span { color: var(--brand-red); }
+.checkout-form__grid input, .checkout-form__grid select { width: 100%; min-height: 2.9rem; padding: .7rem 1rem; background: #fff; border: 1px solid var(--brand-line); border-radius: .3rem; }
+.checkout-form__grid input::placeholder, .checkout-form__grid select:invalid { color: var(--brand-muted); }
+.checkout-form__grid input:focus, .checkout-form__grid select:focus { border-color: var(--brand-black); outline: 2px solid transparent; }
+.checkout-form__wide { grid-column: 1 / -1; }
+.checkout-form__section--payment { margin: 2.5rem 0 0; padding: 0; }
+.checkout-payment-methods { display: grid; gap: .65rem; margin: 0; padding: 0; border: 0; }
+.checkout-payment-method { display: flex; min-height: 3rem; align-items: center; gap: .65rem; padding: .7rem .8rem; border: 1px solid var(--brand-line); color: var(--brand-black); cursor: pointer; font-size: .9rem; transition: border-color .18s ease, background-color .18s ease; }
+.checkout-payment-method:hover { background: var(--brand-soft); }
+.checkout-payment-method:has(input:checked) { border-color: var(--brand-black); background: #fafafa; }
+.checkout-payment-method input { flex: 0 0 auto; width: 1rem; height: 1rem; margin: 0; accent-color: var(--brand-black); }
+.checkout-payment-method__western-union { margin-left: auto; padding: .17rem .34rem .14rem; color: #ffea00; background: #050505; font-size: .58rem; font-weight: 900; letter-spacing: .04em; line-height: .76; text-align: center; }
+.checkout-payment-note { margin: .8rem 0 0; color: var(--brand-muted); font-size: .83rem; line-height: 1.65; }
+.checkout-payment-methods:has(input[value="cod"]:checked) + .checkout-payment-note { display: none; }
+.checkout-form__submit { width: 100%; min-height: 3.1rem; margin-top: 2rem; padding: .9rem 1rem; color: #fff; background: var(--brand-black); border: 0; border-radius: .2rem; font-size: .9rem; font-weight: 500; text-transform: none; transition: transform .18s ease, background-color .18s ease; }
+.checkout-form__submit:hover, .checkout-form__submit:focus-visible { background: var(--brand-red); transform: translateY(-1px); }
+.checkout-form__submit:disabled { cursor: not-allowed; opacity: .5; }
+.checkout-shipping-rate { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 0; border-bottom: 1px solid var(--brand-line); font-size: .85rem; }
+.checkout-shipping-rate input { margin-right: .6rem; }
+.checkout-shipping-rate span { margin-left: auto; white-space: nowrap; }
+.checkout-order__total { padding-top: 1.15rem; font-size: 1rem; font-weight: 600; }
+.checkout-order__total strong { font-size: 1.35rem; font-weight: 500; }
+.checkout-confirmation { max-width: 40rem; margin: 2rem auto; padding: 3rem; text-align: center; background: var(--brand-soft); }
+.checkout-confirmation h2 { margin-top: 0; }
+.checkout-confirmation a { color: var(--brand-black); text-underline-offset: .2em; }
+.catalog-rail-status { margin: 1rem 0; color: var(--brand-muted); font-size: .85rem; }
+.checkout-order { position: sticky; top: 1.5rem; padding: 0; background: transparent; }
+.checkout-order .cart-item { gap: .75rem; padding: 1rem 0; }
+.checkout-order .cart-item__image { width: 4rem; height: 4.8rem; }
+.checkout-order__item { display: flex; justify-content: space-between; gap: 1rem; padding: 1rem 0; border-top: 1px solid var(--brand-line); font-size: .88rem; }
+.checkout-order__subtotal { display: flex; justify-content: space-between; gap: 1rem; padding: .9rem 0; border-top: 1px solid var(--brand-line); font-size: .92rem; }
+.checkout-order > p { margin: 1.25rem 0 .65rem; color: var(--brand-muted); font-size: .76rem; line-height: 1.5; }
+.checkout-order > a { color: var(--brand-black); font-size: .8rem; text-underline-offset: .2em; }
+.checkout-page__empty { grid-column: 1 / -1; padding: clamp(3rem,9vw,7rem) 1rem; text-align: center; background: var(--brand-soft); }
+.checkout-page__empty p { margin-bottom: 1.3rem; color: var(--brand-muted); }
+.checkout-page__empty a { display: inline-block; padding: .9rem 1.2rem; color: #fff; background: var(--brand-black); font-size: .8rem; text-decoration: none; text-transform: uppercase; }
+@media (max-width: 760px) { .checkout-page__layout { grid-template-columns: 1fr; gap: 1.5rem; } .checkout-order { position: static; } }
+@media (max-width: 480px) { .checkout-form__grid { grid-template-columns: 1fr; } .checkout-form__wide { grid-column: auto; } }
+
 .site-footer { margin-top: clamp(2rem,6vw,6rem); color: var(--brand-black); background: #fff; border-top: 1px solid var(--brand-line); }
 .footer-benefits { padding-block: clamp(1.75rem,4vw,3.5rem); border-bottom: 1px solid var(--brand-line); }
 .footer-benefits__grid { display: grid; grid-template-columns: repeat(4,1fr); gap: clamp(1.5rem,3vw,3rem); }

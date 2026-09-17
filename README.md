@@ -14,13 +14,11 @@ WordPress:
 User -> Cloudflare (CDN/WAF/cache) -> Nginx -> /static-pages/*.html
 ```
 
-Routes that require a live session remain dynamic:
+The generated cart and checkout pages call the same-origin proxy only for live
+stock and order operations:
 
 ```text
-User -> Cloudflare -> Nginx -> PHP-FPM -> WordPress/WooCommerce
-                                      -> /cart
-                                      -> /checkout
-                                      -> /my-account
+Browser -> Nginx /api/wc/store/v1/* -> WordPress/WooCommerce Store API
 ```
 
 Publishing product content follows this path:
@@ -40,14 +38,17 @@ they are outside this theme repository.
 
 ## Theme/proxy boundary
 
-The target contract is strict: theme PHP and browser JavaScript must not call
-WooCommerce functions, instantiate WooCommerce classes, or depend on WooCommerce
-template globals. A separate proxy/generator layer may use WooCommerce APIs. It
-must normalize the data and pass a stable, presentation-ready context to the
-theme. The cart drawer is currently a browser-only exception: it stores
-provisional items in localStorage, does not reserve stock, and is not connected
-to WooCommerce checkout. A future proxy stock check can attach to its
-validation boundary; other interactive commerce operations require the proxy.
+The cart stays in localStorage until checkout. A public Store API product lookup
+validates an add or quantity increase. Checkout uses a fresh Cart-Token to add
+the saved lines, calculate shipping and totals, and place a guest order through
+the cash-on-delivery gateway. The backend must proxy the Store API paths listed
+in `theme/README.md`, preserve Cart-Token headers, and disable caching of cart
+and checkout responses. The local Docker site uses the same-origin
+`/wp-json/` Store API route for development.
+
+The static generator must skip `/my-account/`, delete any older generated copy,
+and purge its CDN key. The theme blocks account links and direct account-page
+rendering; it cannot delete files owned by the external generator.
 
 The initial remote theme mirror is intentionally preserved unchanged. It
 currently uses `WC_Product`, `wc_get_product()`, WooCommerce product-loop helpers,

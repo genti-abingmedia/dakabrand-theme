@@ -93,24 +93,6 @@ test('single-image gallery leaves its static image unchanged', () => {
     assert.equal(g.main.src, undefined);
 });
 
-test('recently viewed excludes current product and stays hidden for first visit', () => {
-    const script = { textContent: JSON.stringify({ product_id: 10, name: 'Weekender', permalink: '/weekender/', image: '/weekender.jpg' }) };
-    const detail = { querySelector() { return script; } };
-    const list = element();
-    const section = { hidden: true, querySelector() { return list; } };
-    const storage = run([], detail, section);
-    assert.equal(section.hidden, true);
-    assert.equal(JSON.parse(storage.staticbridge_recent_products_v1).length, 1);
-
-    const other = { id: 11, name: 'Other bag', url: '/other/', image: '/other.jpg' };
-    storage.staticbridge_recent_products_v1 = JSON.stringify([other, { id: 10, name: 'Old', url: '/old/', image: '/old.jpg' }]);
-    run([], detail, section, storage);
-    assert.equal(section.hidden, false);
-    assert.equal(list.children.length, 1);
-    assert.equal(list.children[0].children[0].href, '/other/');
-    assert.deepEqual(JSON.parse(storage.staticbridge_recent_products_v1).map(item => item.id), [10, 11]);
-});
-
 test('variable product updates price, availability, and purchase state', () => {
     const select = element();
     select.dataset.optionKey = 'attribute_size';

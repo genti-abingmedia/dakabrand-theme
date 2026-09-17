@@ -10,6 +10,7 @@ define('STATICBRIDGE_BOOTSTRAP_VERSION', '5.3.8');
 
 require_once get_template_directory() . '/inc/render-api.php';
 require_once get_template_directory() . '/inc/product-data.php';
+require_once get_template_directory() . '/inc/remittance-gateway.php';
 
 function staticbridge_theme_setup(): void
 {
@@ -80,6 +81,21 @@ function staticbridge_is_cart_request(): bool
     global $wp;
 
     return isset($wp->request) && 'cart' === trim((string) $wp->request, '/');
+}
+
+function staticbridge_is_checkout_request(): bool
+{
+    global $wp;
+
+    if (isset($wp->request) && 'checkout' === trim((string) $wp->request, '/')) {
+        return true;
+    }
+
+    // Store owners can change the WooCommerce checkout page slug. Use the
+    // WooCommerce condition as a fallback so that page still receives this
+    // theme's local-storage checkout, but leave order-received pages alone.
+    return function_exists('is_checkout') && is_checkout()
+        && !(function_exists('is_order_received_page') && is_order_received_page());
 }
 
 /**
@@ -201,9 +217,39 @@ function staticbridge_cart_template(string $template): string
 }
 add_filter('template_include', 'staticbridge_cart_template', 99);
 
+function staticbridge_checkout_template(string $template): string
+{
+    if (!staticbridge_is_checkout_request()) {
+        return $template;
+    }
+
+    global $wp_query;
+
+    if ($wp_query instanceof WP_Query) {
+        $wp_query->is_404  = false;
+        $wp_query->is_page = true;
+    }
+
+    status_header(200);
+
+    return get_theme_file_path('/page-checkout.php');
+}
+add_filter('template_include', 'staticbridge_checkout_template', 99);
+
+/**
+ * WooCommerce redirects an empty server-side cart away from checkout before
+ * template selection. The browser cart is intentionally independent, so its
+ * checkout route must remain available even when WooCommerce has no session.
+ */
+function staticbridge_allow_empty_local_checkout(bool $redirect): bool
+{
+    return staticbridge_is_checkout_request() ? false : $redirect;
+}
+add_filter('woocommerce_checkout_redirect_empty_cart', 'staticbridge_allow_empty_local_checkout', 99);
+
 function staticbridge_man_canonical_redirect($redirect_url)
 {
-    return staticbridge_is_man_request() || staticbridge_is_woman_request() || staticbridge_is_cart_request() ? false : $redirect_url;
+    return staticbridge_is_man_request() || staticbridge_is_woman_request() || staticbridge_is_cart_request() || staticbridge_is_checkout_request() ? false : $redirect_url;
 }
 add_filter('redirect_canonical', 'staticbridge_man_canonical_redirect');
 
@@ -215,6 +261,8 @@ function staticbridge_man_document_title(array $title): array
         $title['title'] = __('Woman', 'dakabrand');
     } elseif (staticbridge_is_cart_request()) {
         $title['title'] = __('Cart', 'dakabrand');
+    } elseif (staticbridge_is_checkout_request()) {
+        $title['title'] = __('Checkout', 'dakabrand');
     }
 
     return $title;
@@ -252,13 +300,44 @@ function staticbridge_footer_information_fallback($args = array()): void
 {
     ?>
     <ul class="footer-menu">
-        <li><a href="<?php echo esc_url(home_url('/my-account/')); ?>"><?php esc_html_e('My Account', 'dakabrand'); ?></a></li>
         <li><a href="<?php echo esc_url(home_url('/cart/')); ?>" data-cart-link><?php esc_html_e('My Cart', 'dakabrand'); ?></a></li>
         <li><a href="<?php echo esc_url(home_url('/wishlist/')); ?>"><?php esc_html_e('Wishlist', 'dakabrand'); ?></a></li>
         <li><a href="<?php echo esc_url(home_url('/shop/')); ?>"><?php esc_html_e('Shop', 'dakabrand'); ?></a></li>
     </ul>
     <?php
 }
+
+/** Do not render account entry points from WordPress-managed storefront menus. */
+function staticbridge_hide_account_menu_items(array $items): array
+{
+    return array_values(array_filter($items, static function ($item): bool {
+        $path = (string) wp_parse_url((string) ($item->url ?? ''), PHP_URL_PATH);
+        $path = trim(strtolower($path), '/');
+        return !($path === 'my-account' || str_starts_with($path, 'my-account/') ||
+            in_array($path, array('login', 'register', 'wp-login.php', 'wp-register.php'), true));
+    }));
+}
+add_filter('wp_nav_menu_objects', 'staticbridge_hide_account_menu_items');
+
+function staticbridge_hide_account_page(): void
+{
+    if (!is_page('my-account')) {
+        return;
+    }
+    global $wp_query;
+    $wp_query->set_404();
+    status_header(404);
+    nocache_headers();
+}
+add_action('template_redirect', 'staticbridge_hide_account_page', 1);
+
+function staticbridge_disable_classic_checkout_script(): void
+{
+    if (staticbridge_is_checkout_request()) {
+        wp_dequeue_script('wc-checkout');
+    }
+}
+add_action('wp_enqueue_scripts', 'staticbridge_disable_classic_checkout_script', 100);
 
 function staticbridge_enqueue_assets(): void
 {
@@ -306,12 +385,17 @@ function staticbridge_enqueue_assets(): void
         true
     );
 
-    $is_catalog = 'product-archive' === get_query_var('staticbridge_view')
+    $view = get_query_var('staticbridge_view');
+    $is_catalog = 'product-archive' === $view
         || is_post_type_archive('product')
         || is_tax('product_cat')
         || (function_exists('is_shop') && is_shop());
 
-    if ($is_catalog) {
+    $has_catalog_grids = $is_catalog || in_array($view, array('man', 'woman', 'product'), true)
+        || staticbridge_is_man_request() || staticbridge_is_woman_request()
+        || (function_exists('is_product') && is_product());
+
+    if ($has_catalog_grids) {
         $catalog_css_path = get_template_directory() . '/assets/css/catalog.css';
         $catalog_js_path = get_template_directory() . '/assets/js/catalog.js';
 
@@ -343,9 +427,22 @@ function staticbridge_enqueue_assets(): void
         );
     }
 
+    if ('checkout' === $view || staticbridge_is_checkout_request()) {
+        $checkout_js_path = get_template_directory() . '/assets/js/checkout.js';
+        wp_enqueue_script(
+            'staticbridge-checkout',
+            get_template_directory_uri() . '/assets/js/checkout.js',
+            array('staticbridge-cart'),
+            file_exists($checkout_js_path) ? (string) filemtime($checkout_js_path) : STATICBRIDGE_THEME_VERSION,
+            true
+        );
+    }
+
     wp_localize_script('staticbridge-main', 'StaticBridgeConfig', array(
         'renderApiVersion' => STATICBRIDGE_RENDER_API_VERSION,
-        'apiBase'          => home_url('/api/'),
+        'apiBase'          => (string) apply_filters('staticbridge_api_base',
+            'local' === wp_get_environment_type() ? '/wp-json/' : '/api/'),
+        'catalogSourceOrigin' => (string) apply_filters('staticbridge_catalog_source_origin', 'https://static-daka.gliterindemo.com'),
         'cartStorageKey'   => 'staticbridge_cart_v1',
         'cartUrl'          => home_url('/cart/'),
         'shopUrl'          => home_url('/shop/'),

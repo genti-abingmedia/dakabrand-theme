@@ -12,11 +12,15 @@ if (!defined('ABSPATH')) {
  */
 function staticbridge_render_document(string $view, array $context = array()): void
 {
+    if ('page' === $view && is_page('my-account')) {
+        throw new InvalidArgumentException('The account page must not be published as static storefront HTML.');
+    }
     $allowed_views = array(
         'front-page',
         'man',
         'woman',
         'cart',
+        'checkout',
         'index',
         'page',
         'product',
@@ -53,11 +57,13 @@ function staticbridge_render_contract(): array
 {
     return array(
         'version' => STATICBRIDGE_RENDER_API_VERSION,
+        'excluded_paths' => array('/my-account/'),
         'views'   => array(
             'front_page'      => 'front-page',
             'man_page'        => 'man',
             'woman_page'      => 'woman',
             'cart_page'       => 'cart',
+            'checkout_page'   => 'checkout',
             'page'            => 'page',
             'product'         => 'product',
             'product_archive' => 'product-archive',

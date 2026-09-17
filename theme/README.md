@@ -20,6 +20,7 @@ Supported views:
 - `man`
 - `woman`
 - `cart`
+- `checkout`
 - `index`
 - `page`
 - `product`
@@ -47,17 +48,31 @@ localStorage-rendered page. `assets/js/cart.js` stores an array of
 cart lines under `staticbridge_cart_v1` in localStorage; each line has a product
 ID, optional variation ID and selected attributes, display data, unit price,
 currency, stock snapshot, and quantity. The header, mobile tab, and cart links
-open the drawer. It does not synchronize with WooCommerce. The cart page's
-checkout link intentionally does not transfer its browser cart to WooCommerce.
+open the drawer. `/checkout/` syncs the browser cart to a fresh WooCommerce
+Cart-Token, shows server shipping rates and totals, and places a guest cash-on-
+delivery order. The local cart is cleared only after a confirmed order.
 
-`validateStock(item, requestedQuantity)` in `cart.js` is the asynchronous
-boundary for a future live-stock API. Today it only checks the rendered
-purchasability and stock status; prices and availability shown in the drawer
-are provisional. The API-rendered catalog grid still links to product pages
-rather than offering quick add.
+`validateStock(item, requestedQuantity)` fetches the live Store API product or
+variation before adding or increasing a local line. The local price remains
+provisional; WooCommerce validates the complete cart at checkout. All shop,
+category, Man, Woman, and related-product grids load through the filter API;
+landing-page simple products retain quick add. Recently viewed is removed.
 
-Run `node --test tests/test_cart.js` from the repository root for cart logic
-checks. Browser storage must be available for cart changes to persist.
+The same-origin proxy must expose `GET /api/wc/store/v1/products/{id}`,
+`GET /api/wc/store/v1/cart`, and `POST` for `cart/add-item`,
+`cart/update-customer`, `cart/select-shipping-rate`, and `checkout`. Preserve
+`Cart-Token` request and response headers. Never cache cart or checkout
+responses. Enable the WooCommerce `cod` gateway. The theme defaults to `/api/`
+in production and `/wp-json/` in the local Docker environment. Override the
+base with `staticbridge_api_base` if needed. The filter source origin defaults
+to `https://static-daka.gliterindemo.com` and can be changed with
+`staticbridge_catalog_source_origin`.
+
+The generator must omit `/my-account/`, delete any previously generated static
+file for it, and purge its CDN key. Account links are suppressed in theme menus.
+
+Run `node --test tests/test_cart.js tests/test_checkout.js tests/test_product.js`
+from the repository root. Browser storage must be available for cart changes.
 
 ## Shared shell extensions
 
@@ -78,8 +93,8 @@ to work correctly.
 The `/man/` route uses `page-man.php` and the `man` render view. A guarded
 theme-level route also serves it on static/proxy installs that do not have a
 matching WordPress page row. Its campaign imagery is owned by the theme, while
-New In, Top Deals, and Limited Stock remain dynamic WooCommerce product queries.
+New In, Top Deals, and Limited Stock load from the filter API in `catalog.js`.
 
 The `/woman/` route follows the same theme-native campaign contract with
-Women-specific imagery, category links, and WooCommerce queries. The two
+Women-specific imagery, category links, and filter API grids. The two
 homepage campaign images lead to `/woman/` and `/man/` respectively.

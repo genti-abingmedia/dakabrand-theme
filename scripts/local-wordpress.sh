@@ -73,7 +73,7 @@ smoke_test() {
 
     local failed=0
     local path status
-    for path in / /man/ /woman/ /shop/ /cart/ /checkout/ /my-account/; do
+    for path in / /man/ /woman/ /shop/ /cart/ /checkout/; do
         status="$(curl --location --silent --output /dev/null --write-out '%{http_code}' "$LOCAL_URL$path")"
         if [[ "$status" == "200" ]]; then
             printf 'PASS  %s  %s\n' "$status" "$path"
@@ -82,6 +82,13 @@ smoke_test() {
             failed=1
         fi
     done
+    status="$(curl --location --silent --output /dev/null --write-out '%{http_code}' "$LOCAL_URL/my-account/")"
+    if [[ "$status" == "404" ]]; then
+        printf 'PASS  %s  %s\n' "$status" /my-account/
+    else
+        printf 'FAIL  %s  %s\n' "$status" /my-account/
+        failed=1
+    fi
 
     wp core verify-checksums
     wp plugin status woocommerce

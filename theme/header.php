@@ -142,9 +142,6 @@ if (!defined('ABSPATH')) {
                         </div>
                     </form>
                 </details>
-                <a class="header-action header-account" href="<?php echo esc_url(home_url('/my-account/')); ?>" aria-label="<?php esc_attr_e('My account', 'dakabrand'); ?>">
-                    <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-                </a>
             </div>
         </div>
     </div>
@@ -166,7 +163,6 @@ if (!defined('ABSPATH')) {
             'depth'          => 3,
         ));
         ?>
-        <a class="mobile-navigation__account" href="<?php echo esc_url(home_url('/my-account/')); ?>"><?php esc_html_e('My account', 'dakabrand'); ?></a>
     </div>
 </div>
 <?php endif; ?>

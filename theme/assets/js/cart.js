@@ -78,24 +78,49 @@
         return quantity > 0 ? quantity : 1;
     }
 
-    // Replace this one boundary with a live stock request when the API is available.
-    // The caller passes the resulting total quantity, not just the increment.
-    async function validateStock(item, requestedQuantity) {
-        if (!Number.isInteger(requestedQuantity) || requestedQuantity < 1 || !item.purchasable ||
-            (item.stockStatus !== 'instock' && item.stockStatus !== 'onbackorder')) {
+    function stockDecision(product, quantity) {
+        var limits = product && product.add_to_cart;
+        if (!product || product.is_purchasable !== true ||
+            (product.is_in_stock !== true && product.is_on_backorder !== true)) {
             return { ok: false, message: 'This item is currently unavailable.' };
+        }
+        if (!limits || !Number.isFinite(Number(limits.maximum)) ||
+            quantity < Number(limits.minimum || 1) || quantity > Number(limits.maximum) ||
+            quantity % Number(limits.multiple_of || 1) !== 0) {
+            return { ok: false, message: 'The requested quantity is not available.' };
         }
         return { ok: true };
     }
 
+    // Check the resulting line quantity against the live product or variation.
+    async function validateStock(item, requestedQuantity) {
+        if (!Number.isInteger(requestedQuantity) || requestedQuantity < 1) {
+            return { ok: false, message: 'Choose a valid quantity.' };
+        }
+        var id = Number(item.variationId) || Number(item.productId);
+        if (!Number.isInteger(id) || id < 1) return { ok: false, message: 'Product details are unavailable.' };
+        try {
+            var response = await fetch((config.apiBase || '/api/').replace(/\/?$/, '/') + 'wc/store/v1/products/' + id, {
+                cache: 'no-store', credentials: 'omit'
+            });
+            if (!response.ok) throw new Error('Product lookup failed');
+            var product = await response.json();
+            if (Number(product.id) !== id) throw new Error('Product lookup failed');
+            return stockDecision(product, requestedQuantity);
+        } catch (error) {
+            return { ok: false, message: 'Could not check live stock. Please try again.' };
+        }
+    }
+
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = { lineKey: lineKey, normalizeCart: normalizeCart, cartCount: cartCount, cartTotal: cartTotal, cartSummary: cartSummary,
-            findVariation: findVariation, requestedQuantity: requestedQuantity, validateStock: validateStock };
+            findVariation: findVariation, requestedQuantity: requestedQuantity, stockDecision: stockDecision, validateStock: validateStock };
         return;
     }
 
     var drawer = document.querySelector('[data-cart-drawer]');
     var page = document.querySelector('[data-cart-page]');
+    var checkout = document.querySelector('[data-checkout-page]');
     var surfaces = [];
     var busy = false;
 
@@ -120,6 +145,19 @@
             countNode: page.querySelector('[data-cart-page-count]'),
             statusNode: page.querySelector('[data-cart-page-status]'),
             emptyClass: 'cart-page__empty'
+        });
+    }
+
+    if (checkout) {
+        surfaces.push({
+            root: checkout,
+            itemsNode: checkout.querySelector('[data-checkout-page-items]'),
+            footerNode: checkout.querySelector('[data-checkout-page-summary]'),
+            subtotalNode: checkout.querySelector('[data-checkout-page-subtotal]'),
+            countNode: checkout.querySelector('[data-checkout-page-count]'),
+            statusNode: checkout.querySelector('[data-checkout-page-status]'),
+            formNode: checkout.querySelector('[data-checkout-form]'),
+            emptyClass: 'checkout-page__empty'
         });
     }
 
@@ -227,6 +265,7 @@
         surface.itemsNode.replaceChildren();
         if (surface.countNode) surface.countNode.textContent = '(' + summary.count + ')';
         if (surface.footerNode) surface.footerNode.hidden = !items.length;
+        if (surface.formNode) surface.formNode.hidden = !items.length;
 
         if (!items.length) {
             var empty = element('div', surface.emptyClass);
@@ -500,6 +539,8 @@
             setStatus(error.message, true);
         }
     });
+
+    document.addEventListener('staticbridge:cart-cleared', function () { writeCart([]); });
 
     renderProductOptions();
     try { renderCart(readCart()); } catch (error) { renderCart([]); setStatus(error.message, true); }

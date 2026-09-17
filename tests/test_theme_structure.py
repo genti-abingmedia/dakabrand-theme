@@ -82,6 +82,29 @@ class ThemeStructureTests(unittest.TestCase):
             self.assertIn(target, view)
         self.assertIn("home_url('/checkout/')", view)
 
+    def test_checkout_route_uses_a_localstorage_theme_view(self) -> None:
+        functions = self.read("functions.php")
+        render_api = self.read("inc/render-api.php")
+        route = self.read("page-checkout.php")
+        view = self.read("template-parts/views/checkout.php")
+
+        self.assertIn("staticbridge_is_checkout_request", functions)
+        self.assertIn("staticbridge_checkout_template", functions)
+        self.assertIn("staticbridge_allow_empty_local_checkout", functions)
+        self.assertIn("get_theme_file_path('/page-checkout.php')", functions)
+        self.assertIn("staticbridge_render_document('checkout')", route)
+        self.assertIn("'checkout'", render_api)
+        for target in (
+            'data-checkout-page',
+            'data-checkout-form',
+            'data-checkout-page-items',
+            'data-checkout-page-summary',
+            'data-checkout-page-subtotal',
+        ):
+            self.assertIn(target, view)
+        self.assertIn('billing_name', view)
+        self.assertIn('billing_address_1', view)
+
     def test_shell_has_no_minimog_or_elementor_runtime_dependency(self) -> None:
         shell = "\n".join((self.read("header.php"), self.read("footer.php"), self.read("functions.php")))
 
@@ -125,7 +148,7 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("enhanceMobileTabs", script)
         self.assertIn("enhanceGatewaySwitcher", script)
 
-    def test_man_page_uses_theme_native_assets_and_product_queries(self) -> None:
+    def test_man_page_uses_theme_native_assets_and_api_grids(self) -> None:
         route = self.read("page-man.php")
         view = self.read("template-parts/views/man.php")
         render_api = self.read("inc/render-api.php")
@@ -149,23 +172,14 @@ class ThemeStructureTests(unittest.TestCase):
             self.assertIn(asset, view)
         for heading in ("New In", "Top Deals", "Limited Stock"):
             self.assertIn(heading, view)
-        for asset in (
-            "man-product-hermes-277.jpg",
-            "man-product-hermes-199.jpg",
-            "man-product-hermes-53.jpg",
-            "man-product-hermes-190.jpg",
-            "man-product-lv-550.jpg",
-        ):
-            self.assertTrue((THEME / "assets/images" / asset).is_file())
-            self.assertIn(asset, view)
-        self.assertIn("new WP_Query", view)
-        self.assertIn("get_template_part('template-parts/components/product-card')", view)
-        self.assertIn("data-catalog-fallback", view)
+        self.assertNotIn("new WP_Query", view)
+        self.assertIn("data-catalog-source", view)
+        self.assertIn("data-catalog-limit", view)
         self.assertIn("path === '/man'", script)
         self.assertNotIn("elementor", view.lower())
         self.assertNotIn("minimog", view.lower())
 
-    def test_woman_page_uses_theme_native_assets_and_product_queries(self) -> None:
+    def test_woman_page_uses_theme_native_assets_and_api_grids(self) -> None:
         route = self.read("page-woman.php")
         view = self.read("template-parts/views/woman.php")
         render_api = self.read("inc/render-api.php")
@@ -182,18 +196,13 @@ class ThemeStructureTests(unittest.TestCase):
             "woman-hero-mobile.jpg",
             "woman-editorial-primary.jpg",
             "woman-editorial-secondary.jpg",
-            "woman-product-bottega-174.jpg",
-            "woman-product-bottega-173.jpg",
-            "woman-product-bottega-172.jpg",
-            "woman-product-chanel-380.jpg",
-            "woman-product-bottega-171.jpg",
         ):
             self.assertTrue((THEME / "assets/images" / asset).is_file())
             self.assertIn(asset, view)
         for heading in ("New In", "Top Deals", "Limited Stock"):
             self.assertIn(heading, view)
-        self.assertIn("new WP_Query", view)
-        self.assertIn("data-catalog-fallback", view)
+        self.assertNotIn("new WP_Query", view)
+        self.assertIn("data-catalog-source", view)
         self.assertIn("path === '/woman'", script)
         self.assertNotIn("elementor", view.lower())
         self.assertNotIn("minimog", view.lower())
@@ -211,6 +220,23 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("text-align: center", styles)
         self.assertNotIn("Shop product", man_view)
         self.assertNotIn("Shop product", woman_view)
+
+    def test_checkout_and_account_storefront_contract(self) -> None:
+        header = self.read("header.php")
+        functions = self.read("functions.php")
+        render_api = self.read("inc/render-api.php")
+        product = self.read("template-parts/views/product.php")
+        checkout = self.read("template-parts/views/checkout.php")
+        self.assertNotIn("home_url('/my-account/')", header)
+        self.assertNotIn("home_url('/my-account/')", functions)
+        self.assertIn("staticbridge_hide_account_menu_items", functions)
+        self.assertIn("is_page('my-account')", render_api)
+        self.assertIn("'excluded_paths' => array('/my-account/')", render_api)
+        self.assertIn('data-catalog-source', product)
+        self.assertNotIn('data-recent-products', product)
+        self.assertIn('data-checkout-shipping-rates', checkout)
+        self.assertIn('data-checkout-order-total', checkout)
+        self.assertIn("'staticbridge-checkout'", functions)
 
 
 if __name__ == "__main__":

@@ -9,11 +9,8 @@ $payload = staticbridge_product_data($product);
 $image_ids = array_values(array_unique(array_filter(array_merge(array($product->get_image_id()), $product->get_gallery_image_ids()))));
 $categories = $product->get_category_ids();
 $category_names = wc_get_product_category_list($product->get_id(), ', ');
-$related = $categories ? new WP_Query(array(
-    'post_type' => 'product', 'post_status' => 'publish', 'posts_per_page' => 4,
-    'post__not_in' => array($product->get_id()), 'ignore_sticky_posts' => true,
-    'tax_query' => array(array('taxonomy' => 'product_cat', 'field' => 'term_id', 'terms' => $categories)),
-)) : null;
+$related_source = $categories ? get_term_link($categories[0], 'product_cat') : '';
+if (is_wp_error($related_source)) { $related_source = ''; }
 $policy_pages = array();
 foreach (array('shipping-policy', 'delivery', 'refund-policy', 'returns') as $slug) {
     $page = get_page_by_path($slug);
@@ -171,18 +168,12 @@ $share_title = rawurlencode($product->get_name());
       <script type="application/json" data-staticbridge-product><?php echo wp_json_encode($payload, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?></script>
     </article>
 
-    <?php if ($related instanceof WP_Query && $related->have_posts()) : ?>
+    <?php if ($related_source) : ?>
       <section class="product-recommendations" aria-labelledby="related-products-title">
         <div class="product-section__heading"><div><p class="product-section__eyebrow"><?php esc_html_e('Keep exploring', 'dakabrand'); ?></p><h2 id="related-products-title"><?php esc_html_e('Related products', 'dakabrand'); ?></h2></div></div>
-        <div class="man-product-grid product-grid product-recommendations__grid">
-          <?php while ($related->have_posts()) : $related->the_post(); get_template_part('template-parts/components/product-card'); endwhile; ?>
-        </div>
+        <div class="man-product-grid product-grid product-recommendations__grid" data-product-grid data-catalog-source="<?php echo esc_url($related_source); ?>" data-catalog-limit="4" data-catalog-exclude="<?php echo esc_attr((string) $product->get_id()); ?>" aria-busy="true"></div>
+        <p class="catalog-rail-status" role="status" data-catalog-rail-status><?php esc_html_e('Loading products…', 'dakabrand'); ?></p>
       </section>
-      <?php wp_reset_postdata(); ?>
     <?php endif; ?>
-    <section class="product-recommendations product-recommendations--recent" data-recent-products hidden aria-labelledby="recent-products-title">
-      <div class="product-section__heading"><div><p class="product-section__eyebrow"><?php esc_html_e('Continue browsing', 'dakabrand'); ?></p><h2 id="recent-products-title"><?php esc_html_e('Recently viewed', 'dakabrand'); ?></h2></div></div>
-      <div class="man-product-grid product-grid product-recommendations__grid" data-recent-products-list></div>
-    </section>
   </div>
 </main>

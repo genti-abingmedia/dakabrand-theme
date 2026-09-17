@@ -57,10 +57,34 @@ test('variation matching requires valid selections and permits WooCommerce wildc
     assert.equal(cart.findVariation(product, { attribute_pa_color: 'blue', attribute_pa_size: 'm' }).variation_id, 102);
 });
 
-test('stock check rejects unavailable items and accepts purchasable backorders', async () => {
-    assert.equal((await cart.validateStock(simple, 2)).ok, true);
-    assert.equal((await cart.validateStock({ ...simple, stockStatus: 'onbackorder' }, 1)).ok, true);
-    assert.equal((await cart.validateStock({ ...simple, stockStatus: 'outofstock' }, 1)).ok, false);
-    assert.equal((await cart.validateStock({ ...simple, purchasable: false }, 1)).ok, false);
-    assert.equal((await cart.validateStock(simple, 0)).ok, false);
+test('live stock lookup checks total quantity and selected variation', async () => {
+    const previousFetch = global.fetch;
+    const requests = [];
+    global.fetch = async (url, options) => {
+        requests.push({ url, options });
+        return { ok: true, json: async () => ({
+            id: 101, is_purchasable: true, is_in_stock: true,
+            add_to_cart: { minimum: 1, maximum: 2, multiple_of: 1 }
+        }) };
+    };
+    try {
+        const variation = { ...simple, variationId: 101 };
+        assert.equal((await cart.validateStock(variation, 2)).ok, true);
+        assert.equal((await cart.validateStock(variation, 3)).ok, false);
+        assert.equal(requests[0].url, '/api/wc/store/v1/products/101');
+        assert.equal(requests[0].options.cache, 'no-store');
+        assert.equal((await cart.validateStock(variation, 0)).ok, false);
+    } finally {
+        global.fetch = previousFetch;
+    }
+});
+
+test('stock check fails closed on sold-out and network failure, accepts backorders', async () => {
+    assert.equal(cart.stockDecision({ is_purchasable: false, is_in_stock: true, add_to_cart: { maximum: 4 } }, 1).ok, false);
+    assert.equal(cart.stockDecision({ is_purchasable: true, is_in_stock: false, is_on_backorder: false, add_to_cart: { maximum: 4 } }, 1).ok, false);
+    assert.equal(cart.stockDecision({ is_purchasable: true, is_in_stock: false, is_on_backorder: true, add_to_cart: { maximum: 4 } }, 1).ok, true);
+    const previousFetch = global.fetch;
+    global.fetch = async () => { throw new Error('offline'); };
+    try { assert.equal((await cart.validateStock(simple, 1)).ok, false); }
+    finally { global.fetch = previousFetch; }
 });
