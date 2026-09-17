@@ -48,6 +48,46 @@ function staticbridge_theme_setup(): void
 add_action('after_setup_theme', 'staticbridge_theme_setup');
 
 /**
+ * Return the permalink for a department's WordPress page.
+ *
+ * Keeping this lookup in one place means the campaign navigation continues to
+ * work when an editor changes the Woman or Man page permalink. The route is
+ * retained as a fallback for static/proxy installs where no page exists.
+ */
+function staticbridge_department_page_url(string $department): string
+{
+    static $urls = array();
+
+    $department = sanitize_title($department);
+    if (isset($urls[$department])) {
+        return $urls[$department];
+    }
+
+    $page = get_page_by_path($department, OBJECT, 'page');
+
+    // Editors commonly change a page slug while retaining its title. Use the
+    // title as a second lookup so those permalink changes need no code edit.
+    if (!$page instanceof WP_Post) {
+        foreach (get_pages(array('post_status' => 'publish')) as $candidate) {
+            if ($department === sanitize_title($candidate->post_title)) {
+                $page = $candidate;
+                break;
+            }
+        }
+    }
+
+    $fallback = home_url('/' . $department . '/');
+
+    if (!$page instanceof WP_Post || 'publish' !== $page->post_status) {
+        $urls[$department] = (string) apply_filters('staticbridge_department_page_url', $fallback, $department, null);
+        return $urls[$department];
+    }
+
+    $urls[$department] = (string) apply_filters('staticbridge_department_page_url', get_permalink($page), $department, $page);
+    return $urls[$department];
+}
+
+/**
  * The storefront gateway intentionally omits visible global navigation.
  * The explicit view check keeps generated front-page documents deterministic.
  */
@@ -280,8 +320,8 @@ function staticbridge_primary_menu_fallback($args): void
         : (!empty($args->menu_class) ? (string) $args->menu_class : 'site-navigation__menu');
     ?>
     <ul class="<?php echo esc_attr($menu_class); ?>">
-        <li><a href="<?php echo esc_url(home_url('/product-category/women/')); ?>"><?php esc_html_e('Women', 'dakabrand'); ?></a></li>
-        <li><a href="<?php echo esc_url(home_url('/product-category/man/')); ?>"><?php esc_html_e('Man', 'dakabrand'); ?></a></li>
+        <li><a href="<?php echo esc_url(staticbridge_department_page_url('woman')); ?>"><?php esc_html_e('Women', 'dakabrand'); ?></a></li>
+        <li><a href="<?php echo esc_url(staticbridge_department_page_url('man')); ?>"><?php esc_html_e('Man', 'dakabrand'); ?></a></li>
         <li><a href="<?php echo esc_url(home_url('/product-category/watches/')); ?>"><?php esc_html_e('Watches', 'dakabrand'); ?></a></li>
         <li><a href="<?php echo esc_url(home_url('/shop/?stock_status=onbackorder%3Aonbackorder')); ?>"><?php esc_html_e('15 Days Preorder', 'dakabrand'); ?></a></li>
         <li><a href="<?php echo esc_url(home_url('/product-category/women/clothing/bikini/')); ?>"><?php esc_html_e('Bikini', 'dakabrand'); ?></a></li>

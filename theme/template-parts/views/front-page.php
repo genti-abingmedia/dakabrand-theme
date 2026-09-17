@@ -8,7 +8,7 @@ $home_sections = array(
         'key'       => 'woman',
         'label'     => __('Woman', 'dakabrand'),
         'image'     => 'home-woman.jpg',
-        'landing'   => '/woman/',
+        'landing'   => staticbridge_department_page_url('woman'),
         'category'  => '/product-category/women/',
         'preorder'  => '/product-category/women/?stock_status=onbackorder%3Aonbackorder',
         'in_stock'  => '/product-category/women/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
@@ -18,7 +18,7 @@ $home_sections = array(
         'key'       => 'man',
         'label'     => __('Man', 'dakabrand'),
         'image'     => 'home-man.jpg',
-        'landing'   => '/man/',
+        'landing'   => staticbridge_department_page_url('man'),
         'category'  => '/product-category/man/',
         'preorder'  => '/product-category/man/?stock_status=onbackorder%3Aonbackorder',
         'in_stock'  => '/product-category/man/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
@@ -35,7 +35,7 @@ $home_sections = array(
 
     <?php foreach ($home_sections as $section) : ?>
         <section id="home-<?php echo esc_attr($section['key']); ?>" class="home-gateway__panel home-gateway__panel--<?php echo esc_attr($section['key']); ?>" aria-labelledby="home-<?php echo esc_attr($section['key']); ?>-title" data-gateway-panel>
-            <a class="home-gateway__image-link" href="<?php echo esc_url(home_url($section['landing'])); ?>" aria-label="<?php echo esc_attr(sprintf(__('Shop %s', 'dakabrand'), $section['label'])); ?>">
+            <a class="home-gateway__image-link" href="<?php echo esc_url($section['landing']); ?>" aria-label="<?php echo esc_attr(sprintf(__('Shop %s', 'dakabrand'), $section['label'])); ?>">
                 <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/' . $section['image']); ?>" alt="" width="1163" height="1236" fetchpriority="high">
             </a>
             <h2 class="screen-reader-text" id="home-<?php echo esc_attr($section['key']); ?>-title"><?php echo esc_html($section['label']); ?></h2>
