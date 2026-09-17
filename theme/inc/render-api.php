@@ -5,6 +5,46 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Resolve campaign pages before a static renderer falls back to the generic
+ * page view. Static generation calls staticbridge_render_document() directly,
+ * so WordPress's usual page-template hierarchy does not run there.
+ */
+function staticbridge_campaign_page_view(): ?string
+{
+    $page_id = (int) get_queried_object_id();
+    if ($page_id <= 0) {
+        return null;
+    }
+
+    $template_views = array(
+        'page-man.php'   => 'man',
+        'page-woman.php' => 'woman',
+    );
+    $template = ltrim(str_replace('\\', '/', (string) get_page_template_slug($page_id)), '/');
+
+    if (isset($template_views[$template])) {
+        return $template_views[$template];
+    }
+
+    // Preserve the theme-native routes for sites whose Man/Woman pages have
+    // not yet been assigned a template in the WordPress page editor.
+    $page = get_post($page_id);
+    if ($page instanceof WP_Post && 'page' === $page->post_type) {
+        $slug_views = array(
+            'man'   => 'man',
+            'woman' => 'woman',
+        );
+        $slug = sanitize_title($page->post_name);
+
+        if (isset($slug_views[$slug])) {
+            return $slug_views[$slug];
+        }
+    }
+
+    return null;
+}
+
+/**
  * Public contract used by both WordPress templates and the static generator.
  *
  * The generator is responsible for preparing the correct global $wp_query and
@@ -12,6 +52,13 @@ if (!defined('ABSPATH')) {
  */
 function staticbridge_render_document(string $view, array $context = array()): void
 {
+    if ('page' === $view) {
+        $campaign_view = staticbridge_campaign_page_view();
+        if (null !== $campaign_view) {
+            $view = $campaign_view;
+        }
+    }
+
     if ('page' === $view && is_page('my-account')) {
         throw new InvalidArgumentException('The account page must not be published as static storefront HTML.');
     }

@@ -125,9 +125,9 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertLess(front_page.index("'key'       => 'woman'"), front_page.index("'key'       => 'man'"))
         self.assertLess(front_page.index('href="#home-woman"'), front_page.index('href="#home-man"'))
         self.assertIn('href="#home-woman" aria-current="true"', front_page)
-        self.assertIn("'landing'   => '/woman/'", front_page)
-        self.assertIn("'landing'   => '/man/'", front_page)
-        self.assertIn("home_url($section['landing'])", front_page)
+        self.assertIn("'landing'   => staticbridge_department_page_url('woman')", front_page)
+        self.assertIn("'landing'   => staticbridge_department_page_url('man')", front_page)
+        self.assertIn("href=\"<?php echo esc_url($section['landing']); ?>\"", front_page)
         self.assertNotIn("WP_Query", front_page)
 
     def test_mobile_app_toolbar_remains_available_on_front_page(self) -> None:
@@ -156,6 +156,7 @@ class ThemeStructureTests(unittest.TestCase):
         script = self.read("assets/js/main.js")
 
         self.assertIn("staticbridge_render_document('man')", route)
+        self.assertIn("Template Name: Man", route)
         self.assertIn("'man_page'        => 'man'", render_api)
         self.assertIn("staticbridge_is_man_request", functions)
         self.assertIn("add_filter('template_include', 'staticbridge_man_template', 99)", functions)
@@ -176,6 +177,8 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("data-catalog-source", view)
         self.assertIn("data-catalog-limit", view)
         self.assertIn("path === '/man'", script)
+        self.assertIn("staticbridge_campaign_page_view", render_api)
+        self.assertIn("'page-man.php'   => 'man'", render_api)
         self.assertNotIn("elementor", view.lower())
         self.assertNotIn("minimog", view.lower())
 
@@ -187,6 +190,7 @@ class ThemeStructureTests(unittest.TestCase):
         script = self.read("assets/js/main.js")
 
         self.assertIn("staticbridge_render_document('woman')", route)
+        self.assertIn("Template Name: Woman", route)
         self.assertIn("'woman_page'      => 'woman'", render_api)
         self.assertIn("staticbridge_is_woman_request", functions)
         self.assertIn("add_filter('template_include', 'staticbridge_woman_template', 99)", functions)
@@ -204,6 +208,7 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertNotIn("new WP_Query", view)
         self.assertIn("data-catalog-source", view)
         self.assertIn("path === '/woman'", script)
+        self.assertIn("'page-woman.php' => 'woman'", render_api)
         self.assertNotIn("elementor", view.lower())
         self.assertNotIn("minimog", view.lower())
 
