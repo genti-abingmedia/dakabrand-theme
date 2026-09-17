@@ -146,6 +146,12 @@ function staticbridge_is_department_context(string $department): bool
 {
     $department = sanitize_title($department);
 
+    // Static generation renders the view directly and does not always populate
+    // $wp->request. The renderer sets this query var before loading the header.
+    if ($department === get_query_var('staticbridge_view')) {
+        return true;
+    }
+
     if ('man' === $department && staticbridge_is_man_request()) {
         return true;
     }

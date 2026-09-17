@@ -159,6 +159,7 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("Template Name: Man", route)
         self.assertIn("'man_page'        => 'man'", render_api)
         self.assertIn("staticbridge_is_man_request", functions)
+        self.assertIn("$department === get_query_var('staticbridge_view')", functions)
         self.assertIn("add_filter('template_include', 'staticbridge_man_template', 99)", functions)
         self.assertIn("add_filter('redirect_canonical', 'staticbridge_man_canonical_redirect')", functions)
         self.assertIn("status_header(200)", functions)
