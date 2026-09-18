@@ -238,6 +238,52 @@
         return option && option.value === 'remittance' ? 'staticbridge_remittance' : 'cod';
     }
 
+    function confirmationPaymentLabel() {
+        return selectedPaymentMethod() === 'staticbridge_remittance'
+            ? 'Western Union / MoneyGram / Ria'
+            : 'Cash on delivery';
+    }
+
+    function confirmationDeliveryLabel() {
+        var city = String(form.elements.billing_city.value || '').trim();
+        var country = countryField.options[countryField.selectedIndex];
+        var countryName = country ? country.textContent.trim() : '';
+        return [city, countryName].filter(Boolean).join(', ') || 'Delivery address confirmed';
+    }
+
+    function confirmationRow(label, value, modifier) {
+        var row = element('div', 'checkout-confirmation__total' + (modifier ? ' checkout-confirmation__total--' + modifier : ''));
+        row.append(element('span', '', label), element('strong', '', value));
+        return row;
+    }
+
+    function renderConfirmation(current) {
+        var confirmation = root.querySelector('[data-checkout-confirmation]');
+        var items = confirmation.querySelector('[data-checkout-confirmation-items]');
+        var totals = confirmation.querySelector('[data-checkout-confirmation-totals]');
+        var payment = confirmation.querySelector('[data-checkout-confirmation-payment]');
+        var delivery = confirmation.querySelector('[data-checkout-confirmation-delivery]');
+
+        items.replaceChildren();
+        (current.items || []).forEach(function (item) {
+            var row = element('div', 'checkout-confirmation__item');
+            var description = element('div', 'checkout-confirmation__item-description');
+            description.append(element('strong', '', item.name || 'Product'), element('span', '', 'Quantity ' + item.quantity));
+            row.append(description, element('strong', '', formatMinor(item.totals.line_total, current.totals)));
+            items.appendChild(row);
+        });
+
+        totals.replaceChildren();
+        totals.appendChild(confirmationRow('Subtotal', formatMinor(current.totals.total_items, current.totals)));
+        if (Number(current.totals.total_discount)) {
+            totals.appendChild(confirmationRow('Discount', '−' + formatMinor(current.totals.total_discount, current.totals), 'discount'));
+        }
+        totals.appendChild(confirmationRow(selectedShippingLabel(current) || 'Shipping', formatMinor(current.totals.total_shipping, current.totals)));
+        totals.appendChild(confirmationRow('Total', formatMinor(current.totals.total_price, current.totals), 'grand'));
+        payment.textContent = confirmationPaymentLabel();
+        delivery.textContent = confirmationDeliveryLabel();
+    }
+
     function renderShipping(current) {
         shippingNode.replaceChildren();
         if (!current.needs_shipping) {
@@ -443,6 +489,7 @@
             root.querySelector('.checkout-page__layout').hidden = true;
             root.querySelector('[data-checkout-confirmation-number]').textContent =
                 'Order number: ' + String(result.order_number || result.order_id);
+            renderConfirmation(cart);
             root.querySelector('[data-checkout-confirmation]').hidden = false;
             showStatus('', false);
         } catch (error) {

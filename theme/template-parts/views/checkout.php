@@ -81,9 +81,22 @@ foreach (WC()->countries->get_shipping_countries() as $country_code => $country_
         </aside>
     </div>
     <section class="checkout-confirmation" data-checkout-confirmation hidden role="status" aria-live="polite">
-        <h2><?php esc_html_e('Thank you for your order', 'dakabrand'); ?></h2>
-        <p data-checkout-confirmation-number></p>
-        <p><?php esc_html_e('We will contact you about delivery and cash on delivery payment.', 'dakabrand'); ?></p>
-        <a href="<?php echo esc_url(home_url('/shop/')); ?>"><?php esc_html_e('Continue shopping', 'dakabrand'); ?></a>
+        <div class="checkout-confirmation__mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" focusable="false"><circle cx="32" cy="32" r="30"/><path d="m19 33 8 8 18-19"/></svg>
+        </div>
+        <p class="checkout-confirmation__eyebrow"><?php esc_html_e('Order confirmed', 'dakabrand'); ?></p>
+        <h2><?php esc_html_e('Thank you for your order!', 'dakabrand'); ?></h2>
+        <p class="checkout-confirmation__message"><?php esc_html_e('Your order has been placed and will be processed as soon as possible.', 'dakabrand'); ?></p>
+        <p class="checkout-confirmation__number" data-checkout-confirmation-number></p>
+        <section class="checkout-confirmation__receipt" aria-labelledby="checkout-confirmation-details-title">
+            <div class="checkout-confirmation__receipt-heading"><h3 id="checkout-confirmation-details-title"><?php esc_html_e('Order details', 'dakabrand'); ?></h3><span><?php esc_html_e('Receipt', 'dakabrand'); ?></span></div>
+            <div class="checkout-confirmation__items" data-checkout-confirmation-items></div>
+            <div class="checkout-confirmation__totals" data-checkout-confirmation-totals></div>
+            <dl class="checkout-confirmation__meta">
+                <div><dt><?php esc_html_e('Payment', 'dakabrand'); ?></dt><dd data-checkout-confirmation-payment></dd></div>
+                <div><dt><?php esc_html_e('Delivery', 'dakabrand'); ?></dt><dd data-checkout-confirmation-delivery></dd></div>
+            </dl>
+        </section>
+        <a class="checkout-confirmation__cta" href="<?php echo esc_url(home_url('/shop/')); ?>"><?php esc_html_e('Continue shopping', 'dakabrand'); ?></a>
     </section>
 </main>
