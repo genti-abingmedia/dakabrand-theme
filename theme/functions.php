@@ -7,6 +7,156 @@ if (!defined('ABSPATH')) {
 define('STATICBRIDGE_THEME_VERSION', '0.2.0');
 define('STATICBRIDGE_RENDER_API_VERSION', '1.0');
 define('STATICBRIDGE_BOOTSTRAP_VERSION', '5.3.8');
+define('STATICBRIDGE_LANGUAGE_COOKIE', 'dakabrand_language');
+
+/**
+ * The storefront UI is available in English and Albanian without requiring a
+ * multilingual-content plugin. Content entered in WordPress remains shared.
+ */
+function staticbridge_supported_locales(): array
+{
+    return array('en_US', 'sq_AL');
+}
+
+function staticbridge_requested_locale(): string
+{
+    $requested = isset($_COOKIE[STATICBRIDGE_LANGUAGE_COOKIE])
+        ? sanitize_text_field(wp_unslash($_COOKIE[STATICBRIDGE_LANGUAGE_COOKIE]))
+        : 'en_US';
+
+    return in_array($requested, staticbridge_supported_locales(), true) ? $requested : 'en_US';
+}
+
+function staticbridge_preferred_locale(string $locale): string
+{
+    if (is_admin() && !wp_doing_ajax()) {
+        return $locale;
+    }
+
+    return staticbridge_requested_locale();
+}
+add_filter('locale', 'staticbridge_preferred_locale', 0);
+add_filter('determine_locale', 'staticbridge_preferred_locale', 0);
+
+function staticbridge_set_language_preference(): void
+{
+    check_admin_referer('staticbridge_set_language');
+
+    $locale = isset($_POST['language']) ? sanitize_text_field(wp_unslash($_POST['language'])) : 'en_US';
+    if (!in_array($locale, staticbridge_supported_locales(), true)) {
+        $locale = 'en_US';
+    }
+
+    setcookie(STATICBRIDGE_LANGUAGE_COOKIE, $locale, array(
+        'expires'  => time() + YEAR_IN_SECONDS,
+        'path'     => defined('COOKIEPATH') && COOKIEPATH ? COOKIEPATH : '/',
+        'domain'   => defined('COOKIE_DOMAIN') ? COOKIE_DOMAIN : '',
+        'secure'   => is_ssl(),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ));
+
+    $redirect = isset($_POST['redirect_to']) ? wp_unslash($_POST['redirect_to']) : home_url('/');
+    wp_safe_redirect(wp_validate_redirect($redirect, home_url('/')));
+    exit;
+}
+add_action('admin_post_staticbridge_set_language', 'staticbridge_set_language_preference');
+add_action('admin_post_nopriv_staticbridge_set_language', 'staticbridge_set_language_preference');
+
+function staticbridge_language_switcher(string $class_name = ''): string
+{
+    $current = staticbridge_requested_locale();
+    $redirect = (is_ssl() ? 'https://' : 'http://') . (string) ($_SERVER['HTTP_HOST'] ?? '') . (string) ($_SERVER['REQUEST_URI'] ?? '/');
+    $classes = trim('language-switcher ' . $class_name);
+
+    ob_start();
+    ?>
+    <form class="<?php echo esc_attr($classes); ?>" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post" aria-label="<?php esc_attr_e('Choose language', 'dakabrand'); ?>" data-language-switcher>
+        <input type="hidden" name="action" value="staticbridge_set_language">
+        <input type="hidden" name="redirect_to" value="<?php echo esc_url($redirect); ?>">
+        <?php wp_nonce_field('staticbridge_set_language'); ?>
+        <button type="submit" name="language" value="en_US"<?php echo 'en_US' === $current ? ' aria-current="true"' : ''; ?>>EN</button>
+        <span aria-hidden="true">/</span>
+        <button type="submit" name="language" value="sq_AL"<?php echo 'sq_AL' === $current ? ' aria-current="true"' : ''; ?>>SQ</button>
+    </form>
+    <?php
+
+    return (string) ob_get_clean();
+}
+
+function staticbridge_frontend_messages(): array
+{
+    return array(
+        'cartItem'              => __('%s items in cart', 'dakabrand'),
+        'toggleSubmenu'         => __('Toggle %s submenu', 'dakabrand'),
+        'remove'                => __('Remove', 'dakabrand'),
+        'removeFromCart'        => __('Remove %s from cart', 'dakabrand'),
+        'quantity'              => __('Quantity: %s', 'dakabrand'),
+        'decreaseQuantity'      => __('Decrease quantity of %s', 'dakabrand'),
+        'increaseQuantity'      => __('Increase quantity of %s', 'dakabrand'),
+        'emptyCart'             => __('Your cart is empty.', 'dakabrand'),
+        'exploreCollection'     => __('Explore the collection', 'dakabrand'),
+        'multipleCurrencies'    => __('Multiple currencies', 'dakabrand'),
+        'choose'                => __('Choose %s', 'dakabrand'),
+        'chooseOptions'         => __('Choose options', 'dakabrand'),
+        'available'             => __('Available', 'dakabrand'),
+        'addToCart'             => __('Add to cart', 'dakabrand'),
+        'unavailable'           => __('Unavailable', 'dakabrand'),
+        'outOfStock'            => __('Out of stock', 'dakabrand'),
+        'linkCopied'            => __('Link copied', 'dakabrand'),
+        'copyLinkFallback'      => __('Select and copy the link above', 'dakabrand'),
+        'showFilters'           => __('Show filters', 'dakabrand'),
+        'hideFilters'           => __('Hide filters', 'dakabrand'),
+        'tryAgain'              => __('Try again', 'dakabrand'),
+        'noProducts'            => __('No products found.', 'dakabrand'),
+        'catalogLoadError'      => __('We could not load products right now.', 'dakabrand'),
+        'resultsFor'            => __('Results for “%s”', 'dakabrand'),
+        'productsCount'         => __('%s products', 'dakabrand'),
+        'viewProduct'           => __('View product', 'dakabrand'),
+        'contactWhatsApp'       => __('Contact on WhatsApp', 'dakabrand'),
+        'thisProduct'           => __('this product', 'dakabrand'),
+        'productUnavailable'    => __('This item is currently unavailable.', 'dakabrand'),
+        'quantityUnavailable'   => __('The requested quantity is not available.', 'dakabrand'),
+        'validQuantity'         => __('Choose a valid quantity.', 'dakabrand'),
+        'productDetailsMissing' => __('Product details are unavailable.', 'dakabrand'),
+        'stockCheckFailed'      => __('Could not check live stock. Please try again.', 'dakabrand'),
+    );
+}
+
+/**
+ * WordPress 6.5+ can consume the accompanying .l10n.php catalogue. This
+ * lightweight fallback also keeps translations available on hosts that only
+ * load binary MO files from theme directories.
+ */
+function staticbridge_theme_gettext_fallback(string $translation, string $text, string $domain): string
+{
+    static $messages = null;
+
+    $woocommerce_messages = array(
+        'Great things are on the horizon' => 'Gjëra të mëdha po vijnë',
+        'Something big is brewing! Our store is in the works and will be launching soon!' => 'Diçka e madhe po përgatitet! Dyqani ynë është në përgatitje dhe do të hapet së shpejti!',
+    );
+
+    if ('sq_AL' !== staticbridge_requested_locale()) {
+        return $translation;
+    }
+
+    if ('woocommerce' === $domain && isset($woocommerce_messages[$text])) {
+        return $woocommerce_messages[$text];
+    }
+
+    if ('dakabrand' !== $domain) {
+        return $translation;
+    }
+
+    if (null === $messages) {
+        $catalogue = require get_template_directory() . '/languages/dakabrand-sq_AL.l10n.php';
+        $messages = is_array($catalogue['messages'] ?? null) ? $catalogue['messages'] : array();
+    }
+
+    return isset($messages[$text]) ? (string) $messages[$text] : $translation;
+}
+add_filter('gettext', 'staticbridge_theme_gettext_fallback', 10, 3);
 
 require_once get_template_directory() . '/inc/render-api.php';
 require_once get_template_directory() . '/inc/product-data.php';
@@ -630,6 +780,26 @@ function staticbridge_enqueue_assets(): void
         'cartStorageKey'   => 'staticbridge_cart_v1',
         'cartUrl'          => home_url('/cart/'),
         'shopUrl'          => home_url('/shop/'),
+        'locale'           => staticbridge_requested_locale(),
+        'messages'         => staticbridge_frontend_messages(),
+        'staticLabels'     => array(
+            'Clothing' => __('Clothing', 'dakabrand'), 'Shoes' => __('Shoes', 'dakabrand'),
+            'Accessories' => __('Accessories', 'dakabrand'), 'Boots' => __('Boots', 'dakabrand'),
+            'Preorder' => __('Preorder', 'dakabrand'), 'T-Shirts' => __('T-Shirts', 'dakabrand'),
+            'Jackets' => __('Jackets', 'dakabrand'), 'Jeans' => __('Jeans', 'dakabrand'),
+            'Outfits & Sets' => __('Outfits & Sets', 'dakabrand'), 'Pants' => __('Pants', 'dakabrand'),
+            'Dresses' => __('Dresses', 'dakabrand'), 'Shirts' => __('Shirts', 'dakabrand'),
+            'Swimwear' => __('Swimwear', 'dakabrand'), 'Bikini' => __('Bikini', 'dakabrand'),
+            'Sweatpants' => __('Sweatpants', 'dakabrand'), 'Body' => __('Body', 'dakabrand'),
+            'Sneakers' => __('Sneakers', 'dakabrand'), 'Loafers' => __('Loafers', 'dakabrand'),
+            'Slippers' => __('Slippers', 'dakabrand'), 'Bags' => __('Bags', 'dakabrand'),
+            'Belts' => __('Belts', 'dakabrand'), 'Watches' => __('Watches', 'dakabrand'),
+            'Sunglasses' => __('Sunglasses', 'dakabrand'), 'Hats' => __('Hats', 'dakabrand'),
+            'Scarves' => __('Scarves', 'dakabrand'), 'Jewelry' => __('Jewelry', 'dakabrand'),
+            'Hoodies' => __('Hoodies', 'dakabrand'), 'T-Shirt' => __('T-Shirt', 'dakabrand'),
+            'Track Suits' => __('Track Suits', 'dakabrand'), 'Wallets' => __('Wallets', 'dakabrand'),
+            'Luggage' => __('Luggage', 'dakabrand'),
+        ),
         /**
          * The future proxy can provide an absolute or same-origin endpoint.
          * An empty value keeps the form visible but prevents false submissions.

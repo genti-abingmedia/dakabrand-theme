@@ -28,6 +28,7 @@ $home_sections = array(
 ?>
 <main id="main" class="home-gateway" data-static-view="front-page">
     <h1 class="screen-reader-text"><?php echo esc_html(get_bloginfo('name')); ?></h1>
+    <?php echo staticbridge_language_switcher('language-switcher--gateway'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
     <nav class="home-gateway__mobile-switcher" aria-label="<?php esc_attr_e('Choose a collection', 'dakabrand'); ?>" data-gateway-switcher>
         <a href="#home-woman" aria-current="true"><?php esc_html_e('Woman', 'dakabrand'); ?></a>
         <a href="#home-man"><?php esc_html_e('Man', 'dakabrand'); ?></a>

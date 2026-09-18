@@ -34,6 +34,24 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn('id="mobile-navigation"', header)
         self.assertIn("wp_nav_menu", header)
 
+    def test_theme_has_cookie_backed_english_and_albanian_ui(self) -> None:
+        functions = self.read("functions.php")
+        header = self.read("header.php")
+        front_page = self.read("template-parts/views/front-page.php")
+        catalogue = self.read("languages/dakabrand-sq_AL.l10n.php")
+        source_catalogue = self.read("languages/dakabrand-sq_AL.po")
+
+        self.assertIn("STATICBRIDGE_LANGUAGE_COOKIE", functions)
+        self.assertIn("'en_US', 'sq_AL'", functions)
+        self.assertIn("admin_post_nopriv_staticbridge_set_language", functions)
+        self.assertIn("staticbridge_theme_gettext_fallback", functions)
+        self.assertIn("'locale'           => staticbridge_requested_locale()", functions)
+        self.assertIn("staticbridge_language_switcher", header)
+        self.assertIn("language-switcher--mobile", header)
+        self.assertIn("language-switcher--gateway", front_page)
+        self.assertIn("'Man' => 'Meshkuj'", catalogue)
+        self.assertIn('Language: sq_AL', source_catalogue)
+
     def test_footer_preserves_lifecycle_and_newsletter_contracts(self) -> None:
         footer = self.read("footer.php")
         functions = self.read("functions.php")

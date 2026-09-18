@@ -2,6 +2,16 @@
     'use strict';
 
     var config = window.StaticBridgeConfig || {};
+    var messages = config.messages || {};
+
+    function message(key, fallback) {
+        return messages[key] || fallback;
+    }
+
+    function format(template) {
+        var values = Array.prototype.slice.call(arguments, 1);
+        return String(template).replace(/%s/g, function () { return String(values.shift() || ''); });
+    }
 
     function cartQuantity(cart) {
         var items;
@@ -31,7 +41,7 @@
 
         document.querySelectorAll('[data-cart-count]').forEach(function (element) {
             element.textContent = String(count);
-            element.setAttribute('aria-label', count === 1 ? '1 item in cart' : count + ' items in cart');
+            element.setAttribute('aria-label', format(message('cartItem', '%s items in cart'), count));
         });
     }
 
@@ -51,7 +61,7 @@
             button.type = 'button';
             button.setAttribute('aria-expanded', 'false');
             button.setAttribute('aria-controls', submenu.id);
-            button.setAttribute('aria-label', 'Toggle ' + link.textContent.trim() + ' submenu');
+            button.setAttribute('aria-label', format(message('toggleSubmenu', 'Toggle %s submenu'), link.textContent.trim()));
             button.addEventListener('click', function () {
                 var isOpen = item.classList.toggle('is-open');
                 button.setAttribute('aria-expanded', String(isOpen));
@@ -159,6 +169,14 @@
                 saveDepartment(department);
                 setDepartment(department);
             });
+        });
+    }
+
+    function translateStaticLabels() {
+        var labels = config.staticLabels || {};
+        document.querySelectorAll('.fashion-mega-menu a').forEach(function (link) {
+            var source = link.textContent.trim();
+            if (Object.prototype.hasOwnProperty.call(labels, source)) link.textContent = labels[source];
         });
     }
 
@@ -319,6 +337,7 @@
 
     enhanceMobileNavigation();
     enhanceFashionNavigation();
+    translateStaticLabels();
     enhanceSiteSearch();
     enhanceNewsletter();
     enhanceMobileTabs();

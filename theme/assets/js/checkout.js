@@ -3,6 +3,7 @@
 
     var config = typeof window === 'undefined' ? {} : (window.StaticBridgeConfig || {});
     var storageKey = config.cartStorageKey || 'staticbridge_cart_v1';
+    var locale = String(config.locale || 'en-GB').replace('_', '-');
 
     function variationPayload(item) {
         return Object.keys(item.attributes || {}).sort().map(function (key) {
@@ -21,7 +22,7 @@
 
     function formatMinor(amount, totals) {
         var minorUnit = Number(totals.currency_minor_unit || 0);
-        return new Intl.NumberFormat('en-GB', {
+        return new Intl.NumberFormat(locale, {
             style: 'currency', currency: totals.currency_code || 'GBP',
             minimumFractionDigits: minorUnit, maximumFractionDigits: minorUnit
         }).format(Number(amount || 0) / Math.pow(10, minorUnit));

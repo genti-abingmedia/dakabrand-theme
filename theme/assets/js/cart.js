@@ -3,6 +3,14 @@
 
     var config = typeof window === 'undefined' ? {} : (window.StaticBridgeConfig || {});
     var storageKey = config.cartStorageKey || 'staticbridge_cart_v1';
+    var messages = config.messages || {};
+    var locale = String(config.locale || 'en-GB').replace('_', '-');
+
+    function message(key, fallback) { return messages[key] || fallback; }
+    function format(template) {
+        var values = Array.prototype.slice.call(arguments, 1);
+        return String(template).replace(/%s/g, function () { return String(values.shift() || ''); });
+    }
 
     function number(value) {
         var parsed = Number(value);
@@ -82,12 +90,12 @@
         var limits = product && product.add_to_cart;
         if (!product || product.is_purchasable !== true ||
             (product.is_in_stock !== true && product.is_on_backorder !== true)) {
-            return { ok: false, message: 'This item is currently unavailable.' };
+            return { ok: false, message: message('productUnavailable', 'This item is currently unavailable.') };
         }
         if (!limits || !Number.isFinite(Number(limits.maximum)) ||
             quantity < Number(limits.minimum || 1) || quantity > Number(limits.maximum) ||
             quantity % Number(limits.multiple_of || 1) !== 0) {
-            return { ok: false, message: 'The requested quantity is not available.' };
+            return { ok: false, message: message('quantityUnavailable', 'The requested quantity is not available.') };
         }
         return { ok: true };
     }
@@ -95,10 +103,10 @@
     // Check the resulting line quantity against the live product or variation.
     async function validateStock(item, requestedQuantity) {
         if (!Number.isInteger(requestedQuantity) || requestedQuantity < 1) {
-            return { ok: false, message: 'Choose a valid quantity.' };
+            return { ok: false, message: message('validQuantity', 'Choose a valid quantity.') };
         }
         var id = Number(item.variationId) || Number(item.productId);
-        if (!Number.isInteger(id) || id < 1) return { ok: false, message: 'Product details are unavailable.' };
+        if (!Number.isInteger(id) || id < 1) return { ok: false, message: message('productDetailsMissing', 'Product details are unavailable.') };
         try {
             var response = await fetch((config.apiBase || '/api/').replace(/\/?$/, '/') + 'wc/store/v1/products/' + id, {
                 cache: 'no-store', credentials: 'omit'
@@ -108,7 +116,7 @@
             if (Number(product.id) !== id) throw new Error('Product lookup failed');
             return stockDecision(product, requestedQuantity);
         } catch (error) {
-            return { ok: false, message: 'Could not check live stock. Please try again.' };
+            return { ok: false, message: message('stockCheckFailed', 'Could not check live stock. Please try again.') };
         }
     }
 
@@ -199,9 +207,9 @@
 
     function formatPrice(price, currency) {
         try {
-            return new Intl.NumberFormat('en-GB', { style: 'currency', currency: currency }).format(price);
+            return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(price);
         } catch (error) {
-            return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(price);
+            return new Intl.NumberFormat(locale, { style: 'currency', currency: 'GBP' }).format(price);
         }
     }
 
@@ -240,21 +248,21 @@
         minus.type = 'button';
         minus.dataset.cartAction = 'decrease';
         minus.dataset.lineKey = lineKey(item);
-        minus.setAttribute('aria-label', 'Decrease quantity of ' + item.name);
+        minus.setAttribute('aria-label', format(message('decreaseQuantity', 'Decrease quantity of %s'), item.name));
         minus.disabled = item.quantity <= 1;
         var quantity = element('span', '', item.quantity);
-        quantity.setAttribute('aria-label', 'Quantity: ' + item.quantity);
+        quantity.setAttribute('aria-label', format(message('quantity', 'Quantity: %s'), item.quantity));
         var plus = element('button', '', '+');
         plus.type = 'button';
         plus.dataset.cartAction = 'increase';
         plus.dataset.lineKey = lineKey(item);
-        plus.setAttribute('aria-label', 'Increase quantity of ' + item.name);
+        plus.setAttribute('aria-label', format(message('increaseQuantity', 'Increase quantity of %s'), item.name));
         controls.append(minus, quantity, plus);
-        var remove = element('button', 'cart-item__remove', 'Remove');
+        var remove = element('button', 'cart-item__remove', message('remove', 'Remove'));
         remove.type = 'button';
         remove.dataset.cartAction = 'remove';
         remove.dataset.lineKey = lineKey(item);
-        remove.setAttribute('aria-label', 'Remove ' + item.name + ' from cart');
+        remove.setAttribute('aria-label', format(message('removeFromCart', 'Remove %s from cart'), item.name));
         details.append(controls, remove);
         row.appendChild(details);
         return row;
@@ -269,8 +277,8 @@
 
         if (!items.length) {
             var empty = element('div', surface.emptyClass);
-            empty.appendChild(element('p', '', 'Your cart is empty.'));
-            var shop = element('a', '', 'Explore the collection');
+            empty.appendChild(element('p', '', message('emptyCart', 'Your cart is empty.')));
+            var shop = element('a', '', message('exploreCollection', 'Explore the collection'));
             shop.href = safeUrl(config.shopUrl || '/shop/');
             empty.appendChild(shop);
             surface.itemsNode.appendChild(empty);
@@ -284,7 +292,7 @@
         if (surface.subtotalNode) {
             surface.subtotalNode.textContent = summary.currency
                 ? formatPrice(summary.total, summary.currency)
-                : 'Multiple currencies';
+                : message('multipleCurrencies', 'Multiple currencies');
         }
     }
 
@@ -324,7 +332,7 @@
                 if (kind === 'select') {
                     var select = element('select');
                     select.setAttribute('aria-label', option.label);
-                    var prompt = element('option', '', 'Choose ' + option.label);
+                    var prompt = element('option', '', format(message('choose', 'Choose %s'), option.label));
                     prompt.value = '';
                     select.appendChild(prompt);
                     (option.choices || []).forEach(function (choice) {
@@ -410,7 +418,7 @@
         var check;
 
         if (!product) {
-            productMessage(button, 'Product details are unavailable. Please reload the page.', true);
+            productMessage(button, message('productDetailsMissing', 'Product details are unavailable. Please reload the page.'), true);
             return;
         }
         if (product.type !== 'simple' && product.type !== 'variable') {

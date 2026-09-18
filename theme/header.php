@@ -126,6 +126,7 @@ if (!defined('ABSPATH')) {
             </nav>
 
             <div class="site-header__actions">
+                <?php echo staticbridge_language_switcher('language-switcher--desktop d-none d-lg-flex'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                 <button class="header-action header-cart" type="button" data-cart-open aria-label="<?php esc_attr_e('Open cart', 'dakabrand'); ?>" aria-controls="cart-drawer">
                     <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6L5 8ZM9 9V6a3 3 0 0 1 6 0v3"/></svg>
                     <span class="cart-count" data-cart-count aria-live="polite">0</span>
@@ -153,6 +154,7 @@ if (!defined('ABSPATH')) {
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="<?php esc_attr_e('Close navigation', 'dakabrand'); ?>"></button>
     </div>
     <div class="offcanvas-body">
+        <?php echo staticbridge_language_switcher('language-switcher--mobile'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
         <?php
         wp_nav_menu(array(
             'theme_location' => 'primary',

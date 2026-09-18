@@ -129,12 +129,12 @@
         });
     }
 
-    function showStatus(message, loading, retry) {
+    function showStatus(statusMessage, loading, retry) {
         nodes.status.replaceChildren();
         nodes.status.hidden = false;
         nodes.status.classList.toggle('catalog-status--inline', nodes.grid.childElementCount > 0);
         if (loading) nodes.status.appendChild(element('span', 'catalog-status__loader'));
-        nodes.status.appendChild(element('span', '', message));
+        nodes.status.appendChild(element('span', '', statusMessage));
         if (retry) {
             var button = element('button', '', 'Try again');
             button.type = 'button';
@@ -304,10 +304,10 @@
 
         var phone = String(whatsappNumber || '').replace(/\D/g, '');
         if (phone) {
-            var message = 'I AM INTERESTED IN THE PRODUCT: ' + String(product.name || '') +
+            var whatsappMessage = 'I AM INTERESTED IN THE PRODUCT: ' + String(product.name || '') +
                 ' with SKU: ' + String(product.sku || '') + ' Link: ' + href;
             var whatsapp = element('a', 'catalog-card__whatsapp');
-            whatsapp.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
+            whatsapp.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(whatsappMessage);
             whatsapp.target = '_blank';
             whatsapp.rel = 'noopener noreferrer';
             whatsapp.title = 'Contact on WhatsApp';

@@ -1,0 +1,59 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: DakaBrand 0.2.0\\n"
+"Language: sq_AL\\n"
+"Content-Type: text/plain; charset=UTF-8\\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\\n"
+
+# Editable source catalogue. The WordPress PHP catalogue alongside this file
+# is the runtime-compiled format supported by WordPress 6.5+.
+msgid "Choose language"
+msgstr "Zgjidh gjuhën"
+
+msgid "Women"
+msgstr "Femra"
+
+msgid "Man"
+msgstr "Meshkuj"
+
+msgid "Cart"
+msgstr "Shporta"
+
+msgid "Add to cart"
+msgstr "Shto në shportë"
+
+msgid "Search"
+msgstr "Kërko"
+
+msgid "Contact Us"
+msgstr "Na kontaktoni"
+
+msgid "Shop by category"
+msgstr "Bli sipas kategorisë"
+
+msgid "Great things are on the horizon"
+msgstr "Gjëra të mëdha po vijnë"
+
+msgid "Something big is brewing! Our store is in the works and will be launching soon!"
+msgstr "Diçka e madhe po përgatitet! Dyqani ynë është në përgatitje dhe do të hapet së shpejti!"
+
+msgid "View all"
+msgstr "Shiko të gjitha"
+
+msgid "Checkout"
+msgstr "Pagesa"
+
+msgid "Billing details"
+msgstr "Të dhënat e faturimit"
+
+msgid "Order summary"
+msgstr "Përmbledhja e porosisë"
+
+msgid "Place order"
+msgstr "Bëj porosinë"
+
+msgid "Western union / Moneygram / Ria"
+msgstr "Western Union / MoneyGram / Ria"
+
+msgid "Please note that orders paid via “Western union / Moneygram / Ria” will be processed upon payment confirmation. If you have any questions or need assistance, please contact our customer support at Whatsapp: +355683885286"
+msgstr "Ju lutemi vini re se porositë e paguara përmes “Western Union / MoneyGram / Ria” do të përpunohen pas konfirmimit të pagesës. Nëse keni pyetje ose nevojë për ndihmë, kontaktoni shërbimin tonë të klientit në WhatsApp: +355683885286"
