@@ -47,6 +47,123 @@ function staticbridge_theme_setup(): void
 }
 add_action('after_setup_theme', 'staticbridge_theme_setup');
 
+/** Preserve the delivery cities configured by the production WooCommerce site. */
+function staticbridge_add_delivery_countries(array $countries): array
+{
+    $countries['XK'] = __('Kosovo', 'woocommerce');
+
+    return $countries;
+}
+add_filter('woocommerce_countries', 'staticbridge_add_delivery_countries');
+
+function staticbridge_add_kosovo_to_europe(array $continents): array
+{
+    if (isset($continents['EU']['countries']) && !in_array('XK', $continents['EU']['countries'], true)) {
+        $continents['EU']['countries'][] = 'XK';
+    }
+
+    return $continents;
+}
+add_filter('woocommerce_continents', 'staticbridge_add_kosovo_to_europe');
+
+function staticbridge_delivery_cities(array $states): array
+{
+    $cities = array(
+        'XK' => array(
+            'XK-20' => 'Artanë', 'XK-21' => 'Deçan', 'XK-22' => 'Dragash', 'XK-23' => 'Drenas', 'XK-24' => 'Fushë Kosovë', 'XK-25' => 'Ferizaj', 'XK-26' => 'Gjilan', 'XK-27' => 'Gjakovë', 'XK-28' => 'Graçanicë', 'XK-29' => 'Hani I Elezit', 'XK-30' => 'Istog', 'XK-31' => 'Junik', 'XK-32' => 'Kaçanik', 'XK-33' => 'Klinë', 'XK-34' => 'Kamenicë', 'XK-35' => 'Kllokot', 'XK-36' => 'Leposaviq', 'XK-37' => 'Lipjan', 'XK-38' => 'Malishevë', 'XK-39' => 'Mamushë', 'XK-40' => 'Mitrovica Veriore', 'XK-41' => 'Mitrovicë', 'XK-42' => 'Novobërdë', 'XK-43' => 'Obiliq', 'XK-44' => 'Podujevë', 'XK-45' => 'Pejë', 'XK-46' => 'Prishtinë', 'XK-47' => 'Partesh', 'XK-48' => 'Prizren', 'XK-49' => 'Ranillug', 'XK-50' => 'Rahovec', 'XK-51' => 'Shtërpcë', 'XK-52' => 'Skënderaj', 'XK-53' => 'Shtime', 'XK-54' => 'Suharekë', 'XK-55' => 'Viti', 'XK-56' => 'Vushtrri', 'XK-57' => 'Zubin Potok', 'XK-58' => 'Zveçan',
+        ),
+        'AL' => array(
+            'AL-20' => 'Kurbin', 'AL-21' => 'Kuçovë', 'AL-22' => 'Ksamil', 'AL-23' => 'Kolonjë', 'AL-24' => 'Krumë', 'AL-25' => 'Konispol', 'AL-26' => 'Krujë', 'AL-27' => 'Klos', 'AL-28' => 'Kavajë', 'AL-29' => 'Laç', 'AL-30' => 'Librazhd', 'AL-31' => 'Leskovik', 'AL-32' => 'Lushnjë', 'AL-33' => 'Mamuras', 'AL-34' => 'Milot', 'AL-35' => 'Mallakastër', 'AL-36' => 'Maliq', 'AL-37' => 'Malësi e Madhe', 'AL-38' => 'Mirditë', 'AL-39' => 'Mat', 'AL-40' => 'Orikum', 'AL-41' => 'Patos', 'AL-42' => 'Peqin', 'AL-43' => 'Pogradec', 'AL-44' => 'Pukë', 'AL-45' => 'Përmet', 'AL-46' => 'Poliçan', 'AL-47' => 'Peshkopi', 'AL-48' => 'Fushë Krujë', 'AL-49' => 'Prrenjas', 'AL-50' => 'Roskovec', 'AL-51' => 'Shijak', 'AL-52' => 'Maminas', 'AL-53' => 'Rrëshen', 'AL-54' => 'Skrapar', 'AL-55' => 'Sarandë', 'AL-56' => 'Sukth', 'AL-57' => 'Tepelenë', 'AL-58' => 'Tropojë', 'AL-59' => 'Vau i Dejës', 'AL-60' => 'Vorë', 'AL-61' => 'Ura Vajgurore', 'AL-62' => 'Bilisht', 'AL-66' => 'Tiranë Periferi',
+        ),
+        'MK' => array(
+            'MK-20' => 'Bogdanca', 'MK-21' => 'Brod', 'MK-22' => 'Berova', 'MK-23' => 'Dellceva', 'MK-24' => 'Demir Hisar', 'MK-25' => 'Dibra e Madhe', 'MK-26' => 'Gostivar', 'MK-27' => 'Gjevgjelja', 'MK-28' => 'Kamenica', 'MK-29' => 'Kercove', 'MK-30' => 'Kumanova', 'MK-31' => 'Kocani', 'MK-32' => 'Kriva Palanka', 'MK-33' => 'Kratova', 'MK-34' => 'Krusheva', 'MK-35' => 'Kavadar', 'MK-36' => 'Manastir', 'MK-37' => 'Negotina', 'MK-38' => 'Oher', 'MK-39' => 'Peceva', 'MK-40' => 'Prilep', 'MK-41' => 'Probishtip', 'MK-42' => 'Radovisht', 'MK-43' => 'Resnja', 'MK-44' => 'Shtip', 'MK-45' => 'Shkup', 'MK-46' => 'Strumica', 'MK-47' => 'Sveti Nikola', 'MK-48' => 'Struga', 'MK-49' => 'Tetova', 'MK-50' => 'Vinica', 'MK-51' => 'Veles',
+        ),
+    );
+
+    foreach ($cities as $country => $country_cities) {
+        $states[$country] = array_replace($states[$country] ?? array(), $country_cities);
+        asort($states[$country]);
+    }
+
+    return $states;
+}
+add_filter('woocommerce_states', 'staticbridge_delivery_cities');
+
+/** Google Tag Manager is configurable while retaining the current production container by default. */
+function staticbridge_google_tag_manager_container(): string
+{
+    return (string) apply_filters('staticbridge_google_tag_manager_container', 'GTM-WRCQP8LW');
+}
+
+function staticbridge_google_tag_manager_head(): void
+{
+    $container = staticbridge_google_tag_manager_container();
+    if ('' === $container) {
+        return;
+    }
+    ?>
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<?php echo esc_js($container); ?>');</script>
+    <?php
+}
+add_action('wp_head', 'staticbridge_google_tag_manager_head');
+
+function staticbridge_google_tag_manager_body(): void
+{
+    $container = staticbridge_google_tag_manager_container();
+    if ('' === $container) {
+        return;
+    }
+    ?>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<?php echo esc_attr($container); ?>" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <?php
+}
+add_action('wp_body_open', 'staticbridge_google_tag_manager_body');
+
+function staticbridge_discount_rule_price(WC_Product $product): string
+{
+    $price = $product->get_price();
+    $discount_price = apply_filters('advanced_woo_discount_rules_get_product_discount_price', $price, $product);
+
+    return is_numeric($discount_price) ? (string) $discount_price : (string) $price;
+}
+
+function staticbridge_product_brands(int $product_id): array
+{
+    $terms = get_the_terms($product_id, 'product_brand');
+    if (!is_array($terms)) {
+        return array();
+    }
+
+    return array_map(static function (WP_Term $term): array {
+        return array('id' => $term->term_id, 'name' => $term->name, 'slug' => $term->slug);
+    }, $terms);
+}
+
+/** Keep the WooCommerce v3 product API compatible with the production data contract. */
+function staticbridge_add_product_api_data(WP_REST_Response $response, WC_Product $product, WP_REST_Request $request): WP_REST_Response
+{
+    if (0 !== strpos($request->get_route(), '/wc/v3/products')) {
+        return $response;
+    }
+
+    $data = $response->get_data();
+    $discount_details = apply_filters('advanced_woo_discount_rules_get_product_discount_details', false, $product);
+    $data['discount_details'] = $discount_details ?: (object) array();
+    $data['sale_price'] = staticbridge_discount_rule_price($product);
+    $data['brands'] = staticbridge_product_brands($product->get_id());
+    $response->set_data($data);
+
+    return $response;
+}
+add_filter('woocommerce_rest_prepare_product_object', 'staticbridge_add_product_api_data', 10, 3);
+
+/** Keep unavailable variations from being selectable by storefront clients. */
+function staticbridge_disable_out_of_stock_variations(bool $is_active, WC_Product_Variation $variation): bool
+{
+    return $variation->is_in_stock() ? $is_active : false;
+}
+add_filter('woocommerce_variation_is_active', 'staticbridge_disable_out_of_stock_variations', 10, 2);
+
 /**
  * Return the permalink for a department's WordPress page.
  *

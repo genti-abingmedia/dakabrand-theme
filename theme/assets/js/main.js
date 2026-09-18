@@ -62,10 +62,50 @@
 
     function enhanceFashionNavigation() {
         var navigation = document.querySelector('[data-fashion-navigation]');
+        var storageKey = 'mainCateg';
 
         if (!navigation) return;
 
         var collections = Array.from(navigation.querySelectorAll('[data-fashion-collection]'));
+        var departments = Array.from(navigation.querySelectorAll('[data-fashion-department]'));
+
+        function storedDepartment() {
+            try {
+                var value = localStorage.getItem(storageKey);
+                return value === 'woman' || value === 'man' ? value : null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function pageDepartment() {
+            var page = document.querySelector('[data-static-view="man"], [data-static-view="woman"]');
+            return page ? page.getAttribute('data-static-view') : null;
+        }
+
+        function saveDepartment(value) {
+            try {
+                localStorage.setItem(storageKey, value);
+            } catch (error) {
+                // Navigation still works when browser storage is unavailable.
+            }
+        }
+
+        function setDepartment(value) {
+            var department = value === 'man' ? 'men' : 'women';
+
+            departments.forEach(function (tab) {
+                var isCurrent = tab.getAttribute('data-fashion-department') === department;
+                tab.classList.toggle('is-current', isCurrent);
+                tab.setAttribute('aria-selected', String(isCurrent));
+            });
+
+            collections.forEach(function (collection) {
+                var isCurrent = collection.getAttribute('data-fashion-collection') === department;
+                collection.classList.toggle('is-current', isCurrent);
+                collection.hidden = !isCurrent;
+            });
+        }
 
         function closeMegaMenus(collection) {
             (collection ? [collection] : collections).forEach(function (item) {
@@ -97,6 +137,27 @@
                     closeMegaMenus(collection);
                     collection.querySelector('[data-mega-trigger]')?.focus();
                 }
+            });
+        });
+
+        var currentPageDepartment = pageDepartment();
+        var savedDepartment = storedDepartment();
+
+        // A Man or Woman landing page is authoritative. It corrects stale
+        // browser state without relying on its URL or product categories.
+        if (currentPageDepartment) {
+            saveDepartment(currentPageDepartment);
+            setDepartment(currentPageDepartment);
+        } else if (savedDepartment) {
+            setDepartment(savedDepartment);
+        }
+
+        departments.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                var department = tab.getAttribute('data-fashion-department') === 'men' ? 'man' : 'woman';
+
+                saveDepartment(department);
+                setDepartment(department);
             });
         });
     }
