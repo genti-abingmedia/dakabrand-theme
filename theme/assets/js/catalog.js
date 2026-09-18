@@ -6,15 +6,15 @@
     if (!root && !rails.length) return;
 
     var API = 'https://filter.gliterin.net/public/filter';
-    var STOREFRONT = (window.StaticBridgeConfig || {}).catalogSourceOrigin || 'https://static-daka.gliterindemo.com';
+    var STOREFRONT = (window.StaticBridgeConfig || {}).catalogSourceOrigin || 'https://dakabrand.uk/';
     var VIEWS = {
         large: { pageSize: 15 },
         small: { pageSize: 20 },
         dense: { pageSize: 25 },
         list: { pageSize: 10 }
     };
-    var MAX_PAGE = 500;
-    var CATALOG_BATCH_SIZE = 500;
+    var MAX_PAGE = 20;
+    var CATALOG_BATCH_SIZE = 20;
     var cache = new Map();
     var controller = null;
     var requestNumber = 0;
@@ -616,36 +616,84 @@
 
     function render(data) {
         currentData = data;
+
         var params = new URLSearchParams(window.location.search);
         var keyword = params.get('keyword');
-        var defaultHeading = nodes.heading.dataset.defaultHeading || 'Shop';
-        nodes.heading.textContent = keyword ? 'Results for “' + keyword + '”' : defaultHeading;
+
+        var defaultHeading =
+            nodes.heading.dataset.defaultHeading || 'Shop';
+
+        nodes.heading.textContent = keyword
+            ? 'Results for “' + keyword + '”'
+            : defaultHeading;
+
         nodes.toolbar.hidden = false;
+
         updateDisplayControls();
         updateSortControl(params.get('orderby'));
-        var rules = Array.isArray(data.discount_rules) ? data.discount_rules.slice().sort(function (a, b) {
-            return number(b.exclusive) - number(a.exclusive) || number(a.priority) - number(b.priority);
-        }) : [];
+
+        var rules = Array.isArray(data.discount_rules)
+            ? data.discount_rules.slice().sort(function (a, b) {
+                return number(b.exclusive) - number(a.exclusive) ||
+                    number(a.priority) - number(b.priority);
+            })
+            : [];
+
         var range = selectedPriceRange(params);
+
         var products = (data.products || []).filter(function (product) {
             if (!range) return true;
-            var price = productPrice(product, rules, Boolean(data.include_out_of_stock));
+
+            var price = productPrice(
+                product,
+                rules,
+                Boolean(data.include_out_of_stock)
+            );
+
             return price >= range[0] && price <= range[1];
         });
-        var count = products.length;
-        nodes.count.textContent = (count >= 10000 ? '10,000+' : count.toLocaleString('en-GB')) + (count === 1 ? ' product' : ' products');
+
+        // Total products from API, not current page length.
+        var count = Math.max(0, number(data.count));
+
+        nodes.count.textContent =
+            (count >= 10000
+                ? '10,000+'
+                : count.toLocaleString('en-GB')
+            ) +
+            (count === 1 ? ' product' : ' products');
+
         renderFacets(data, rules);
         renderActive(data);
-        var pageSize = VIEWS[catalogView(params)].pageSize;
-        var start = (pageNumber(params) - 1) * pageSize;
-        var cards = products.slice(start, start + pageSize).map(function (product, index) {
-            return makeCard(product, rules, Boolean(data.include_out_of_stock), index, data.whatsapp_number);
+
+        // Products are already paginated by the API.
+        // Do not slice them again.
+        var cards = products.map(function (product, index) {
+            return makeCard(
+                product,
+                rules,
+                Boolean(data.include_out_of_stock),
+                index,
+                data.whatsapp_number
+            );
         }).filter(Boolean);
+
         nodes.grid.replaceChildren.apply(nodes.grid, cards);
+
         nodes.grid.setAttribute('aria-busy', 'false');
+
+        // Pagination uses total product count.
         renderPagination(count);
-        if (cards.length) hideStatus();
-        else showStatus('No products found. Try removing a filter.', false, false);
+
+        if (cards.length) {
+            hideStatus();
+        } else {
+            showStatus(
+                'No products found. Try removing a filter.',
+                false,
+                false
+            );
+        }
     }
 
     function fetchCatalogPage(page, limit, signal) {
@@ -663,54 +711,88 @@
             });
     }
 
+    function catalogPageSize(params) {
+        var requested = Number(params.get('limit'));
+
+        if (
+            params.has('limit') &&
+            Number.isInteger(requested) &&
+            requested > 0
+        ) {
+            return Math.min(100, requested);
+        }
+
+        return VIEWS[catalogView(params)].pageSize;
+    }
+
     function load(force) {
         var params = new URLSearchParams(window.location.search);
-        if (params.has('page') && String(pageNumber(params)) !== params.get('page')) {
-            params.set('page', String(pageNumber(params)));
+
+        var page = pageNumber(params);
+        var limit = catalogPageSize(params);
+
+        // Normalize invalid page parameters.
+        if (params.has('page') && String(page) !== params.get('page')) {
+            params.set('page', String(page));
             window.history.replaceState({}, '', browserUrl(params).href);
         }
-        var key = sourceUrl(1, CATALOG_BATCH_SIZE);
+
+        // Cache is unique for every page and page size.
+        var key = sourceUrl(page, limit);
+
         requestNumber += 1;
         var thisRequest = requestNumber;
+
+        // Cancel previous requests.
         if (controller) controller.abort();
         controller = null;
+
+        // Return cached page if available.
         if (!force && cache.has(key)) {
             render(cache.get(key));
             return;
         }
+
         nodes.grid.setAttribute('aria-busy', 'true');
         showStatus('Loading products…', true, false);
+
         controller = new AbortController();
         var signal = controller.signal;
-        fetchCatalogPage(1, CATALOG_BATCH_SIZE, signal)
-            .then(function (data) {
-                var total = Math.max(0, number(data.count));
-                var batchSize = data.products.length;
-                if (!batchSize || batchSize >= total) return data;
-                var requests = [];
-                var pages = Math.min(MAX_PAGE, Math.ceil(total / batchSize));
-                for (var page = 2; page <= pages; page += 1) {
-                    requests.push(fetchCatalogPage(page, batchSize, signal));
-                }
-                return Promise.all(requests).then(function (batches) {
-                    batches.forEach(function (batch) { data.products.push.apply(data.products, batch.products); });
-                    return data;
-                });
-            })
+
+        // Fetch ONLY the requested page.
+        fetchCatalogPage(page, limit, signal)
             .then(function (data) {
                 if (thisRequest !== requestNumber) return;
+
                 cache.set(key, data);
-                if (cache.size > 6) cache.delete(cache.keys().next().value);
+
+                // Keep only the last 6 cached pages.
+                if (cache.size > 6) {
+                    cache.delete(cache.keys().next().value);
+                }
+
                 render(data);
             })
             .catch(function (error) {
-                if (error.name === 'AbortError' || thisRequest !== requestNumber) return;
+                if (
+                    error.name === 'AbortError' ||
+                    thisRequest !== requestNumber
+                ) {
+                    return;
+                }
+
                 nodes.grid.replaceChildren();
                 nodes.grid.setAttribute('aria-busy', 'false');
+
                 nodes.toolbar.hidden = true;
                 nodes.active.hidden = true;
                 nodes.pagination.hidden = true;
-                showStatus('We could not load products right now.', false, true);
+
+                showStatus(
+                    'We could not load products right now.',
+                    false,
+                    true
+                );
             });
     }
 

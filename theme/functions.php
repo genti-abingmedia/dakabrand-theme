@@ -776,7 +776,7 @@ function staticbridge_enqueue_assets(): void
         'renderApiVersion' => STATICBRIDGE_RENDER_API_VERSION,
         'apiBase'          => (string) apply_filters('staticbridge_api_base',
             'local' === wp_get_environment_type() ? '/wp-json/' : '/api/'),
-        'catalogSourceOrigin' => (string) apply_filters('staticbridge_catalog_source_origin', 'https://static-daka.gliterindemo.com'),
+        'catalogSourceOrigin' => (string) apply_filters('staticbridge_catalog_source_origin', 'https://dakabrand.uk/'),
         'cartStorageKey'   => 'staticbridge_cart_v1',
         'cartUrl'          => home_url('/cart/'),
         'shopUrl'          => home_url('/shop/'),

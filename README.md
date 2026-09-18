@@ -93,6 +93,11 @@ scripts/local-wordpress.sh setup
 Theme files are bind-mounted read-only into WordPress, so saving a file under
 `theme/` is immediately reflected in the browser without copying or uploading.
 WordPress and database state persist in Docker volumes.
+For a database dump with a non-default table prefix, set
+`DAKABRAND_LOCAL_TABLE_PREFIX` in the ignored `.env` file before starting the
+containers. The local site uses `wp_` by default.
+Local WP-Cron is disabled so imported production scheduled jobs do not run
+automatically while you inspect the database.
 
 ```bash
 scripts/local-wordpress.sh start

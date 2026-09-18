@@ -6,4 +6,7 @@ __pycache__/
 .ftp-tmp-*
 *.upload-*.tmp
 .DS_Store
+*.sql
+*.sql.gz
+*.sql.zip
 graphify-out/

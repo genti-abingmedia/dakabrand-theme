@@ -2,7 +2,7 @@
     'use strict';
 
     var contactApi = 'https://filter.gliterin.net/public/filter';
-    var contactSource = 'https://static-daka.gliterindemo.com/shop/?page=1&limit=1';
+    var contactSource = 'https://dakabrand.uk/shop/?page=1&limit=1';
 
     function discountPercentage(regular, current, sale) {
         regular = Number(regular);
