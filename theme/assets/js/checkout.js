@@ -110,6 +110,7 @@
     var status = root.querySelector('[data-checkout-page-status]');
     var itemsNode = root.querySelector('[data-checkout-page-items]');
     var shippingNode = root.querySelector('[data-checkout-shipping-rates]');
+    var shippingMethodsSection = root.querySelector('[data-checkout-shipping-methods]');
     var subtotalNode = root.querySelector('[data-checkout-page-subtotal]');
     var shippingTotalNode = root.querySelector('[data-checkout-shipping-total]');
     var adjustmentsNode = root.querySelector('[data-checkout-adjustments]');
@@ -330,19 +331,20 @@
 
     function renderShipping(current) {
         shippingNode.replaceChildren();
+        if (shippingMethodsSection) shippingMethodsSection.hidden = true;
         if (!current.needs_shipping) {
-            shippingNode.appendChild(element('p', '', 'Shipping is not required.'));
             return;
         }
         if (!addressComplete() && !estimateAddress) {
-            shippingNode.appendChild(element('p', '', 'Enter your address to see shipping options.'));
             return;
         }
         var packages = Array.isArray(current.shipping_rates) ? current.shipping_rates : [];
         if (!packages.length || packages.some(function (pack) { return !(pack.shipping_rates || []).length; })) {
-            shippingNode.appendChild(element('p', '', 'No shipping method is available for this address.'));
             return;
         }
+        var rateCount = packages.reduce(function (total, pack) { return total + (pack.shipping_rates || []).length; }, 0);
+        if (rateCount < 2) return;
+        if (shippingMethodsSection) shippingMethodsSection.hidden = false;
         packages.forEach(function (pack) {
             (pack.shipping_rates || []).forEach(function (rate) {
                 var label = element('label', 'checkout-shipping-rate');

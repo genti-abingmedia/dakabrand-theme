@@ -76,7 +76,7 @@ foreach (WC()->countries->get_shipping_countries() as $country_code => $country_
             <div class="checkout-order__subtotal"><span><?php esc_html_e('Shipping', 'dakabrand'); ?></span><strong data-checkout-shipping-total>—</strong></div>
             <div data-checkout-adjustments></div>
             <div class="checkout-order__subtotal checkout-order__total"><span><?php esc_html_e('Total', 'dakabrand'); ?></span><strong data-checkout-order-total>—</strong></div>
-            <section class="checkout-order__shipping" aria-labelledby="shipping-method-title">
+            <section class="checkout-order__shipping" data-checkout-shipping-methods aria-labelledby="shipping-method-title" hidden>
                 <div class="checkout-order__section-heading"><h2 id="shipping-method-title"><?php esc_html_e('Shipping method', 'dakabrand'); ?></h2><span><?php esc_html_e('Select one', 'dakabrand'); ?></span></div>
                 <div data-checkout-shipping-rates role="group" aria-labelledby="shipping-method-title">
                     <p><?php esc_html_e('Enter your address to see shipping options.', 'dakabrand'); ?></p>

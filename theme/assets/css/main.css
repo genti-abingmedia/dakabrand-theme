@@ -892,7 +892,7 @@ body.has-product-lightbox { overflow: hidden; }
 .checkout-form__different { display: inline-flex; align-items: center; gap: .7rem; padding: .25rem 0; color: var(--brand-black); cursor: pointer; font-size: .9rem; }
 .checkout-form__different input { width: 1rem; height: 1rem; margin: 0; accent-color: var(--brand-black); }
 .checkout-form__shipping-fields { padding-top: 1.6rem; }
-.checkout-order__tools { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); margin: .3rem 0 0; padding: .55rem 0; border-top: 1px solid var(--brand-line); border-bottom: 1px solid var(--brand-line); }
+.checkout-order__tools { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); margin: .3rem 0 0; padding: .55rem 0; }
 .checkout-order__tools button { display: flex; min-height: 3.9rem; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; color: var(--brand-black); background: none; border: 0; cursor: pointer; font-size: .85rem; }
 .checkout-order__tools button + button { border-left: 1px solid var(--brand-line); }
 .checkout-order__tools button:hover, .checkout-order__tools button:focus-visible { background: var(--brand-soft); }
