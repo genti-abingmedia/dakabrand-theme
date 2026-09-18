@@ -21,6 +21,8 @@ Supported views:
 - `woman`
 - `cart`
 - `checkout`
+- `contact`
+- `policy`
 - `index`
 - `page`
 - `product`
@@ -98,3 +100,22 @@ New In, Top Deals, and Limited Stock load from the filter API in `catalog.js`.
 The `/woman/` route follows the same theme-native campaign contract with
 Women-specific imagery, category links, and filter API grids. The two
 homepage campaign images lead to `/woman/` and `/man/` respectively.
+
+## Contact and policy pages
+
+The `/contact-us/` page uses the theme's contact form and public store details.
+The `/privacy-policy/`, `/terms-conditions/`, and `/refund_returns/` pages share
+the policy view and display their WordPress page title and content. Keep the
+policy wording in the page editor rather than in the theme.
+
+The contact form does not submit until a delivery endpoint is configured. A
+future integration can provide an absolute or same-origin URL with:
+
+```php
+add_filter('staticbridge_contact_endpoint', static fn (): string => home_url('/api/contact/'));
+```
+
+The browser sends a JSON `POST` with `name`, `email`, and `message`. A 2xx response
+means success and may contain a JSON `message`; errors appear beside the form.
+When the filter is empty, the form sends no request and reports that online
+messages are unavailable.

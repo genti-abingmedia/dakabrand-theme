@@ -601,6 +601,27 @@ function staticbridge_enqueue_assets(): void
         );
     }
 
+    if ('contact' === $view || is_page('contact-us')) {
+        $contact_js_path = get_template_directory() . '/assets/js/contact.js';
+        wp_enqueue_script(
+            'staticbridge-contact',
+            get_template_directory_uri() . '/assets/js/contact.js',
+            array(),
+            file_exists($contact_js_path) ? (string) filemtime($contact_js_path) : STATICBRIDGE_THEME_VERSION,
+            true
+        );
+
+        wp_localize_script('staticbridge-contact', 'StaticBridgeContact', array(
+            // Configure a delivery service later; an empty endpoint sends nothing.
+            'endpoint' => (string) apply_filters('staticbridge_contact_endpoint', ''),
+            'messages' => array(
+                'unavailable' => __('Online messages are temporarily unavailable. Please use the contact details on this page.', 'dakabrand'),
+                'success'     => __('Thank you. Your message has been sent.', 'dakabrand'),
+                'error'       => __('We could not send your message. Please try again.', 'dakabrand'),
+            ),
+        ));
+    }
+
     wp_localize_script('staticbridge-main', 'StaticBridgeConfig', array(
         'renderApiVersion' => STATICBRIDGE_RENDER_API_VERSION,
         'apiBase'          => (string) apply_filters('staticbridge_api_base',

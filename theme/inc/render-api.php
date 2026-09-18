@@ -5,9 +5,9 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Resolve campaign pages before a static renderer falls back to the generic
- * page view. Static generation calls staticbridge_render_document() directly,
- * so WordPress's usual page-template hierarchy does not run there.
+ * Resolve theme-native pages before a static renderer falls back to the
+ * generic page view. Static generation calls staticbridge_render_document()
+ * directly, so WordPress's usual page-template hierarchy does not run there.
  */
 function staticbridge_campaign_page_view(): ?string
 {
@@ -17,8 +17,14 @@ function staticbridge_campaign_page_view(): ?string
     }
 
     $template_views = array(
-        'page-man.php'   => 'man',
-        'page-woman.php' => 'woman',
+        'page-man.php'      => 'man',
+        'page-woman.php'    => 'woman',
+        'page-cart.php'     => 'cart',
+        'page-checkout.php' => 'checkout',
+        'page-contact-us.php'       => 'contact',
+        'page-privacy-policy.php'   => 'policy',
+        'page-terms-conditions.php' => 'policy',
+        'page-refund_returns.php'   => 'policy',
     );
     $template = ltrim(str_replace('\\', '/', (string) get_page_template_slug($page_id)), '/');
 
@@ -26,13 +32,19 @@ function staticbridge_campaign_page_view(): ?string
         return $template_views[$template];
     }
 
-    // Preserve the theme-native routes for sites whose Man/Woman pages have
-    // not yet been assigned a template in the WordPress page editor.
+    // Preserve the theme-native routes for pages that have not yet been
+    // assigned their explicit template in the WordPress page editor.
     $page = get_post($page_id);
     if ($page instanceof WP_Post && 'page' === $page->post_type) {
         $slug_views = array(
-            'man'   => 'man',
-            'woman' => 'woman',
+            'man'      => 'man',
+            'woman'    => 'woman',
+            'cart'     => 'cart',
+            'checkout' => 'checkout',
+            'contact-us'       => 'contact',
+            'privacy-policy'   => 'policy',
+            'terms-conditions' => 'policy',
+            'refund_returns'   => 'policy',
         );
         $slug = sanitize_title($page->post_name);
 
@@ -68,6 +80,8 @@ function staticbridge_render_document(string $view, array $context = array()): v
         'woman',
         'cart',
         'checkout',
+        'contact',
+        'policy',
         'index',
         'page',
         'product',
@@ -111,6 +125,10 @@ function staticbridge_render_contract(): array
             'woman_page'      => 'woman',
             'cart_page'       => 'cart',
             'checkout_page'   => 'checkout',
+            'contact_page'    => 'contact',
+            'privacy_policy_page'   => 'policy',
+            'terms_conditions_page' => 'policy',
+            'refund_returns_page'   => 'policy',
             'page'            => 'page',
             'product'         => 'product',
             'product_archive' => 'product-archive',

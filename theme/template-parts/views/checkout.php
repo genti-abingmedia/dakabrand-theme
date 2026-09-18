@@ -43,13 +43,6 @@ foreach (WC()->countries->get_shipping_countries() as $country_code => $country_
                 </div>
             </section>
 
-            <section class="checkout-form__section" aria-labelledby="shipping-method-title">
-                <h2 id="shipping-method-title"><?php esc_html_e('Shipping method', 'dakabrand'); ?></h2>
-                <div data-checkout-shipping-rates role="group" aria-labelledby="shipping-method-title">
-                    <p><?php esc_html_e('Enter your address to see shipping options.', 'dakabrand'); ?></p>
-                </div>
-            </section>
-
         </form>
 
         <aside class="checkout-order" data-checkout-page-summary hidden aria-label="<?php esc_attr_e('Order summary', 'dakabrand'); ?>">
@@ -59,6 +52,12 @@ foreach (WC()->countries->get_shipping_countries() as $country_code => $country_
             <div class="checkout-order__subtotal"><span><?php esc_html_e('Shipping', 'dakabrand'); ?></span><strong data-checkout-shipping-total>—</strong></div>
             <div data-checkout-adjustments></div>
             <div class="checkout-order__subtotal checkout-order__total"><span><?php esc_html_e('Total', 'dakabrand'); ?></span><strong data-checkout-order-total>—</strong></div>
+            <section class="checkout-order__shipping" aria-labelledby="shipping-method-title">
+                <div class="checkout-order__section-heading"><h2 id="shipping-method-title"><?php esc_html_e('Shipping method', 'dakabrand'); ?></h2><span><?php esc_html_e('Select one', 'dakabrand'); ?></span></div>
+                <div data-checkout-shipping-rates role="group" aria-labelledby="shipping-method-title">
+                    <p><?php esc_html_e('Enter your address to see shipping options.', 'dakabrand'); ?></p>
+                </div>
+            </section>
             <section class="checkout-form__section checkout-form__section--payment" aria-labelledby="payment-title">
                 <h2 id="payment-title"><?php esc_html_e('Payment information', 'dakabrand'); ?></h2>
                 <fieldset class="checkout-payment-methods">

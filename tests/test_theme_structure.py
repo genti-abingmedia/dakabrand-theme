@@ -179,7 +179,7 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("data-catalog-limit", view)
         self.assertIn("path === '/man'", script)
         self.assertIn("staticbridge_campaign_page_view", render_api)
-        self.assertIn("'page-man.php'   => 'man'", render_api)
+        self.assertIn("'page-man.php'      => 'man'", render_api)
         self.assertNotIn("elementor", view.lower())
         self.assertNotIn("minimog", view.lower())
 
@@ -209,7 +209,7 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertNotIn("new WP_Query", view)
         self.assertIn("data-catalog-source", view)
         self.assertIn("path === '/woman'", script)
-        self.assertIn("'page-woman.php' => 'woman'", render_api)
+        self.assertIn("'page-woman.php'    => 'woman'", render_api)
         self.assertNotIn("elementor", view.lower())
         self.assertNotIn("minimog", view.lower())
 
@@ -237,12 +237,35 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertNotIn("home_url('/my-account/')", functions)
         self.assertIn("staticbridge_hide_account_menu_items", functions)
         self.assertIn("is_page('my-account')", render_api)
+        self.assertIn("'page-checkout.php' => 'checkout'", render_api)
+        self.assertIn("'checkout' => 'checkout'", render_api)
         self.assertIn("'excluded_paths' => array('/my-account/')", render_api)
         self.assertIn('data-catalog-source', product)
         self.assertNotIn('data-recent-products', product)
         self.assertIn('data-checkout-shipping-rates', checkout)
         self.assertIn('data-checkout-order-total', checkout)
         self.assertIn("'staticbridge-checkout'", functions)
+
+    def test_contact_and_policy_pages_share_the_static_render_contract(self) -> None:
+        render_api = self.read("inc/render-api.php")
+        functions = self.read("functions.php")
+        contact = self.read("template-parts/views/contact.php")
+        policy = self.read("template-parts/views/policy.php")
+
+        for slug, view in (
+            ("contact-us", "contact"),
+            ("privacy-policy", "policy"),
+            ("terms-conditions", "policy"),
+            ("refund_returns", "policy"),
+        ):
+            self.assertIn(f"'{slug}'", render_api)
+            self.assertIn(f"staticbridge_render_document('{view}')", self.read(f"page-{slug}.php"))
+        self.assertIn("'contact'", render_api)
+        self.assertIn("'policy'", render_api)
+        self.assertIn("the_content()", policy)
+        self.assertIn('data-contact-form', contact)
+        self.assertIn("'staticbridge_contact_endpoint'", functions)
+        self.assertIn("'endpoint' => (string) apply_filters('staticbridge_contact_endpoint', '')", functions)
 
 
 if __name__ == "__main__":
