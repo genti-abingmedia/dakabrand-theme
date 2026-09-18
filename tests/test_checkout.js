@@ -221,6 +221,7 @@ async function checkoutScenario(failureMode, exerciseOptions) {
     }
     await form.handlers.submit({ preventDefault() {} });
     const order = JSON.parse(calls.find(call => call.path === 'checkout').options.body);
+    assert.equal(order.payment_method, 'staticbridge_remittance');
     assert.equal(order.expected_total, exerciseOptions ? '1000' : '1200');
     if (exerciseOptions) {
         assert.equal(order.customer_note, 'Leave at reception');

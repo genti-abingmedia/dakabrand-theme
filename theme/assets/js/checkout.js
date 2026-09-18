@@ -278,14 +278,11 @@
     }
 
     function selectedPaymentMethod() {
-        var option = root.querySelector('[name="checkout_payment_option"]:checked');
-        return option && option.value === 'remittance' ? 'staticbridge_remittance' : 'cod';
+        return 'staticbridge_remittance';
     }
 
     function confirmationPaymentLabel() {
-        return selectedPaymentMethod() === 'staticbridge_remittance'
-            ? 'Western Union / MoneyGram / Ria'
-            : 'Cash on delivery';
+        return 'Western Union / MoneyGram / Ria';
     }
 
     function confirmationDeliveryLabel() {

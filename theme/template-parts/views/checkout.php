@@ -84,18 +84,12 @@ foreach (WC()->countries->get_shipping_countries() as $country_code => $country_
             </section>
             <section class="checkout-form__section checkout-form__section--payment" aria-labelledby="payment-title">
                 <h2 id="payment-title"><?php esc_html_e('Payment information', 'dakabrand'); ?></h2>
-                <fieldset class="checkout-payment-methods">
-                    <legend class="screen-reader-text"><?php esc_html_e('Choose a payment method', 'dakabrand'); ?></legend>
-                    <label class="checkout-payment-method">
-                        <input type="radio" name="checkout_payment_option" value="cod" form="checkout-form">
-                        <span><?php esc_html_e('Cash on delivery', 'dakabrand'); ?></span>
-                    </label>
-                    <label class="checkout-payment-method">
-                        <input type="radio" name="checkout_payment_option" value="remittance" form="checkout-form" checked>
+                <div class="checkout-payment-methods">
+                    <div class="checkout-payment-method">
                         <span><?php esc_html_e('Western union / Moneygram / Ria', 'dakabrand'); ?></span>
                         <span class="checkout-payment-method__western-union" aria-label="Western Union">WESTERN<br>UNION</span>
-                    </label>
-                </fieldset>
+                    </div>
+                </div>
                 <p class="checkout-payment-note"><?php esc_html_e('Please note that orders paid via “Western union / Moneygram / Ria” will be processed upon payment confirmation. If you have any questions or need assistance, please contact our customer support at Whatsapp: +355683885286', 'dakabrand'); ?></p>
             </section>
             <button class="checkout-form__submit" type="submit" form="checkout-form" disabled><?php esc_html_e('Place order', 'dakabrand'); ?></button>

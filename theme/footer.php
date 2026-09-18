@@ -2,6 +2,7 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+$newsletter_endpoint = trim((string) apply_filters('staticbridge_newsletter_endpoint', ''));
 ?>
 <?php if (!staticbridge_is_immersive_front_page()) : ?>
 <footer class="site-footer" data-component="site-footer">
@@ -9,19 +10,19 @@ if (!defined('ABSPATH')) {
         <div class="site-shell footer-benefits__grid">
             <div class="footer-benefit">
                 <svg aria-hidden="true" viewBox="0 0 32 32"><path d="M2 8h18v15H2zM20 13h5l5 5v5H20z"/><circle cx="8" cy="25" r="3"/><circle cx="25" cy="25" r="3"/></svg>
-                <div><h2><?php esc_html_e('Free Shipping', 'dakabrand'); ?></h2><p><?php esc_html_e('Free shipping for orders over £130.', 'dakabrand'); ?></p></div>
+                <div><h2><?php esc_html_e('Shipping options', 'dakabrand'); ?></h2><p><?php esc_html_e('Shipping rates are confirmed at checkout.', 'dakabrand'); ?></p></div>
             </div>
             <div class="footer-benefit">
                 <svg aria-hidden="true" viewBox="0 0 32 32"><path d="M16 3 27 7v8c0 7-4.5 11.5-11 14-6.5-2.5-11-7-11-14V7l11-4Z"/><path d="m11 16 3 3 7-7"/></svg>
-                <div><h2><?php esc_html_e('Money Guarantee', 'dakabrand'); ?></h2><p><?php esc_html_e('Exchange eligible items within 30 days.', 'dakabrand'); ?></p></div>
+                <div><h2><?php esc_html_e('Returns & exchanges', 'dakabrand'); ?></h2><p><?php esc_html_e('See our refund policy for details.', 'dakabrand'); ?></p></div>
             </div>
             <div class="footer-benefit">
                 <svg aria-hidden="true" viewBox="0 0 32 32"><path d="M5 18v-3a11 11 0 0 1 22 0v3"/><path d="M5 17H2v8h6v-8H5Zm22 0h3v8h-6v-8h3ZM24 26c-2 3-5 3-8 3"/></svg>
-                <div><h2><?php esc_html_e('Online Support', 'dakabrand'); ?></h2><p><?php esc_html_e('Available 24 hours a day, 7 days a week.', 'dakabrand'); ?></p></div>
+                <div><h2><?php esc_html_e('Customer support', 'dakabrand'); ?></h2><p><?php esc_html_e('Contact us for help with your order.', 'dakabrand'); ?></p></div>
             </div>
             <div class="footer-benefit">
                 <svg aria-hidden="true" viewBox="0 0 32 32"><rect x="2" y="6" width="28" height="20" rx="2"/><path d="M2 12h28M7 21h6"/></svg>
-                <div><h2><?php esc_html_e('Flexible Payment', 'dakabrand'); ?></h2><p><?php esc_html_e('Pay securely with multiple payment methods.', 'dakabrand'); ?></p></div>
+                <div><h2><?php esc_html_e('Money Transfer', 'dakabrand'); ?></h2><p><?php esc_html_e('Pay via Western Union, MoneyGram or Ria.', 'dakabrand'); ?></p></div>
             </div>
         </div>
     </section>
@@ -30,7 +31,8 @@ if (!defined('ABSPATH')) {
         <div class="site-shell site-footer__grid">
             <section class="footer-newsletter" aria-labelledby="footer-newsletter-title">
                 <h2 id="footer-newsletter-title"><?php esc_html_e('Stay in touch', 'dakabrand'); ?></h2>
-                <p><?php esc_html_e('Sign up for our newsletter and receive 10% off your first order.', 'dakabrand'); ?></p>
+                <?php if ($newsletter_endpoint) : ?>
+                <p><?php esc_html_e('Sign up for updates on new arrivals and offers.', 'dakabrand'); ?></p>
                 <form class="newsletter-form" data-newsletter-form novalidate>
                     <label class="screen-reader-text" for="footer-newsletter-email"><?php esc_html_e('Email address', 'dakabrand'); ?></label>
                     <div class="newsletter-form__field">
@@ -39,6 +41,9 @@ if (!defined('ABSPATH')) {
                     </div>
                     <p class="newsletter-form__status" data-newsletter-status aria-live="polite"></p>
                 </form>
+                <?php else : ?>
+                <p role="status"><?php esc_html_e('Newsletter signup is temporarily unavailable. Please try again later.', 'dakabrand'); ?></p>
+                <?php endif; ?>
             </section>
 
             <section class="footer-column">

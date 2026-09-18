@@ -55,5 +55,32 @@ msgstr "Bëj porosinë"
 msgid "Western union / Moneygram / Ria"
 msgstr "Western Union / MoneyGram / Ria"
 
+msgid "Money Transfer"
+msgstr "Transferim parash"
+
+msgid "Pay via Western Union, MoneyGram or Ria."
+msgstr "Paguani përmes Western Union, MoneyGram ose Ria."
+
+msgid "Shipping options"
+msgstr "Mundësitë e transportit"
+
+msgid "Shipping rates are confirmed at checkout."
+msgstr "Tarifat e transportit konfirmohen gjatë përfundimit të porosisë."
+
+msgid "Returns & exchanges"
+msgstr "Kthime dhe ndërrime"
+
+msgid "See our refund policy for details."
+msgstr "Shihni politikën e kthimit për hollësi."
+
+msgid "Customer support"
+msgstr "Mbështetja e klientit"
+
+msgid "Contact us for help with your order."
+msgstr "Na kontaktoni për ndihmë me porosinë tuaj."
+
+msgid "Sign up for updates on new arrivals and offers."
+msgstr "Regjistrohuni për lajme rreth produkteve të reja dhe ofertave."
+
 msgid "Please note that orders paid via “Western union / Moneygram / Ria” will be processed upon payment confirmation. If you have any questions or need assistance, please contact our customer support at Whatsapp: +355683885286"
 msgstr "Ju lutemi vini re se porositë e paguara përmes “Western Union / MoneyGram / Ria” do të përpunohen pas konfirmimit të pagesës. Nëse keni pyetje ose nevojë për ndihmë, kontaktoni shërbimin tonë të klientit në WhatsApp: +355683885286"

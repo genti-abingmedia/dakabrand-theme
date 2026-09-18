@@ -5,6 +5,7 @@ if (!defined('ABSPATH')) {
 
 $maps_query = 'Rruga Muhamet Gjollesha Pallati 18, Tiranë, Albania';
 $maps_url = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($maps_query);
+$contact_endpoint = trim((string) apply_filters('staticbridge_contact_endpoint', ''));
 ?>
 <main id="main" class="site-main site-shell information-page information-page--contact" data-static-view="contact">
     <header class="information-page__header">
@@ -19,6 +20,7 @@ $maps_url = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($m
     <div class="contact-page__layout">
         <section class="contact-page__message" aria-labelledby="contact-heading">
             <h2 id="contact-heading"><?php esc_html_e('Get in touch with us', 'dakabrand'); ?></h2>
+            <?php if ($contact_endpoint) : ?>
             <form class="contact-form" data-contact-form novalidate>
                 <div class="contact-form__row">
                     <div class="contact-form__field">
@@ -38,6 +40,9 @@ $maps_url = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($m
                 <p class="contact-form__status" data-contact-status role="status" aria-live="polite"></p>
                 <noscript><p><?php esc_html_e('The contact form needs JavaScript. Please use the contact details on this page.', 'dakabrand'); ?></p></noscript>
             </form>
+            <?php else : ?>
+            <p role="status"><?php esc_html_e('Online messages are temporarily unavailable. Please use the contact details on this page.', 'dakabrand'); ?></p>
+            <?php endif; ?>
         </section>
 
         <aside class="contact-page__details" aria-label="<?php esc_attr_e('Contact details', 'dakabrand'); ?>">

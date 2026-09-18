@@ -802,7 +802,7 @@ function staticbridge_enqueue_assets(): void
         ),
         /**
          * The future proxy can provide an absolute or same-origin endpoint.
-         * An empty value keeps the form visible but prevents false submissions.
+         * An empty value shows the unavailable notice instead of the form.
          */
         'newsletterEndpoint' => (string) apply_filters('staticbridge_newsletter_endpoint', ''),
         'newsletterMessages' => array(

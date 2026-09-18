@@ -920,13 +920,9 @@ body.has-product-lightbox { overflow: hidden; }
 .checkout-dialog__close { position: absolute; top: -1.25rem; right: -1.25rem; display: grid; width: 2.5rem; height: 2.5rem; place-items: center; background: #fff; border: 0; border-radius: 50%; box-shadow: 0 .2rem .8rem #0002; cursor: pointer; font-size: 1.5rem; line-height: 1; }
 .checkout-form__section--payment { margin: 2rem 0 0; padding: 0; }
 .checkout-payment-methods { display: grid; gap: .65rem; margin: 0; padding: 0; border: 0; }
-.checkout-payment-method { display: flex; min-height: 3rem; align-items: center; gap: .65rem; padding: .7rem .8rem; border: 1px solid var(--brand-line); color: var(--brand-black); cursor: pointer; font-size: .9rem; transition: border-color .18s ease, background-color .18s ease; }
-.checkout-payment-method:hover { background: var(--brand-soft); }
-.checkout-payment-method:has(input:checked) { border-color: var(--brand-black); background: #fafafa; }
-.checkout-payment-method input { flex: 0 0 auto; width: 1rem; height: 1rem; margin: 0; accent-color: var(--brand-black); }
+.checkout-payment-method { display: flex; min-height: 3rem; align-items: center; gap: .65rem; padding: .7rem .8rem; border: 1px solid var(--brand-black); background: #fafafa; color: var(--brand-black); font-size: .9rem; }
 .checkout-payment-method__western-union { margin-left: auto; padding: .17rem .34rem .14rem; color: #ffea00; background: #050505; font-size: .58rem; font-weight: 900; letter-spacing: .04em; line-height: .76; text-align: center; }
 .checkout-payment-note { margin: .8rem 0 0; color: var(--brand-muted); font-size: .83rem; line-height: 1.65; }
-.checkout-payment-methods:has(input[value="cod"]:checked) + .checkout-payment-note { display: none; }
 .checkout-form__submit { width: 100%; min-height: 3.1rem; margin-top: 2rem; padding: .9rem 1rem; color: #fff; background: var(--brand-black); border: 0; border-radius: .2rem; font-size: .9rem; font-weight: 500; text-transform: none; transition: transform .18s ease, background-color .18s ease; }
 .checkout-form__submit:hover, .checkout-form__submit:focus-visible { background: var(--brand-red); transform: translateY(-1px); }
 .checkout-form__submit:disabled { cursor: not-allowed; opacity: .5; }

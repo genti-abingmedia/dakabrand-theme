@@ -60,6 +60,8 @@ class ThemeStructureTests(unittest.TestCase):
             self.assertIn(contract, footer)
         self.assertIn("staticbridge_newsletter_endpoint", functions)
         self.assertIn("newsletterEndpoint", functions)
+        self.assertIn("if ($newsletter_endpoint)", footer)
+        self.assertNotIn("receive 10% off", footer)
 
     def test_cart_drawer_is_shared_and_product_data_supports_it(self) -> None:
         header = self.read("header.php")
@@ -122,6 +124,17 @@ class ThemeStructureTests(unittest.TestCase):
             self.assertIn(target, view)
         self.assertIn('billing_name', view)
         self.assertIn('billing_address_1', view)
+
+    def test_checkout_offers_only_remittance(self) -> None:
+        view = self.read("template-parts/views/checkout.php")
+        script = self.read("assets/js/checkout.js")
+        gateway = self.read("inc/remittance-gateway.php")
+
+        self.assertIn("Western union / Moneygram / Ria", view)
+        self.assertNotIn('value="cod"', view)
+        self.assertNotIn('checkout_payment_option', view)
+        self.assertIn("return 'staticbridge_remittance'", script)
+        self.assertIn("$this->id = 'staticbridge_remittance'", gateway)
 
     def test_shell_has_no_minimog_or_elementor_runtime_dependency(self) -> None:
         shell = "\n".join((self.read("header.php"), self.read("footer.php"), self.read("functions.php")))
@@ -282,6 +295,7 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("'policy'", render_api)
         self.assertIn("the_content()", policy)
         self.assertIn('data-contact-form', contact)
+        self.assertIn("if ($contact_endpoint)", contact)
         self.assertIn("'staticbridge_contact_endpoint'", functions)
         self.assertIn("'endpoint' => (string) apply_filters('staticbridge_contact_endpoint', '')", functions)
 

@@ -51,8 +51,9 @@ cart lines under `staticbridge_cart_v1` in localStorage; each line has a product
 ID, optional variation ID and selected attributes, display data, unit price,
 currency, stock snapshot, and quantity. The header, mobile tab, and cart links
 open the drawer. `/checkout/` syncs the browser cart to a fresh WooCommerce
-Cart-Token, shows server shipping rates and totals, and places a guest cash-on-
-delivery order. The local cart is cleared only after a confirmed order.
+Cart-Token, shows server shipping rates and totals, and places a guest Western
+Union / MoneyGram / Ria remittance order. The local cart is cleared only after
+a confirmed order.
 Checkout supports a separate shipping address, seller note, shipping estimate,
 and coupon codes through the same cart token.
 
@@ -67,7 +68,8 @@ The same-origin proxy must expose `GET /api/wc/store/v1/products/{id}`,
 `cart/update-customer`, `cart/select-shipping-rate`, `cart/apply-coupon`,
 `cart/remove-coupon`, and `checkout`. Preserve
 `Cart-Token` request and response headers. Never cache cart or checkout
-responses. Enable the WooCommerce `cod` gateway. The theme defaults to `/api/`
+responses. Keep the theme's `staticbridge_remittance` gateway available in
+WooCommerce. The theme defaults to `/api/`
 in production and `/wp-json/` in the local Docker environment. Override the
 base with `staticbridge_api_base` if needed. The filter source origin defaults
 to `https://static-daka.gliterindemo.com` and can be changed with
@@ -76,7 +78,7 @@ to `https://static-daka.gliterindemo.com` and can be changed with
 The generator must omit `/my-account/`, delete any previously generated static
 file for it, and purge its CDN key. Account links are suppressed in theme menus.
 
-Run `node --test tests/test_cart.js tests/test_checkout.js tests/test_product.js`
+Run `node --test tests/test_cart.js tests/test_checkout.js tests/test_product.js tests/test_contact.js`
 from the repository root. Browser storage must be available for cart changes.
 
 ## Shared shell extensions
@@ -111,7 +113,7 @@ The `/privacy-policy/`, `/terms-conditions/`, and `/refund_returns/` pages share
 the policy view and display their WordPress page title and content. Keep the
 policy wording in the page editor rather than in the theme.
 
-The contact form does not submit until a delivery endpoint is configured. A
+The contact form is shown only when a delivery endpoint is configured. A
 future integration can provide an absolute or same-origin URL with:
 
 ```php
@@ -120,5 +122,5 @@ add_filter('staticbridge_contact_endpoint', static fn (): string => home_url('/a
 
 The browser sends a JSON `POST` with `name`, `email`, and `message`. A 2xx response
 means success and may contain a JSON `message`; errors appear beside the form.
-When the filter is empty, the form sends no request and reports that online
-messages are unavailable.
+When the filter is empty, the page shows the contact details and an online
+messages unavailable notice.

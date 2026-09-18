@@ -41,7 +41,8 @@ they are outside this theme repository.
 The cart stays in localStorage until checkout. A public Store API product lookup
 validates an add or quantity increase. Checkout uses a fresh Cart-Token to add
 the saved lines, calculate shipping and totals, and place a guest order through
-the cash-on-delivery gateway. The backend must proxy the Store API paths listed
+the theme's Western Union / MoneyGram / Ria remittance gateway. The backend
+must proxy the Store API paths listed
 in `theme/README.md`, preserve Cart-Token headers, and disable caching of cart
 and checkout responses. The local Docker site uses the same-origin
 `/wp-json/` Store API route for development.
@@ -174,8 +175,8 @@ Women and Men landing pages.
 
 ### Newsletter proxy contract
 
-The newsletter UI is safe to ship before the proxy exists. By default it does
-not send a request and reports that signup is unavailable. The proxy layer can
+The newsletter UI is safe to ship before the proxy exists. By default it shows
+an unavailable message instead of an inactive signup form. The proxy layer can
 enable it without editing the theme:
 
 ```php
@@ -191,7 +192,7 @@ network responses are shown as accessible inline errors.
 ```bash
 find theme -name '*.php' -print0 | xargs -0 -n1 php -l
 python3 -m unittest -v tests/test_theme_ftp.py tests/test_theme_structure.py tests/test_local_wordpress.py
-node --test tests/test_cart.js
+node --test tests/test_cart.js tests/test_checkout.js tests/test_product.js tests/test_contact.js
 python3 scripts/theme_ftp.py status
 ```
 
