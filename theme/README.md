@@ -53,6 +53,8 @@ currency, stock snapshot, and quantity. The header, mobile tab, and cart links
 open the drawer. `/checkout/` syncs the browser cart to a fresh WooCommerce
 Cart-Token, shows server shipping rates and totals, and places a guest cash-on-
 delivery order. The local cart is cleared only after a confirmed order.
+Checkout supports a separate shipping address, seller note, shipping estimate,
+and coupon codes through the same cart token.
 
 `validateStock(item, requestedQuantity)` fetches the live Store API product or
 variation before adding or increasing a local line. The local price remains
@@ -62,7 +64,8 @@ landing-page simple products retain quick add. Recently viewed is removed.
 
 The same-origin proxy must expose `GET /api/wc/store/v1/products/{id}`,
 `GET /api/wc/store/v1/cart`, and `POST` for `cart/add-item`,
-`cart/update-customer`, `cart/select-shipping-rate`, and `checkout`. Preserve
+`cart/update-customer`, `cart/select-shipping-rate`, `cart/apply-coupon`,
+`cart/remove-coupon`, and `checkout`. Preserve
 `Cart-Token` request and response headers. Never cache cart or checkout
 responses. Enable the WooCommerce `cod` gateway. The theme defaults to `/api/`
 in production and `/wp-json/` in the local Docker environment. Override the

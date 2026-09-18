@@ -43,11 +43,35 @@ foreach (WC()->countries->get_shipping_countries() as $country_code => $country_
                 </div>
             </section>
 
+            <section class="checkout-form__section checkout-form__section--delivery" aria-label="<?php esc_attr_e('Delivery address', 'dakabrand'); ?>">
+                <label class="checkout-form__different"><input type="checkbox" name="ship_to_different_address" value="1" data-ship-different> <span><?php esc_html_e('Ship to a different address?', 'dakabrand'); ?></span></label>
+                <div class="checkout-form__shipping-fields" data-shipping-fields hidden>
+                    <div class="checkout-form__grid">
+                        <p class="checkout-form__wide"><label for="shipping-name"><?php esc_html_e('Name / Surname', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="shipping-name" name="shipping_name" autocomplete="shipping name" disabled required></p>
+                        <p class="checkout-form__wide"><label for="shipping-country"><?php esc_html_e('Country / Region', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><select id="shipping-country" name="shipping_country" autocomplete="shipping country" data-country-fields="<?php echo esc_attr(wp_json_encode($checkout_country_fields)); ?>" disabled required>
+                            <option value=""><?php esc_html_e('Select a country / region…', 'dakabrand'); ?></option>
+                            <?php foreach (WC()->countries->get_shipping_countries() as $code => $country) : ?>
+                                <option value="<?php echo esc_attr($code); ?>"><?php echo esc_html($country); ?></option>
+                            <?php endforeach; ?>
+                        </select></p>
+                        <p class="checkout-form__wide"><label for="shipping-address-1"><?php esc_html_e('Street address', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="shipping-address-1" name="shipping_address_1" autocomplete="shipping street-address" disabled required></p>
+                        <p class="checkout-form__wide"><label for="shipping-city"><?php esc_html_e('City', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="shipping-city" name="shipping_city" autocomplete="shipping address-level2" disabled required></p>
+                        <p class="checkout-form__wide" data-shipping-postcode hidden><label for="shipping-postcode"><?php esc_html_e('Postcode', 'dakabrand'); ?> <span aria-hidden="true" data-required-marker>*</span></label><input id="shipping-postcode" name="shipping_postcode" autocomplete="shipping postal-code" disabled></p>
+                        <p class="checkout-form__wide" data-shipping-state hidden><label for="shipping-state"><?php esc_html_e('State / Region', 'dakabrand'); ?> <span aria-hidden="true" data-required-marker>*</span></label><input id="shipping-state" name="shipping_state" autocomplete="shipping address-level1" disabled><select name="shipping_state" aria-label="<?php esc_attr_e('State / Region', 'dakabrand'); ?>" disabled hidden></select></p>
+                    </div>
+                </div>
+            </section>
+
         </form>
 
         <aside class="checkout-order" data-checkout-page-summary hidden aria-label="<?php esc_attr_e('Order summary', 'dakabrand'); ?>">
             <h2><?php esc_html_e('Order summary', 'dakabrand'); ?></h2>
             <div data-checkout-page-items></div>
+            <div class="checkout-order__tools" role="group" aria-label="<?php esc_attr_e('Order options', 'dakabrand'); ?>">
+                <button type="button" data-checkout-open="note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4.5-1 11-11a2 2 0 0 0-3-3l-11 11L4 20Zm10-13 3 3"/></svg><?php esc_html_e('Note', 'dakabrand'); ?></button>
+                <button type="button" data-checkout-open="shipping"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6h12v10H2V6Zm12 3h4l3 3v4h-7V9ZM5 19a2 2 0 1 0 4 0 2 2 0 0 0-4 0Zm11 0a2 2 0 1 0 4 0 2 2 0 0 0-4 0ZM2 16h19"/></svg><?php esc_html_e('Shipping', 'dakabrand'); ?></button>
+                <button type="button" data-checkout-open="coupon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v5a2 2 0 0 0 0 4v4H3v-4a2 2 0 0 0 0-4V6Zm8 0v13"/></svg><?php esc_html_e('Coupon', 'dakabrand'); ?></button>
+            </div>
             <div class="checkout-order__subtotal"><span><?php esc_html_e('Subtotal', 'dakabrand'); ?></span><strong data-checkout-page-subtotal></strong></div>
             <div class="checkout-order__subtotal"><span><?php esc_html_e('Shipping', 'dakabrand'); ?></span><strong data-checkout-shipping-total>—</strong></div>
             <div data-checkout-adjustments></div>
@@ -79,6 +103,42 @@ foreach (WC()->countries->get_shipping_countries() as $country_code => $country_
             <a href="<?php echo esc_url(home_url('/cart/')); ?>"><?php esc_html_e('Edit cart', 'dakabrand'); ?></a>
         </aside>
     </div>
+    <dialog class="checkout-dialog" data-checkout-dialog="note" aria-labelledby="checkout-note-title">
+        <form method="dialog" class="checkout-dialog__content" data-note-form>
+            <button class="checkout-dialog__close" type="button" data-checkout-close aria-label="<?php esc_attr_e('Close', 'dakabrand'); ?>">×</button>
+            <h2 id="checkout-note-title"><?php esc_html_e('Add note for seller', 'dakabrand'); ?></h2>
+            <textarea name="customer_note" rows="5" placeholder="<?php esc_attr_e('Notes about your order, e.g. special notes for delivery.', 'dakabrand'); ?>"></textarea>
+            <button class="checkout-dialog__action" type="submit"><?php esc_html_e('Save', 'dakabrand'); ?></button>
+            <button class="checkout-dialog__cancel" type="button" data-checkout-close><?php esc_html_e('Cancel', 'dakabrand'); ?></button>
+        </form>
+    </dialog>
+    <dialog class="checkout-dialog" data-checkout-dialog="shipping" aria-labelledby="checkout-estimate-title">
+        <form method="dialog" class="checkout-dialog__content" data-estimate-form>
+            <button class="checkout-dialog__close" type="button" data-checkout-close aria-label="<?php esc_attr_e('Close', 'dakabrand'); ?>">×</button>
+            <h2 id="checkout-estimate-title"><?php esc_html_e('Estimate shipping rates', 'dakabrand'); ?></h2>
+            <label for="estimate-country" class="screen-reader-text"><?php esc_html_e('Country / Region', 'dakabrand'); ?></label>
+            <select id="estimate-country" name="estimate_country" required><option value=""><?php esc_html_e('Select a country / region…', 'dakabrand'); ?></option><?php foreach (WC()->countries->get_shipping_countries() as $code => $country) : ?><option value="<?php echo esc_attr($code); ?>"><?php echo esc_html($country); ?></option><?php endforeach; ?></select>
+            <label for="estimate-state" class="screen-reader-text"><?php esc_html_e('State / Region', 'dakabrand'); ?></label>
+            <select id="estimate-state" name="estimate_state" hidden disabled></select>
+            <input id="estimate-state-text" name="estimate_state_text" aria-label="<?php esc_attr_e('State / Region', 'dakabrand'); ?>" hidden disabled>
+            <label for="estimate-city" class="screen-reader-text"><?php esc_html_e('City', 'dakabrand'); ?></label><input id="estimate-city" name="estimate_city" placeholder="<?php esc_attr_e('City', 'dakabrand'); ?>" required>
+            <label for="estimate-postcode" class="screen-reader-text"><?php esc_html_e('Postcode', 'dakabrand'); ?></label><input id="estimate-postcode" name="estimate_postcode" placeholder="<?php esc_attr_e('Postcode', 'dakabrand'); ?>">
+            <p class="checkout-dialog__error" data-dialog-error role="alert" hidden></p>
+            <button class="checkout-dialog__action" type="submit"><?php esc_html_e('Calculate shipping rates', 'dakabrand'); ?></button>
+            <button class="checkout-dialog__cancel" type="button" data-checkout-close><?php esc_html_e('Cancel', 'dakabrand'); ?></button>
+        </form>
+    </dialog>
+    <dialog class="checkout-dialog" data-checkout-dialog="coupon" aria-labelledby="checkout-coupon-title">
+        <form method="dialog" class="checkout-dialog__content" data-coupon-form>
+            <button class="checkout-dialog__close" type="button" data-checkout-close aria-label="<?php esc_attr_e('Close', 'dakabrand'); ?>">×</button>
+            <h2 id="checkout-coupon-title"><?php esc_html_e('Select or input Coupon', 'dakabrand'); ?></h2>
+            <p><?php esc_html_e('If you have a coupon code, please apply it below.', 'dakabrand'); ?></p>
+            <label for="checkout-coupon-code" class="screen-reader-text"><?php esc_html_e('Coupon code', 'dakabrand'); ?></label><input id="checkout-coupon-code" name="code" placeholder="<?php esc_attr_e('Coupon code', 'dakabrand'); ?>" required>
+            <p class="checkout-dialog__error" data-dialog-error role="alert" hidden></p>
+            <button class="checkout-dialog__action" type="submit"><?php esc_html_e('Apply coupon', 'dakabrand'); ?></button>
+            <button class="checkout-dialog__cancel" type="button" data-checkout-close><?php esc_html_e('Cancel', 'dakabrand'); ?></button>
+        </form>
+    </dialog>
     <section class="checkout-confirmation" data-checkout-confirmation hidden role="status" aria-live="polite">
         <div class="checkout-confirmation__mark" aria-hidden="true">
             <svg viewBox="0 0 64 64" focusable="false"><circle cx="32" cy="32" r="30"/><path d="m19 33 8 8 18-19"/></svg>

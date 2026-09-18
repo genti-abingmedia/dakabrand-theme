@@ -11,11 +11,6 @@ $categories = $product->get_category_ids();
 $category_names = wc_get_product_category_list($product->get_id(), ', ');
 $related_source = $categories ? get_term_link($categories[0], 'product_cat') : '';
 if (is_wp_error($related_source)) { $related_source = ''; }
-$policy_pages = array();
-foreach (array('shipping-policy', 'delivery', 'refund-policy', 'returns') as $slug) {
-    $page = get_page_by_path($slug);
-    if ($page instanceof WP_Post && 'publish' === $page->post_status) { $policy_pages[$page->ID] = $page; }
-}
 $visible_attributes = array_filter($product->get_attributes(), static function ($attribute) {
     return $attribute instanceof WC_Product_Attribute && $attribute->get_visible();
 });
@@ -23,13 +18,17 @@ $review_count = $product->get_review_count();
 $average_rating = $product->get_average_rating();
 $display_review_count = $review_count > 0 ? $review_count : 12 + (($product->get_id() * 17) % 29);
 $display_rating = $review_count > 0 && $average_rating > 0 ? (float) $average_rating : 5.0;
-$viewer_count = 45 + (($product->get_id() * 23) % 46);
 $is_variable = $product->is_type('variable');
 $regular_price = (float) $product->get_regular_price();
 $current_price = (float) $product->get_price();
 $discount = !$is_variable && $product->is_on_sale() && $regular_price > $current_price && $regular_price > 0
     ? (int) round((1 - $current_price / $regular_price) * 100)
     : 0;
+$created_at = $product->get_date_created();
+$is_new_product = $created_at instanceof WC_DateTime && $created_at->getTimestamp() >= (current_time('timestamp') - MONTH_IN_SECONDS);
+$viewer_min = ($is_new_product || $product->is_on_sale()) ? 15 : 2;
+$viewer_max = ($is_new_product || $product->is_on_sale()) ? 45 : 25;
+$viewer_count = wp_rand($viewer_min, $viewer_max);
 $preorder = !$is_variable && 'onbackorder' === $product->get_stock_status();
 $product_url = get_permalink($product->get_id());
 $share_url = rawurlencode($product_url);
@@ -100,8 +99,6 @@ $share_title = rawurlencode($product->get_name());
           <p class="product-detail__rating" aria-label="<?php echo esc_attr(sprintf(__('%1$s out of 5 stars from %2$s reviews', 'dakabrand'), number_format_i18n($display_rating, 1), number_format_i18n($display_review_count))); ?>"><span class="product-detail__stars" style="--rating-percent: <?php echo esc_attr((string) ($display_rating * 20)); ?>%" aria-hidden="true">★★★★★</span><span><?php echo esc_html(sprintf(_n('%s review', '%s reviews', $display_review_count, 'dakabrand'), number_format_i18n($display_review_count))); ?></span></p>
         </div>
         <span class="product-detail__preorder" data-product-preorder <?php if (!$preorder) : ?>hidden<?php endif; ?>><?php esc_html_e('15 Days Preorder', 'dakabrand'); ?></span>
-        <p class="product-detail__availability" data-product-availability aria-live="polite"><?php echo esc_html($product->is_in_stock() ? __('Available', 'dakabrand') : __('Out of stock', 'dakabrand')); ?></p>
-        <?php if ($product->get_short_description()) : ?><div class="product-summary"><?php echo wp_kses_post(wpautop($product->get_short_description())); ?></div><?php endif; ?>
         <div data-product-options></div>
         <div class="product-purchase">
           <div class="product-quantity" data-product-quantity-control>
@@ -113,7 +110,7 @@ $share_title = rawurlencode($product->get_name());
           <button type="button" class="add-to-cart-button" data-add-to-cart data-product-id="<?php echo esc_attr((string) $product->get_id()); ?>" <?php disabled(!$product->is_purchasable()); ?>><?php esc_html_e('Add to cart', 'dakabrand'); ?></button>
         </div>
         <div class="product-detail__extras">
-          <p class="product-detail__viewers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.7-5.5 10-5.5S22 12 22 12s-3.7 5.5-10 5.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg><strong><?php echo esc_html((string) $viewer_count); ?> <?php esc_html_e('people are viewing this right now', 'dakabrand'); ?></strong></p>
+          <p class="product-detail__viewers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.7-5.5 10-5.5S22 12 22 12s-3.7 5.5-10 5.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg><strong><span data-product-viewer-count data-viewer-min="<?php echo esc_attr((string) $viewer_min); ?>" data-viewer-max="<?php echo esc_attr((string) $viewer_max); ?>" aria-live="polite"><?php echo esc_html((string) $viewer_count); ?></span> <?php esc_html_e('people are viewing this right now', 'dakabrand'); ?></strong></p>
           <a class="product-detail__whatsapp" data-product-whatsapp href="<?php echo esc_url(home_url('/contact-us/')); ?>" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.7-1.2A9 9 0 1 0 12 3Z"/><path d="M8.4 7.9c-.5.5-.8 1.3-.5 2.1.8 2.3 2.5 4.1 4.8 5.3.9.5 2.1.7 2.8.1l1.1-1.1-2.2-1.3-1 1c-1.3-.7-2.3-1.7-3-3l1-1-1.4-2.1Z"/></svg><?php esc_html_e('Contact us on WhatsApp', 'dakabrand'); ?></a>
           <a class="product-detail__contact-fallback" data-product-contact-fallback href="<?php echo esc_url(home_url('/contact-us/')); ?>" hidden><?php esc_html_e('Contact us', 'dakabrand'); ?></a>
           <div class="product-detail__quick-links">
@@ -144,10 +141,8 @@ $share_title = rawurlencode($product->get_name());
           <details class="product-detail__accordion">
             <summary><?php esc_html_e('Delivery & returns', 'dakabrand'); ?></summary>
             <div class="product-detail__accordion-content">
-              <?php if ($policy_pages) : ?>
-                <p><?php esc_html_e('See our current store policies for delivery and returns information.', 'dakabrand'); ?></p>
-                <?php foreach ($policy_pages as $policy_page) : ?><a class="product-detail__policy-link" href="<?php echo esc_url(get_permalink($policy_page)); ?>"><?php echo esc_html(get_the_title($policy_page)); ?> <span aria-hidden="true">&#8599;</span></a><?php endforeach; ?>
-              <?php else : ?><p><?php esc_html_e('Delivery and returns details are not available here yet. Please contact the store before ordering.', 'dakabrand'); ?></p><?php endif; ?>
+              <p><?php esc_html_e('Shipping cost is based on weight. Just add products to your cart and use the Shipping Calculator to see the shipping price.', 'dakabrand'); ?></p>
+              <p><?php esc_html_e('We want you to be 100% satisfied with your purchase. Items can be returned or exchanged within 30 days of delivery.', 'dakabrand'); ?></p>
             </div>
           </details>
         </div>

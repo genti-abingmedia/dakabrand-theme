@@ -63,8 +63,22 @@
             postcode: String(values.get('billing_postcode') || '').trim(),
             country: String(values.get('billing_country') || '').trim()
         };
+        var shipping = Object.assign({}, address);
+        if (values.get('ship_to_different_address')) {
+            var shippingName = String(values.get('shipping_name') || '').trim().split(/\s+/);
+            shipping = {
+                first_name: shippingName.shift() || '',
+                last_name: shippingName.join(' '),
+                address_1: String(values.get('shipping_address_1') || '').trim(),
+                address_2: '',
+                city: String(values.get('shipping_city') || '').trim(),
+                state: String(values.get('shipping_state') || '').trim(),
+                postcode: String(values.get('shipping_postcode') || '').trim(),
+                country: String(values.get('shipping_country') || '').trim()
+            };
+        }
         return {
-            shipping_address: Object.assign({}, address),
+            shipping_address: shipping,
             billing_address: Object.assign({}, address, {
                 email: String(values.get('billing_email') || '').trim(),
                 phone: String(values.get('billing_phone') || '').trim()
@@ -84,6 +98,9 @@
     var form = root.querySelector('[data-checkout-form]');
     var submit = form.querySelector('[type="submit"]') || root.querySelector('.checkout-form__submit');
     var countryField = form.querySelector('[name="billing_country"]');
+    var differentField = form.querySelector('[data-ship-different]');
+    var shippingFields = form.querySelector('[data-shipping-fields]');
+    var shippingCountry = form.querySelector('[name="shipping_country"]');
     var postcodeRow = form.querySelector('[data-checkout-postcode]');
     var postcodeField = postcodeRow.querySelector('input');
     var stateRow = form.querySelector('[data-checkout-state]');
@@ -109,6 +126,10 @@
     var selectingRate = false;
     var submitting = false;
     var uncertainOrder = false;
+    var customerNote = '';
+    var estimateAddress = false;
+    var couponBusy = false;
+    var appliedCouponCodes = [];
 
     function showStatus(message, error) {
         status.textContent = message;
@@ -135,49 +156,70 @@
         return customerAddress(new FormData(form));
     }
 
-    function updateCountryFields() {
-        var fields = countryFields[countryField.value] || {};
+    function updateCountryFields(prefix, preserve) {
+        var country = prefix === 'shipping' ? shippingCountry : countryField;
+        var rowPostcode = prefix === 'shipping' ? form.querySelector('[data-shipping-postcode]') : postcodeRow;
+        var fieldPostcode = rowPostcode.querySelector('input');
+        var rowState = prefix === 'shipping' ? form.querySelector('[data-shipping-state]') : stateRow;
+        var inputState = rowState.querySelector('input');
+        var selectState = rowState.querySelector('select');
+        var oldState = preserve ? (selectState.hidden ? inputState.value : selectState.value) : '';
+        var oldPostcode = preserve ? fieldPostcode.value : '';
+        var fields = countryFields[country.value] || {};
         var needsPostcode = fields.postcode !== null && fields.postcode !== undefined;
         var needsState = fields.state !== null && fields.state !== undefined;
-        postcodeRow.hidden = !needsPostcode;
-        postcodeField.disabled = !needsPostcode;
-        postcodeField.required = needsPostcode && fields.postcode;
-        postcodeRow.querySelector('[data-required-marker]').hidden = !postcodeField.required;
-        stateRow.hidden = !needsState;
+        var enabled = prefix !== 'shipping' || (differentField && differentField.checked);
+        rowPostcode.hidden = !needsPostcode;
+        fieldPostcode.disabled = !needsPostcode || !enabled;
+        fieldPostcode.required = Boolean(needsPostcode && fields.postcode && enabled);
+        rowPostcode.querySelector('[data-required-marker]').hidden = !fieldPostcode.required;
+        rowState.hidden = !needsState;
         var states = fields.states || {};
         var choices = Object.entries(states);
-        stateInput.hidden = choices.length > 0;
-        stateInput.disabled = !needsState || choices.length > 0;
-        stateInput.required = needsState && !choices.length && fields.state;
-        stateSelect.hidden = !choices.length;
-        stateSelect.disabled = !needsState || !choices.length;
-        stateSelect.required = needsState && choices.length > 0 && fields.state;
-        stateRow.querySelector('[data-required-marker]').hidden = !fields.state;
-        stateSelect.replaceChildren();
+        inputState.hidden = choices.length > 0;
+        inputState.disabled = !needsState || choices.length > 0 || !enabled;
+        inputState.required = Boolean(needsState && !choices.length && fields.state && enabled);
+        selectState.hidden = !choices.length;
+        selectState.disabled = !needsState || !choices.length || !enabled;
+        selectState.required = Boolean(needsState && choices.length > 0 && fields.state && enabled);
+        rowState.querySelector('[data-required-marker]').hidden = !fields.state;
+        selectState.replaceChildren();
         if (choices.length) {
             var placeholder = element('option', '', 'Select a state / region…');
             placeholder.value = '';
-            stateSelect.appendChild(placeholder);
+            selectState.appendChild(placeholder);
             choices.forEach(function (choice) {
                 var option = element('option', '', choice[1]);
                 option.value = choice[0];
-                stateSelect.appendChild(option);
+                selectState.appendChild(option);
             });
         }
-        stateInput.value = '';
-        stateSelect.value = '';
-        postcodeField.value = '';
+        inputState.value = oldState;
+        selectState.value = oldState;
+        fieldPostcode.value = oldPostcode;
+    }
+
+    function updateDifferentAddress() {
+        if (!differentField) return;
+        var enabled = differentField.checked;
+        shippingFields.hidden = !enabled;
+        shippingFields.querySelectorAll('input, select').forEach(function (field) {
+            if (field.name === 'shipping_postcode' || field.name === 'shipping_state') return;
+            field.disabled = !enabled;
+        });
+        updateCountryFields('shipping', true);
+        scheduleAddress();
     }
 
     function addressComplete() {
         return Array.from(form.querySelectorAll('[required]')).every(function (field) {
-            return String(field.value || '').trim() && field.checkValidity();
+            return field.disabled || (String(field.value || '').trim() && field.checkValidity());
         });
     }
 
     function readyToOrder() {
         return Boolean(token && cart && !submitting && !uncertainOrder && !syncing && !pendingSync &&
-            !refreshingAddress && !selectingRate &&
+            !refreshingAddress && !selectingRate && !couponBusy &&
             !addressTimer && addressComplete() && addressSignature === JSON.stringify(addressData()) &&
             syncedSignature === lineSignature(readLines()) && hasSelectedRates(cart) &&
             cart.items && cart.items.length);
@@ -245,8 +287,10 @@
     }
 
     function confirmationDeliveryLabel() {
-        var city = String(form.elements.billing_city.value || '').trim();
-        var country = countryField.options[countryField.selectedIndex];
+        var useShipping = differentField && differentField.checked;
+        var city = String(form.elements[useShipping ? 'shipping_city' : 'billing_city'].value || '').trim();
+        var selectedCountry = useShipping ? shippingCountry : countryField;
+        var country = selectedCountry.options[selectedCountry.selectedIndex];
         var countryName = country ? country.textContent.trim() : '';
         return [city, countryName].filter(Boolean).join(', ') || 'Delivery address confirmed';
     }
@@ -290,7 +334,7 @@
             shippingNode.appendChild(element('p', '', 'Shipping is not required.'));
             return;
         }
-        if (!addressComplete()) {
+        if (!addressComplete() && !estimateAddress) {
             shippingNode.appendChild(element('p', '', 'Enter your address to see shipping options.'));
             return;
         }
@@ -318,6 +362,7 @@
 
     function renderCart(current) {
         cart = current;
+        appliedCouponCodes = (current.coupons || []).map(function (coupon) { return coupon.code; });
         renderItems(current);
         subtotalNode.textContent = formatMinor(current.totals.total_items, current.totals);
         shippingTotalNode.textContent = selectedShippingLabel(current) || '—';
@@ -333,13 +378,21 @@
                 element('strong', '', (entry[2] ? '−' : '') + formatMinor(entry[1], current.totals)));
             adjustmentsNode.appendChild(row);
         });
+        appliedCouponCodes.forEach(function (code) {
+            var row = element('div', 'checkout-order__coupon');
+            var button = element('button', '', 'Remove');
+            button.type = 'button';
+            button.addEventListener('click', function () { removeCoupon(code); });
+            row.append(element('span', '', 'Coupon: ' + code), button);
+            adjustmentsNode.appendChild(row);
+        });
         totalNode.textContent = formatMinor(current.totals.total_price, current.totals);
         renderShipping(current);
         updateSubmit();
     }
 
     async function syncCart() {
-        if (syncing || refreshingAddress || selectingRate) {
+        if (syncing || refreshingAddress || selectingRate || couponBusy) {
             pendingSync = true;
             updateSubmit();
             return;
@@ -365,12 +418,21 @@
                     throw new Error(lines[i].name + ': ' + error.message);
                 }
             }
+            var couponMessage = '';
+            for (var j = 0; j < appliedCouponCodes.length; j += 1) {
+                try {
+                    current = await request('cart/apply-coupon', 'POST', { code: appliedCouponCodes[j] });
+                } catch (error) {
+                    if (!error.status || error.status >= 500) throw error;
+                    couponMessage = 'A coupon no longer applies to this cart and was removed.';
+                }
+            }
             if (!cartMatchesLines(current, lines)) throw new Error('The store cart did not match your saved items. Review your cart and try again.');
             if (generation !== syncGeneration) return;
             if (lineSignature(readLines()) !== lineSignature(lines)) return syncCart();
             syncedSignature = lineSignature(lines);
             renderCart(current);
-            showStatus('', false);
+            showStatus(couponMessage, false);
             scheduleAddress();
         } catch (error) {
             if (generation !== syncGeneration) return;
@@ -389,6 +451,7 @@
         if (addressTimer) clearTimeout(addressTimer);
         addressTimer = null;
         addressSignature = '';
+        estimateAddress = false;
         updateSubmit();
         if (!addressComplete() || !token || !cart) {
             if (cart) renderShipping(cart);
@@ -402,7 +465,7 @@
 
     async function refreshAddress() {
         if (!token || !cart || !addressComplete()) return;
-        if (refreshingAddress || selectingRate) return scheduleAddress();
+        if (refreshingAddress || selectingRate || couponBusy) return scheduleAddress();
         var data = addressData();
         var signature = JSON.stringify(data);
         refreshingAddress = true;
@@ -428,7 +491,7 @@
     }
 
     async function selectRate(packageId, rateId) {
-        if (!token || refreshingAddress || selectingRate) return;
+        if (!token || refreshingAddress || selectingRate || couponBusy) return;
         selectingRate = true;
         updateSubmit();
         try {
@@ -450,21 +513,188 @@
         }
     }
 
+    async function removeCoupon(code) {
+        if (!token || couponBusy || submitting || syncing || refreshingAddress || selectingRate) return;
+        couponBusy = true;
+        updateSubmit();
+        try {
+            renderCart(await request('cart/remove-coupon', 'POST', { code: code }));
+            showStatus('Coupon removed.', false);
+        } catch (error) {
+            showStatus(error.message || 'Could not remove the coupon.', true);
+        } finally {
+            couponBusy = false;
+            updateSubmit();
+            if (pendingSync) {
+                pendingSync = false;
+                syncCart();
+            }
+        }
+    }
+
+    function dialogError(dialog, message) {
+        var node = dialog.querySelector('[data-dialog-error]');
+        if (!node) return;
+        node.textContent = message;
+        node.hidden = !message;
+    }
+
+    function setupDialogs() {
+        if (typeof root.querySelectorAll !== 'function') return;
+        var dialogs = root.querySelectorAll('[data-checkout-dialog]');
+        if (!dialogs || !dialogs.length) return;
+        root.querySelectorAll('[data-checkout-open]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var dialog = root.querySelector('[data-checkout-dialog="' + button.getAttribute('data-checkout-open') + '"]');
+                if (!dialog) return;
+                dialogError(dialog, '');
+                if (dialog.getAttribute('data-checkout-dialog') === 'shipping') prepareEstimate(dialog);
+                dialog.showModal();
+            });
+        });
+        dialogs.forEach(function (dialog) {
+            dialog.querySelectorAll('[data-checkout-close]').forEach(function (button) {
+                button.addEventListener('click', function () { dialog.close(); });
+            });
+            dialog.addEventListener('click', function (event) {
+                if (event.target === dialog) dialog.close();
+            });
+        });
+        var noteDialog = root.querySelector('[data-checkout-dialog="note"]');
+        noteDialog.querySelector('form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            customerNote = noteDialog.querySelector('textarea').value.trim();
+            noteDialog.close();
+            showStatus(customerNote ? 'Order note saved.' : 'Order note cleared.', false);
+        });
+        var couponDialog = root.querySelector('[data-checkout-dialog="coupon"]');
+        couponDialog.querySelector('form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            if (!token || !cart || syncing || refreshingAddress || selectingRate || couponBusy || submitting) {
+                dialogError(couponDialog, 'Wait for your cart to finish updating, then try again.');
+                return;
+            }
+            var code = couponDialog.querySelector('[name="code"]').value.trim();
+            if (!code) return;
+            couponBusy = true;
+            dialogError(couponDialog, '');
+            updateSubmit();
+            try {
+                renderCart(await request('cart/apply-coupon', 'POST', { code: code }));
+                couponDialog.close();
+                showStatus('Coupon applied.', false);
+            } catch (error) {
+                dialogError(couponDialog, error.message || 'Could not apply this coupon.');
+            } finally {
+                couponBusy = false;
+                updateSubmit();
+                if (pendingSync) {
+                    pendingSync = false;
+                    syncCart();
+                }
+            }
+        });
+        var estimateDialog = root.querySelector('[data-checkout-dialog="shipping"]');
+        var estimateCountry = estimateDialog.querySelector('[name="estimate_country"]');
+        estimateCountry.addEventListener('change', function () { updateEstimateCountry(estimateDialog); });
+        estimateDialog.querySelector('form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            if (!token || !cart || syncing || refreshingAddress || selectingRate || couponBusy || submitting) {
+                dialogError(estimateDialog, 'Wait for your cart to finish updating, then try again.');
+                return;
+            }
+            var stateSelect = estimateDialog.querySelector('[name="estimate_state"]');
+            var stateInput = estimateDialog.querySelector('[name="estimate_state_text"]');
+            var estimated = addressData();
+            estimated.shipping_address = Object.assign({}, estimated.shipping_address, {
+                country: estimateCountry.value,
+                state: stateSelect.hidden ? stateInput.value.trim() : stateSelect.value,
+                city: estimateDialog.querySelector('[name="estimate_city"]').value.trim(),
+                postcode: estimateDialog.querySelector('[name="estimate_postcode"]').value.trim()
+            });
+            refreshingAddress = true;
+            dialogError(estimateDialog, '');
+            updateSubmit();
+            try {
+                var current = await request('cart/update-customer', 'POST', estimated);
+                estimateAddress = true;
+                addressSignature = '';
+                renderCart(current);
+                estimateDialog.close();
+                showStatus(hasSelectedRates(current) ? 'Shipping rates updated. Complete your address to place the order.' : 'No shipping method is available for this location.', !hasSelectedRates(current));
+            } catch (error) {
+                dialogError(estimateDialog, error.message || 'Could not calculate shipping rates.');
+            } finally {
+                refreshingAddress = false;
+                if (cart) renderShipping(cart);
+                if (addressComplete()) scheduleAddress();
+                updateSubmit();
+                if (pendingSync) {
+                    pendingSync = false;
+                    syncCart();
+                }
+            }
+        });
+    }
+
+    function updateEstimateCountry(dialog) {
+        var country = dialog.querySelector('[name="estimate_country"]').value;
+        var fields = countryFields[country] || {};
+        var choices = Object.entries(fields.states || {});
+        var select = dialog.querySelector('[name="estimate_state"]');
+        var input = dialog.querySelector('[name="estimate_state_text"]');
+        var postcode = dialog.querySelector('[name="estimate_postcode"]');
+        select.replaceChildren();
+        select.hidden = !choices.length;
+        select.disabled = !choices.length;
+        input.hidden = !country || choices.length > 0 || fields.state === null;
+        input.disabled = input.hidden;
+        select.required = Boolean(choices.length && fields.state);
+        input.required = Boolean(!input.hidden && fields.state);
+        postcode.hidden = fields.postcode === null;
+        postcode.required = Boolean(fields.postcode);
+        if (choices.length) {
+            var placeholder = element('option', '', 'Select a state / region…');
+            placeholder.value = '';
+            select.appendChild(placeholder);
+            choices.forEach(function (choice) {
+                var option = element('option', '', choice[1]);
+                option.value = choice[0];
+                select.appendChild(option);
+            });
+        }
+    }
+
+    function prepareEstimate(dialog) {
+        var address = addressData().shipping_address;
+        dialog.querySelector('[name="estimate_country"]').value = address.country;
+        updateEstimateCountry(dialog);
+        var select = dialog.querySelector('[name="estimate_state"]');
+        dialog.querySelector('[name="estimate_state_text"]').value = address.state;
+        if (!select.hidden) select.value = address.state;
+        dialog.querySelector('[name="estimate_city"]').value = address.city;
+        dialog.querySelector('[name="estimate_postcode"]').value = address.postcode;
+    }
+
     function onAddressChange(event) {
         if (event.target.name && event.target.name.indexOf('shipping_package_') === 0) return;
-        if (event.target === countryField) return;
+        if (event.target === countryField || event.target === shippingCountry || event.target === differentField) return;
         scheduleAddress();
     }
 
-    function onCountryChange() {
-        updateCountryFields();
+    function onCountryChange(prefix) {
+        updateCountryFields(prefix);
         scheduleAddress();
     }
 
     form.addEventListener('input', onAddressChange);
     form.addEventListener('change', onAddressChange);
-    countryField.addEventListener('change', onCountryChange);
-    updateCountryFields();
+    countryField.addEventListener('change', function () { onCountryChange('billing'); });
+    if (shippingCountry) shippingCountry.addEventListener('change', function () { onCountryChange('shipping'); });
+    if (differentField) differentField.addEventListener('change', updateDifferentAddress);
+    updateCountryFields('billing');
+    if (shippingCountry) updateCountryFields('shipping');
+    setupDialogs();
     form.addEventListener('submit', async function (event) {
         event.preventDefault();
         if (!readyToOrder()) {
@@ -475,6 +705,7 @@
         updateSubmit();
         showStatus('Placing your order…', false);
         var data = addressData();
+        data.customer_note = customerNote;
         data.payment_method = selectedPaymentMethod();
         data.payment_data = [];
         data.expected_total = String(cart.totals.total_price);

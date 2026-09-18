@@ -180,7 +180,7 @@
         var availability = detail.querySelector('[data-product-availability]');
         var button = detail.querySelector('[data-add-to-cart]');
         var choices = Array.from(detail.querySelectorAll('[data-option-choice]'));
-        if (fields.length !== product.options.length || !price || !availability || !button) return;
+        if (fields.length !== product.options.length || !price || !button) return;
         var initialPrice = price.innerHTML;
         var chooseLabel = product.options.length === 1
             ? 'Choose ' + product.options[0].label.toLowerCase()
@@ -200,9 +200,11 @@
                 (variation.stock_status === 'instock' || variation.stock_status === 'onbackorder');
 
             price.innerHTML = variation && variation.price_html ? variation.price_html : initialPrice;
-            availability.textContent = !complete ? chooseLabel : !variation ? 'Unavailable' : available ? 'Available' : 'Out of stock';
-            availability.classList.toggle('is-pending', !complete);
-            availability.classList.toggle('is-unavailable', complete && !available);
+            if (availability) {
+                availability.textContent = !complete ? chooseLabel : !variation ? 'Unavailable' : available ? 'Available' : 'Out of stock';
+                availability.classList.toggle('is-pending', !complete);
+                availability.classList.toggle('is-unavailable', complete && !available);
+            }
             button.disabled = !available;
             button.textContent = !complete ? chooseLabel : !variation ? 'Unavailable' : available ? 'Add to cart' : 'Out of stock';
             updatePurchaseDetails(detail, variation, available);
@@ -245,6 +247,24 @@
                 if (range && !delivery.hidden) range.textContent = deliveryRange(new Date(), detail.dataset.deliveryPreorder === 'true');
             }, 60000);
         }
+    }
+
+    function enhanceViewerCount(detail) {
+        var count = detail.querySelector('[data-product-viewer-count]');
+        var current = Number(count && count.textContent);
+        var minimum = Number(count && count.dataset.viewerMin);
+        var maximum = Number(count && count.dataset.viewerMax);
+        if (!count || !Number.isFinite(current) || !Number.isFinite(minimum) || !Number.isFinite(maximum) || minimum > maximum || !window.setInterval) return;
+
+        window.setInterval(function () {
+            var next = current;
+            while (next === current) next = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+            current = next;
+            count.classList.remove('is-changing');
+            void count.offsetWidth;
+            count.textContent = String(current);
+            count.classList.add('is-changing');
+        }, 10000);
     }
 
     function enhanceProductActions(detail) {
@@ -346,6 +366,7 @@
         enhanceVariations(detail);
         enhanceQuantity(detail);
         enhancePurchaseDetails(detail);
+        enhanceViewerCount(detail);
         enhanceProductActions(detail);
     }
 }());

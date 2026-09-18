@@ -29,7 +29,7 @@ test('checkout totals use WooCommerce minor units and all shipping packages need
     assert.equal(checkout.cartMatchesLines({ items: [{ id: 43, quantity: 1 }], errors: [] }, [{ productId: 20, variationId: 43, quantity: 2 }]), false);
 });
 
-test('one customer form supplies both WooCommerce addresses', () => {
+test('billing address supplies delivery address until another address is selected', () => {
     const fields = {
         billing_name: '  Ada  Lovelace  ', billing_country: 'GB',
         billing_address_1: ' 12 Example Road ', billing_city: ' London ',
@@ -46,12 +46,31 @@ test('one customer form supplies both WooCommerce addresses', () => {
     });
     assert.notStrictEqual(address.shipping_address, address.billing_address);
     const view = fs.readFileSync('theme/template-parts/views/checkout.php', 'utf8');
-    assert.equal((view.match(/<form\b/g) || []).length, 1);
-    assert.doesNotMatch(view, /shipping-details-title|name="shipping_address_1"/);
+    assert.match(view, /data-checkout-form/);
+    assert.match(view, /name="ship_to_different_address"/);
+    assert.match(view, /data-shipping-fields hidden/);
+    assert.match(view, /name="shipping_address_1"/);
     for (const name of Object.keys(fields)) assert.match(view, new RegExp(`name="${name}"`));
 });
 
-async function checkoutScenario(failureMode) {
+test('a separate shipping address is sent without changing billing details', () => {
+    const fields = {
+        billing_name: 'Ada Lovelace', billing_country: 'GB', billing_address_1: '12 Example Road',
+        billing_city: 'London', billing_phone: '123456', billing_email: 'ada@example.com',
+        ship_to_different_address: '1', shipping_name: 'Grace Hopper', shipping_country: 'US',
+        shipping_address_1: '42 Navy Street', shipping_city: 'Arlington', shipping_state: 'VA',
+        shipping_postcode: '22201'
+    };
+    const address = checkout.customerAddress({ get: key => fields[key] || '' });
+    assert.equal(address.billing_address.first_name, 'Ada');
+    assert.equal(address.billing_address.country, 'GB');
+    assert.deepEqual(address.shipping_address, {
+        first_name: 'Grace', last_name: 'Hopper', address_1: '42 Navy Street',
+        address_2: '', city: 'Arlington', state: 'VA', postcode: '22201', country: 'US'
+    });
+});
+
+async function checkoutScenario(failureMode, exerciseOptions) {
     function node() {
         return {
             children: [], handlers: {}, hidden: false, disabled: false,
@@ -90,7 +109,37 @@ async function checkoutScenario(failureMode) {
         '.checkout-page__layout', '[data-checkout-confirmation-number]', '[data-checkout-confirmation]'
     ].map(selector => [selector, node()]));
     nodes['[data-checkout-form]'] = form;
-    const root = { querySelector(selector) { return nodes[selector]; } };
+    const dialogs = {};
+    const openButtons = [];
+    if (exerciseOptions) {
+        for (const name of ['note', 'shipping', 'coupon']) {
+            const dialog = node();
+            const dialogForm = node();
+            const error = node();
+            const controls = { form: dialogForm, '[data-dialog-error]': error };
+            if (name === 'note') controls.textarea = { value: '' };
+            if (name === 'coupon') controls['[name="code"]'] = { value: '' };
+            if (name === 'shipping') controls['[name="estimate_country"]'] = node();
+            dialog.querySelector = selector => controls[selector];
+            dialog.querySelectorAll = () => [];
+            dialog.getAttribute = () => name;
+            dialog.showModal = () => { dialog.open = true; };
+            dialog.close = () => { dialog.open = false; };
+            dialogs[name] = dialog;
+            const button = node();
+            button.getAttribute = () => name;
+            openButtons.push(button);
+        }
+    }
+    const root = {
+        querySelector(selector) {
+            const match = selector.match(/^\[data-checkout-dialog="(.*)"\]$/);
+            return match ? dialogs[match[1]] : nodes[selector];
+        },
+        querySelectorAll(selector) {
+            return selector === '[data-checkout-dialog]' ? Object.values(dialogs) : openButtons;
+        }
+    };
     const events = {};
     const document = {
         querySelector: () => root, createElement: () => node(),
@@ -125,6 +174,7 @@ async function checkoutScenario(failureMode) {
             : path === 'cart/add-item' ? cart([])
             : path === 'cart/update-customer' ? cart(rates(false))
             : path === 'cart/select-shipping-rate' ? cart(rates(true))
+            : path === 'cart/apply-coupon' ? { ...cart(rates(true)), coupons: [{ code: 'SAVE20' }], totals: { ...totals, total_discount: '200', total_price: '1000' } }
             : { order_id: 123, order_number: 'DB123', status: 'processing', payment_result: { payment_status: 'success' } };
         return { ok: true, headers: { get: name => name === 'Cart-Token' ? 'guest-token' : null }, json: async () => body };
     };
@@ -158,9 +208,24 @@ async function checkoutScenario(failureMode) {
     nodes['[data-checkout-shipping-rates]'].children[0].children[0].handlers.change();
     await new Promise(resolve => setTimeout(resolve, 20));
     assert.equal(submit.disabled, false);
+    if (exerciseOptions) {
+        openButtons[0].handlers.click();
+        dialogs.note.querySelector('textarea').value = 'Leave at reception';
+        dialogs.note.querySelector('form').handlers.submit({ preventDefault() {} });
+        openButtons[2].handlers.click();
+        dialogs.coupon.querySelector('[name="code"]').value = 'SAVE20';
+        await dialogs.coupon.querySelector('form').handlers.submit({ preventDefault() {} });
+        assert.equal(dialogs.coupon.open, false);
+        assert.equal(nodes['[data-checkout-order-total]'].textContent, '£10.00');
+        assert.equal(submit.disabled, false);
+    }
     await form.handlers.submit({ preventDefault() {} });
     const order = JSON.parse(calls.find(call => call.path === 'checkout').options.body);
-    assert.equal(order.expected_total, '1200');
+    assert.equal(order.expected_total, exerciseOptions ? '1000' : '1200');
+    if (exerciseOptions) {
+        assert.equal(order.customer_note, 'Leave at reception');
+        assert.deepEqual(JSON.parse(calls.find(call => call.path === 'cart/apply-coupon').options.body), { code: 'SAVE20' });
+    }
     assert.equal(order.shipping_address.first_name, 'Test');
     assert.equal(order.shipping_address.last_name, 'Customer');
     assert.equal(order.billing_address.address_1, order.shipping_address.address_1);
@@ -179,3 +244,4 @@ test('guest checkout syncs cart, selects shipping, and clears storage only after
 test('failed cart sync preserves the local cart', () => checkoutScenario('add'));
 test('total mismatch preserves the local cart and requests review', () => checkoutScenario('mismatch'));
 test('uncertain network result preserves the local cart and blocks duplicate submit', () => checkoutScenario('network'));
+test('order note and coupon update the confirmed checkout total', () => checkoutScenario(undefined, true));
