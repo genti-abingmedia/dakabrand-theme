@@ -39,7 +39,7 @@ test('billing address supplies delivery address until another address is selecte
     const address = checkout.customerAddress({ get: key => fields[key] || '' });
     assert.deepEqual(address.shipping_address, {
         first_name: 'Ada', last_name: 'Lovelace', address_1: '12 Example Road',
-        address_2: '', city: 'London', state: '', postcode: 'SW1A 1AA', country: 'GB'
+        address_2: '', city: 'London', state: '', postcode: 'SW1A 1AA', country: 'GB', phone: '123456'
     });
     assert.deepEqual(address.billing_address, {
         ...address.shipping_address, email: 'ada@example.com', phone: '123456'
@@ -66,7 +66,7 @@ test('a separate shipping address is sent without changing billing details', () 
     assert.equal(address.billing_address.country, 'GB');
     assert.deepEqual(address.shipping_address, {
         first_name: 'Grace', last_name: 'Hopper', address_1: '42 Navy Street',
-        address_2: '', city: 'Arlington', state: 'VA', postcode: '22201', country: 'US'
+        address_2: '', city: 'Arlington', state: 'VA', postcode: '22201', country: 'US', phone: '123456'
     });
 });
 
@@ -229,6 +229,7 @@ async function checkoutScenario(failureMode, exerciseOptions) {
     }
     assert.equal(order.shipping_address.first_name, 'Test');
     assert.equal(order.shipping_address.last_name, 'Customer');
+    assert.equal(order.shipping_address.phone, 'Test');
     assert.equal(order.billing_address.address_1, order.shipping_address.address_1);
     if (failureMode === 'mismatch' || failureMode === 'network') {
         assert.match(nodes['[data-checkout-page-status]'].textContent,

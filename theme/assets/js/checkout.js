@@ -62,7 +62,11 @@
             city: String(values.get('billing_city') || '').trim(),
             state: String(values.get('billing_state') || '').trim(),
             postcode: String(values.get('billing_postcode') || '').trim(),
-            country: String(values.get('billing_country') || '').trim()
+            country: String(values.get('billing_country') || '').trim(),
+            // The Store API can require a delivery phone even though the form
+            // collects it under billing details. Reuse that single required
+            // phone number for the shipping contact.
+            phone: String(values.get('billing_phone') || '').trim()
         };
         var shipping = Object.assign({}, address);
         if (values.get('ship_to_different_address')) {
@@ -75,7 +79,8 @@
                 city: String(values.get('shipping_city') || '').trim(),
                 state: String(values.get('shipping_state') || '').trim(),
                 postcode: String(values.get('shipping_postcode') || '').trim(),
-                country: String(values.get('shipping_country') || '').trim()
+                country: String(values.get('shipping_country') || '').trim(),
+                phone: address.phone
             };
         }
         return {
