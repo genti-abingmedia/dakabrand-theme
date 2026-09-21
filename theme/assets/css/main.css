@@ -674,13 +674,20 @@ button, input { font: inherit; }
 .contact-form button:disabled { cursor: wait; opacity: .55; }
 .contact-form__status { min-height: 1.5rem; margin: 1rem 0 0; color: #276b37; font-size: .88rem; }
 .contact-form__status.is-error { color: var(--brand-red); }
-.contact-form--wpforms .wpforms-container { margin: 0; }
-.contact-form--wpforms .wpforms-field-container { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 1rem; }
+.contact-form--wpforms .wpforms-container { width: 100%; margin: 0; }
+.contact-form--wpforms .wpforms-form { width: 100%; }
+.contact-form--wpforms .wpforms-field-container { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; }
+.contact-form--wpforms .wpforms-field {
+    float: none !important;
+    clear: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 0 1.2rem;
+}
 .contact-form--wpforms .wpforms-field-textarea { grid-column: 1 / -1; }
-.contact-form--wpforms .wpforms-field { padding: 0 0 1.2rem; }
-.contact-form--wpforms .wpforms-field :is(input, textarea) { display: block; width: 100%; padding: .85rem .95rem; color: var(--brand-black); background: #fff; border: 1px solid #d5d5d5; border-radius: 0; font: inherit; }
+.contact-form--wpforms .wpforms-field :is(input, textarea) { display: block; box-sizing: border-box; width: 100% !important; max-width: none !important; padding: .85rem .95rem; color: var(--brand-black); background: #fff; border: 1px solid #d5d5d5; border-radius: 0; font: inherit; }
 .contact-form--wpforms .wpforms-field textarea { min-height: 10rem; resize: vertical; }
-.contact-form--wpforms .wpforms-submit-container { padding-top: 0; }
+.contact-form--wpforms .wpforms-submit-container { clear: both; margin: 0; padding-top: 0; }
 .contact-form--wpforms button[type="submit"] { min-height: 3.1rem; padding: .75rem 1.8rem; color: #fff; background: var(--brand-black); border: 0; border-radius: 0; font-size: .83rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; transition: background-color 160ms ease; }
 .contact-form--wpforms button[type="submit"]:hover, .contact-form--wpforms button[type="submit"]:focus-visible { background: var(--brand-red); }
 .contact-form--wpforms .wpforms-confirmation-container-full { margin: 0; border: 0; background: #edf8f0; }

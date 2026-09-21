@@ -160,7 +160,7 @@ Assign these menu locations in WordPress:
 
 - `Primary navigation` powers both the desktop dropdown navigation and the
   accessible mobile offcanvas menu.
-- `Footer information` contains account, cart, wishlist, and checkout links.
+- `Footer information` contains account, cart, and checkout links.
 - `Footer services` contains contact and policy links.
 - `Footer navigation (legacy)` remains as the fallback for existing installs.
 

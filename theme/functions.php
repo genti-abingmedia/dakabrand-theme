@@ -668,23 +668,22 @@ function staticbridge_footer_information_fallback($args = array()): void
     ?>
     <ul class="footer-menu">
         <li><a href="<?php echo esc_url(home_url('/cart/')); ?>" data-cart-link><?php esc_html_e('My Cart', 'dakabrand'); ?></a></li>
-        <li><a href="<?php echo esc_url(home_url('/wishlist/')); ?>"><?php esc_html_e('Wishlist', 'dakabrand'); ?></a></li>
         <li><a href="<?php echo esc_url(home_url('/shop/')); ?>"><?php esc_html_e('Shop', 'dakabrand'); ?></a></li>
     </ul>
     <?php
 }
 
-/** Do not render account entry points from WordPress-managed storefront menus. */
-function staticbridge_hide_account_menu_items(array $items): array
+/** Do not render account or wishlist entry points from WordPress-managed storefront menus. */
+function staticbridge_hide_restricted_menu_items(array $items): array
 {
     return array_values(array_filter($items, static function ($item): bool {
         $path = (string) wp_parse_url((string) ($item->url ?? ''), PHP_URL_PATH);
         $path = trim(strtolower($path), '/');
         return !($path === 'my-account' || str_starts_with($path, 'my-account/') ||
-            in_array($path, array('login', 'register', 'wp-login.php', 'wp-register.php'), true));
+            in_array($path, array('login', 'register', 'wp-login.php', 'wp-register.php', 'wishlist'), true));
     }));
 }
-add_filter('wp_nav_menu_objects', 'staticbridge_hide_account_menu_items');
+add_filter('wp_nav_menu_objects', 'staticbridge_hide_restricted_menu_items');
 
 function staticbridge_hide_account_page(): void
 {
