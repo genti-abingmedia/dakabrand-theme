@@ -120,6 +120,8 @@ function staticbridge_frontend_messages(): array
         'validQuantity'         => __('Choose a valid quantity.', 'dakabrand'),
         'productDetailsMissing' => __('Product details are unavailable.', 'dakabrand'),
         'stockCheckFailed'      => __('Could not check live stock. Please try again.', 'dakabrand'),
+        'preorderOnly'          => __('Preorder Only', 'dakabrand'),
+        'availableProducts'     => __('Available Products', 'dakabrand'),
     );
 }
 
@@ -830,6 +832,7 @@ function staticbridge_enqueue_assets(): void
             'local' === wp_get_environment_type() ? '/wp-json/' : '/api/'),
         'catalogSourceOrigin' => (string) apply_filters('staticbridge_catalog_source_origin', 'https://dakabrand.uk/'),
         'cartStorageKey'   => 'staticbridge_cart_v1',
+        'stockModeStorageKey' => 'staticbridge_stock_mode_v1',
         'cartUrl'          => home_url('/cart/'),
         'shopUrl'          => home_url('/shop/'),
         'locale'           => staticbridge_requested_locale(),

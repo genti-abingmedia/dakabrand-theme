@@ -89,6 +89,9 @@
         var target = browserUrl(params);
         if (target.href === window.location.href) return;
         window.history[replace ? 'replaceState' : 'pushState']({}, '', target.href);
+        // Stock-mode state is derived from the URL. Refresh it immediately after
+        // client-side catalog navigation so it cannot display the prior filter.
+        if (window.StaticBridgeStockMode) window.StaticBridgeStockMode.refreshBadge();
         load();
     }
 
@@ -568,6 +571,9 @@
                     });
                 }
                 var value = selected.map(function (item) { return item.slug + ':' + item.label; }).join(',');
+                if (facet.slug === 'stock_status' && window.StaticBridgeStockMode) {
+                    window.StaticBridgeStockMode.saveStatus(value);
+                }
                 updateParam(facet.slug, value, true);
             });
             options.appendChild(label);
@@ -622,6 +628,9 @@
                 var button = element('button', '', text + '  ×');
                 button.type = 'button';
                 button.addEventListener('click', function () {
+                    if (facet.slug === 'stock_status' && window.StaticBridgeStockMode) {
+                        window.StaticBridgeStockMode.clear();
+                    }
                     if (facet.display === 'range') return updateParam(facet.slug, '', true);
                     var remaining = selectedTokens(value).filter(function (part) { return part !== token; }).join(',');
                     updateParam(facet.slug, remaining, true);
@@ -642,6 +651,7 @@
     function clearFacets() {
         var params = new URLSearchParams(window.location.search);
         (currentData.filter || []).forEach(function (facet) { params.delete(facet.slug); });
+        if (window.StaticBridgeStockMode) window.StaticBridgeStockMode.clear();
         params.delete('page');
         navigate(params);
     }
@@ -797,6 +807,17 @@
 
     function load(force) {
         var params = new URLSearchParams(window.location.search);
+
+        // A saved homepage/catalog choice becomes part of the shareable catalog
+        // URL only when this request did not already specify a stock filter.
+        if (!params.has('stock_status') && window.StaticBridgeStockMode) {
+            var inheritedStockStatus = window.StaticBridgeStockMode.currentStatus();
+            if (inheritedStockStatus) {
+                params.set('stock_status', inheritedStockStatus);
+                window.history.replaceState({}, '', browserUrl(params).href);
+                window.StaticBridgeStockMode.refreshBadge();
+            }
+        }
 
         var page = pageNumber(params);
         var limit = catalogPageSize(params);

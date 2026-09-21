@@ -12,7 +12,7 @@ $home_sections = array(
         'category'  => '/product-category/women/',
         'preorder'  => '/product-category/women/?stock_status=onbackorder%3Aonbackorder',
         'in_stock'  => '/product-category/women/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
-        'offer'     => '/product-category/women/big-offer-women/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
+        'offer'     => '/product-category/women/big-offer-women',
     ),
     array(
         'key'       => 'man',
@@ -22,7 +22,7 @@ $home_sections = array(
         'category'  => '/product-category/man/',
         'preorder'  => '/product-category/man/?stock_status=onbackorder%3Aonbackorder',
         'in_stock'  => '/product-category/man/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
-        'offer'     => '/product-category/man/big-offer/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
+        'offer'     => '/product-category/man/big-offer',
     ),
 );
 ?>
@@ -36,15 +36,15 @@ $home_sections = array(
 
     <?php foreach ($home_sections as $section) : ?>
         <section id="home-<?php echo esc_attr($section['key']); ?>" class="home-gateway__panel home-gateway__panel--<?php echo esc_attr($section['key']); ?>" aria-labelledby="home-<?php echo esc_attr($section['key']); ?>-title" data-gateway-panel>
-            <a class="home-gateway__image-link" href="<?php echo esc_url($section['landing']); ?>" aria-label="<?php echo esc_attr(sprintf(__('Shop %s', 'dakabrand'), $section['label'])); ?>">
+            <a class="home-gateway__image-link" href="<?php echo esc_url($section['landing']); ?>" aria-label="<?php echo esc_attr(sprintf(__('Shop %s', 'dakabrand'), $section['label'])); ?>" data-stock-mode="available">
                 <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/' . $section['image']); ?>" alt="" width="1163" height="1236" fetchpriority="high">
             </a>
             <h2 class="screen-reader-text" id="home-<?php echo esc_attr($section['key']); ?>-title"><?php echo esc_html($section['label']); ?></h2>
 
             <nav class="home-gateway__actions" aria-label="<?php echo esc_attr(sprintf(__('%s collections', 'dakabrand'), $section['label'])); ?>">
-                <a class="home-gateway__button home-gateway__button--dark" href="<?php echo esc_url(home_url($section['preorder'])); ?>"><?php esc_html_e('Preorder Only', 'dakabrand'); ?></a>
-                <a class="home-gateway__button" href="<?php echo esc_url(home_url($section['in_stock'])); ?>"><?php esc_html_e('Shop New Collection', 'dakabrand'); ?></a>
-                <a class="home-gateway__button home-gateway__button--offer" href="<?php echo esc_url(home_url($section['offer'])); ?>"><?php esc_html_e('Big Offer', 'dakabrand'); ?></a>
+                <a class="home-gateway__button home-gateway__button--dark" href="<?php echo esc_url(home_url($section['preorder'])); ?>" data-stock-mode="preorder"><?php esc_html_e('Preorder Only', 'dakabrand'); ?></a>
+                <a class="home-gateway__button" href="<?php echo esc_url(home_url($section['in_stock'])); ?>" data-stock-mode="available"><?php esc_html_e('Shop New Collection', 'dakabrand'); ?></a>
+                <a class="home-gateway__button home-gateway__button--offer" href="<?php echo esc_url(home_url($section['offer'])); ?>" data-stock-mode="available"><?php esc_html_e('Big Offer', 'dakabrand'); ?></a>
             </nav>
         </section>
     <?php endforeach; ?>

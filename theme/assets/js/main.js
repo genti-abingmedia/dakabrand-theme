@@ -45,6 +45,139 @@
         });
     }
 
+    function enhanceStockMode() {
+        var storageKey = config.stockModeStorageKey || 'staticbridge_stock_mode_v1';
+        var statuses = {
+            preorder: 'onbackorder:onbackorder',
+            available: 'instock:instock,outofstock:outofstock'
+        };
+        var excludedPaths = [
+            '/cart', '/checkout', '/my-account', '/contact-us', '/privacy-policy',
+            '/terms-conditions', '/refund-returns', '/wp-admin', '/wp-login.php'
+        ];
+
+        function normalizedStatus(value) {
+            return typeof value === 'string' && value.trim() ? value.trim() : '';
+        }
+
+        function modeForStatus(value) {
+            var status = normalizedStatus(value);
+            var selectedStatuses;
+            if (!status) return null;
+            selectedStatuses = status.split(',').map(function (token) {
+                return token.split(':')[0].trim();
+            }).filter(Boolean);
+            // "Preorder Only" must be exclusive. A mixed selection (including
+            // preorder alongside in/out-of-stock) is an available catalog view.
+            return selectedStatuses.length === 1 && selectedStatuses[0] === 'onbackorder'
+                ? 'preorder'
+                : 'available';
+        }
+
+        function savedStatus() {
+            try {
+                return normalizedStatus(localStorage.getItem(storageKey));
+            } catch (error) {
+                return '';
+            }
+        }
+
+        function saveStatus(value) {
+            var status = normalizedStatus(value);
+            try {
+                if (status) localStorage.setItem(storageKey, status);
+                else localStorage.removeItem(storageKey);
+            } catch (error) {
+                // Browsing still works when storage is unavailable.
+            }
+            refreshBadge();
+            document.dispatchEvent(new CustomEvent('staticbridge:stock-mode-updated', {
+                detail: { status: status, mode: modeForStatus(status) }
+            }));
+            return status;
+        }
+
+        function saveMode(mode) {
+            return saveStatus(statuses[mode] || '');
+        }
+
+        function currentStatus() {
+            var params = new URLSearchParams(window.location.search);
+            return normalizedStatus(params.get('stock_status')) || savedStatus();
+        }
+
+        function refreshBadge() {
+            var status = currentStatus();
+            var mode = modeForStatus(status);
+            var label = mode === 'preorder'
+                ? message('preorderOnly', 'Preorder Only')
+                : message('availableProducts', 'Available Products');
+            document.querySelectorAll('[data-stock-mode-badge]').forEach(function (badge) {
+                badge.hidden = !status;
+                badge.textContent = status ? label : '';
+            });
+        }
+
+        function isExcludedDestination(url) {
+            var path = url.pathname.replace(/\/+$/, '') || '/';
+            return path === '/' || excludedPaths.some(function (excluded) {
+                return path === excluded || path.indexOf(excluded + '/') === 0;
+            });
+        }
+
+        function inheritedUrl(value) {
+            var url;
+            var status = savedStatus();
+            try {
+                url = new URL(value, window.location.origin);
+            } catch (error) {
+                return null;
+            }
+            if (url.origin !== window.location.origin || !status || url.searchParams.has('stock_status') || isExcludedDestination(url)) {
+                return url;
+            }
+            url.searchParams.set('stock_status', status);
+            return url;
+        }
+
+        function linkFromEvent(event) {
+            var target = event.target;
+            return target && target.closest ? target.closest('a[href]') : null;
+        }
+
+        document.querySelectorAll('[data-stock-mode]').forEach(function (link) {
+            link.addEventListener('click', function () {
+                var destination;
+                saveMode(link.getAttribute('data-stock-mode'));
+                destination = inheritedUrl(link.href);
+                if (destination && destination.href !== link.href) link.href = destination.href;
+            });
+        });
+
+        document.addEventListener('click', function (event) {
+            var link = linkFromEvent(event);
+            var url;
+            if (!link || link.getAttribute('data-stock-mode') || link.hasAttribute('download') || (link.target && link.target !== '_self')) return;
+            url = inheritedUrl(link.href);
+            if (url && url.href !== link.href) link.href = url.href;
+        }, true);
+
+        window.addEventListener('popstate', refreshBadge);
+        refreshBadge();
+
+        window.StaticBridgeStockMode = {
+            availableStatus: statuses.available,
+            preorderStatus: statuses.preorder,
+            currentStatus: currentStatus,
+            modeForStatus: modeForStatus,
+            saveMode: saveMode,
+            saveStatus: saveStatus,
+            clear: function () { return saveStatus(''); },
+            inheritUrl: inheritedUrl,
+            refreshBadge: refreshBadge
+        };
+    }
+
     function enhanceMobileNavigation() {
         document.querySelectorAll('.mobile-navigation__menu .menu-item-has-children').forEach(function (item, index) {
             var submenu = item.querySelector(':scope > .sub-menu');
@@ -335,6 +468,7 @@
         }
     }
 
+    enhanceStockMode();
     enhanceMobileNavigation();
     enhanceFashionNavigation();
     translateStaticLabels();

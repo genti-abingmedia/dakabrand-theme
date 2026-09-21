@@ -40,6 +40,12 @@ msgstr "Diçka e madhe po përgatitet! Dyqani ynë është në përgatitje dhe d
 msgid "View all"
 msgstr "Shiko të gjitha"
 
+msgid "Preorder Only"
+msgstr "Vetëm porosi paraprake"
+
+msgid "Available Products"
+msgstr "Produkte të disponueshme"
+
 msgid "Checkout"
 msgstr "Pagesa"
 

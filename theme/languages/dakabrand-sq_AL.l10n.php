@@ -78,6 +78,7 @@ return array(
         'Shop %s' => 'Bli %s',
         '%s collections' => 'Koleksionet %s',
         'Preorder Only' => 'Vetëm porosi paraprake',
+        'Available Products' => 'Produkte të disponueshme',
         'Shop New Collection' => 'Bli koleksionin e ri',
         'Shop new collection' => 'Bli koleksionin e ri',
         'Top Deals' => 'Ofertat më të mira',
