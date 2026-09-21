@@ -60,7 +60,8 @@ class ThemeStructureTests(unittest.TestCase):
             self.assertIn(contract, footer)
         self.assertIn("staticbridge_newsletter_endpoint", functions)
         self.assertIn("newsletterEndpoint", functions)
-        self.assertIn("if ($newsletter_endpoint)", footer)
+        self.assertIn("staticbridge_wpforms_form_id('newsletter')", footer)
+        self.assertIn("wpforms_display($newsletter_form_id", footer)
         self.assertNotIn("receive 10% off", footer)
 
     def test_cart_drawer_is_shared_and_product_data_supports_it(self) -> None:
@@ -294,8 +295,9 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("'contact'", render_api)
         self.assertIn("'policy'", render_api)
         self.assertIn("the_content()", policy)
-        self.assertIn('data-contact-form', contact)
-        self.assertIn("if ($contact_endpoint)", contact)
+        self.assertIn("staticbridge_wpforms_form_id('contact')", contact)
+        self.assertIn("wpforms_display($contact_form_id", contact)
+        self.assertIn("staticbridge_wpforms_contact_form_id", self.read("README.md"))
         self.assertIn("'staticbridge_contact_endpoint'", functions)
         self.assertIn("'endpoint' => (string) apply_filters('staticbridge_contact_endpoint', '')", functions)
 

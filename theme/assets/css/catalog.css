@@ -59,7 +59,7 @@
 .catalog-facet--box .catalog-facet__option:has(input:checked) { color: #fff; background: var(--brand-black); border-color: var(--brand-black); }
 .catalog-facet--box .catalog-facet__option input { position: absolute; opacity: 0; }
 .catalog-facet--box .catalog-facet__option:focus-within { outline: 2px solid var(--brand-red); outline-offset: 2px; }
-.catalog-facet--box .catalog-facet__option .catalog-facet__count { position: absolute; right: 3px; bottom: 0; color: inherit; opacity: .7; font-size: .6rem; min-width: 8px; }
+.catalog-facet--box .catalog-facet__option .catalog-facet__count { position: absolute; right: 3px; bottom: 0; color: inherit; opacity: .7; font-size: .6rem; min-width: 8px; display: none; }
 .catalog-price .catalog-facet__option { gap: .4rem; }
 .catalog-price .catalog-facet__option span:nth-child(2) { flex: 0 0 auto; }
 .catalog-price .catalog-facet__count { color: inherit; font-size: inherit; }

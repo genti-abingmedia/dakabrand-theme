@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
 $maps_query = 'Rruga Muhamet Gjollesha Pallati 18, Tiranë, Albania';
 $maps_url = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($maps_query);
 $contact_endpoint = trim((string) apply_filters('staticbridge_contact_endpoint', ''));
+$contact_form_id = staticbridge_wpforms_form_id('contact');
 ?>
 <main id="main" class="site-main site-shell information-page information-page--contact" data-static-view="contact">
     <header class="information-page__header">
@@ -20,7 +21,11 @@ $contact_endpoint = trim((string) apply_filters('staticbridge_contact_endpoint',
     <div class="contact-page__layout">
         <section class="contact-page__message" aria-labelledby="contact-heading">
             <h2 id="contact-heading"><?php esc_html_e('Get in touch with us', 'dakabrand'); ?></h2>
-            <?php if ($contact_endpoint) : ?>
+            <?php if ($contact_form_id) : ?>
+            <div class="contact-form contact-form--wpforms">
+                <?php wpforms_display($contact_form_id, false, false); ?>
+            </div>
+            <?php elseif ($contact_endpoint) : ?>
             <form class="contact-form" data-contact-form novalidate>
                 <div class="contact-form__row">
                     <div class="contact-form__field">

@@ -3,6 +3,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 $newsletter_endpoint = trim((string) apply_filters('staticbridge_newsletter_endpoint', ''));
+$newsletter_form_id = staticbridge_wpforms_form_id('newsletter');
 ?>
 <?php if (!staticbridge_is_immersive_front_page()) : ?>
 <footer class="site-footer" data-component="site-footer">
@@ -31,7 +32,12 @@ $newsletter_endpoint = trim((string) apply_filters('staticbridge_newsletter_endp
         <div class="site-shell site-footer__grid">
             <section class="footer-newsletter" aria-labelledby="footer-newsletter-title">
                 <h2 id="footer-newsletter-title"><?php esc_html_e('Stay in touch', 'dakabrand'); ?></h2>
-                <?php if ($newsletter_endpoint) : ?>
+                <?php if ($newsletter_form_id) : ?>
+                <p><?php esc_html_e('Sign up for updates on new arrivals and offers.', 'dakabrand'); ?></p>
+                <div class="newsletter-form newsletter-form--wpforms">
+                    <?php wpforms_display($newsletter_form_id, false, false); ?>
+                </div>
+                <?php elseif ($newsletter_endpoint) : ?>
                 <p><?php esc_html_e('Sign up for updates on new arrivals and offers.', 'dakabrand'); ?></p>
                 <form class="newsletter-form" data-newsletter-form novalidate>
                     <label class="screen-reader-text" for="footer-newsletter-email"><?php esc_html_e('Email address', 'dakabrand'); ?></label>

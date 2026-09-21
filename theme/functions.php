@@ -124,6 +124,30 @@ function staticbridge_frontend_messages(): array
 }
 
 /**
+ * Return a configured public WPForms form only when WPForms is active and the
+ * referenced form exists. The filters keep the deployment independent of the
+ * IDs in any one database export.
+ */
+function staticbridge_wpforms_form_id(string $context): int
+{
+    $defaults = array(
+        'contact'    => 351,
+        'newsletter' => 472025,
+    );
+
+    if (!isset($defaults[$context]) || !function_exists('wpforms_display')) {
+        return 0;
+    }
+
+    $form_id = (int) apply_filters(
+        'staticbridge_wpforms_' . $context . '_form_id',
+        $defaults[$context]
+    );
+
+    return $form_id > 0 && 'wpforms' === get_post_type($form_id) ? $form_id : 0;
+}
+
+/**
  * WordPress 6.5+ can consume the accompanying .l10n.php catalogue. This
  * lightweight fallback also keeps translations available on hosts that only
  * load binary MO files from theme directories.

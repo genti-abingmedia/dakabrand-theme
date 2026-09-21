@@ -87,10 +87,18 @@ Bootstrap 5.3.8 is bundled locally and loaded before the theme stylesheet and
 script. Configure the `primary`, `footer_information`, and `footer_services`
 menu locations in WordPress; the legacy `footer` location remains a fallback.
 
-Newsletter integrations should provide a URL through the
-`staticbridge_newsletter_endpoint` filter. The endpoint accepts a JSON object
-with an `email` property and may return a user-facing `message` in a successful
-JSON response.
+The public newsletter and contact forms use WPForms Lite when it is active. By
+default they use the imported `Newsletter Form NEW` (ID `472025`) and `Contact
+Form` (ID `351`) respectively. Change IDs without editing the theme:
+
+```php
+add_filter('staticbridge_wpforms_newsletter_form_id', static fn (): int => 472025);
+add_filter('staticbridge_wpforms_contact_form_id', static fn (): int => 351);
+```
+
+If WPForms is unavailable, the legacy newsletter endpoint filter remains a
+fallback. It accepts a JSON object with an `email` property and may return a
+user-facing `message` in a successful JSON response.
 
 The `front-page` view is an immersive MAN/WOMAN gateway. It intentionally omits
 the header and footer, retains the mobile app toolbar, and keeps `wp_head()`,
@@ -113,8 +121,9 @@ The `/privacy-policy/`, `/terms-conditions/`, and `/refund_returns/` pages share
 the policy view and display their WordPress page title and content. Keep the
 policy wording in the page editor rather than in the theme.
 
-The contact form is shown only when a delivery endpoint is configured. A
-future integration can provide an absolute or same-origin URL with:
+If WPForms is not active, the contact form is shown only when a delivery
+endpoint is configured. A future integration can provide an absolute or
+same-origin URL with:
 
 ```php
 add_filter('staticbridge_contact_endpoint', static fn (): string => home_url('/api/contact/'));

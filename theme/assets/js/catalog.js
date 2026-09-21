@@ -398,6 +398,74 @@
         return card;
     }
 
+    function makeRelatedCard(product, rules, includeOutOfStock, index, whatsappNumber) {
+        var href = validUrl(product.permalink, true);
+        if (!href) return null;
+
+        var article = element('article', 'related-product-card');
+        var media = element('div', 'related-product-card__media');
+        var imageLink = element('a', 'related-product-card__image-link');
+        var imageUrl = validUrl(product.product_image, false);
+        var pricing = displayPricing(product, rules, includeOutOfStock);
+        var stock = (product.stock_status && product.stock_status.values) || [];
+
+        imageLink.href = href;
+        imageLink.setAttribute('aria-label', String(product.name || 'View product'));
+        if (imageUrl) {
+            var image = element('img');
+            image.src = imageUrl;
+            image.alt = String(product.name || '');
+            image.width = 300;
+            image.height = 300;
+            image.loading = index < 2 ? 'eager' : 'lazy';
+            image.decoding = 'async';
+            imageLink.appendChild(image);
+        }
+        media.appendChild(imageLink);
+
+        if (pricing.sale) {
+            media.appendChild(element('span', 'related-product-card__badge',
+                Math.round((pricing.price - pricing.sale) / pricing.price * 100) + '%'));
+        }
+        if (stock.includes('onbackorder')) media.appendChild(element('span', 'related-product-card__stock', '15 days preorder'));
+        else if (stock.includes('outofstock')) media.appendChild(element('span', 'related-product-card__stock', 'Out of stock'));
+
+        var phone = String(whatsappNumber || '').replace(/\D/g, '');
+        if (phone) {
+            var message = 'I AM INTERESTED IN THE PRODUCT: ' + String(product.name || '') +
+                ' with SKU: ' + String(product.sku || '') + ' Link: ' + href;
+            var whatsapp = element('a', 'related-product-card__whatsapp');
+            whatsapp.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
+            whatsapp.target = '_blank';
+            whatsapp.rel = 'noopener noreferrer';
+            whatsapp.title = 'Contact on WhatsApp';
+            whatsapp.setAttribute('aria-label', 'Contact on WhatsApp about ' + String(product.name || 'this product'));
+            var icon = element('img');
+            icon.src = 'https://static.gliterin.net/filter/whatsapp-logo.png';
+            icon.alt = '';
+            icon.width = 32;
+            icon.height = 32;
+            icon.loading = 'lazy';
+            whatsapp.appendChild(icon);
+            media.appendChild(whatsapp);
+        }
+        article.appendChild(media);
+
+        var details = element('a', 'related-product-card__details');
+        details.href = href;
+        details.appendChild(element('h3', 'related-product-card__name', product.name || 'Product'));
+        if (pricing.price > 0) {
+            var price = element('span', 'related-product-card__price');
+            if (pricing.sale) {
+                price.appendChild(element('s', '', formatPrice(pricing.price, product.currency)));
+                price.appendChild(element('strong', '', formatPrice(pricing.sale, product.currency)));
+            } else price.appendChild(element('span', '', formatPrice(pricing.price, product.currency)));
+            details.appendChild(price);
+        }
+        article.appendChild(details);
+        return article;
+    }
+
     function loadRail(grid) {
         var status = grid.parentElement.querySelector('[data-catalog-rail-status]');
         var limit = Math.max(1, Math.min(20, Number(grid.dataset.catalogLimit) || 10));
@@ -414,8 +482,10 @@
                 if (!data || !Array.isArray(data.products)) throw new Error('Invalid catalog response');
                 var rules = Array.isArray(data.discount_rules) ? data.discount_rules : [];
                 var cards = data.products.filter(function (product) { return Number(product.id) !== excluded; })
-                    .slice(0, limit).map(function (product) {
-                        return makeRailCard(product, rules, Boolean(data.include_out_of_stock));
+                    .slice(0, limit).map(function (product, index) {
+                        return grid.dataset.relatedProducts !== undefined
+                            ? makeRelatedCard(product, rules, Boolean(data.include_out_of_stock), index, data.whatsapp_number)
+                            : makeRailCard(product, rules, Boolean(data.include_out_of_stock));
                     }).filter(Boolean);
                 grid.replaceChildren.apply(grid, cards);
                 status.textContent = cards.length ? '' : 'No products found.';

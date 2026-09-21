@@ -320,7 +320,9 @@
             if (!product || product.type !== 'variable' || !target) return;
             (product.options || []).forEach(function (option) {
                 var normalizedLabel = String(option.label || '').toLowerCase();
-                var kind = /colou?r/.test(normalizedLabel) ? 'swatches' : /size/.test(normalizedLabel) ? 'tiles' : 'select';
+                // Chips make every textual variation immediately scannable. Keep colour
+                // values as visual swatches, but avoid hiding other choices in a select.
+                var kind = /colou?r/.test(normalizedLabel) ? 'swatches' : 'tiles';
                 var wrapper = element('fieldset', 'product-option product-option--' + kind);
                 var title = element('legend', '', option.label);
                 var field = element('input', 'product-option__value');
@@ -329,48 +331,30 @@
                 field.value = '';
                 wrapper.append(title, field);
 
-                if (kind === 'select') {
-                    var select = element('select');
-                    select.setAttribute('aria-label', option.label);
-                    var prompt = element('option', '', format(message('choose', 'Choose %s'), option.label));
-                    prompt.value = '';
-                    select.appendChild(prompt);
-                    (option.choices || []).forEach(function (choice) {
-                        var item = element('option', '', choice.label);
-                        item.value = choice.value;
-                        select.appendChild(item);
-                    });
-                    select.addEventListener('change', function () {
-                        field.value = select.value;
+                var choices = element('div', 'product-option__choices');
+                choices.setAttribute('role', 'group');
+                choices.setAttribute('aria-label', option.label);
+                (option.choices || []).forEach(function (choice) {
+                    var item = element('button', 'product-option__choice');
+                    item.type = 'button';
+                    item.dataset.optionChoice = '';
+                    item.dataset.optionGroup = option.key;
+                    item.dataset.optionValue = choice.value;
+                    item.setAttribute('aria-pressed', 'false');
+                    item.setAttribute('aria-label', option.label + ': ' + choice.label);
+                    if (kind === 'swatches') {
+                        item.classList.add('product-option__choice--swatch');
+                        item.style.setProperty('--swatch-color', swatchColor(choice.label));
+                        item.appendChild(element('span', 'screen-reader-text', choice.label));
+                    } else item.textContent = choice.label;
+                    item.addEventListener('click', function () {
+                        if (item.disabled) return;
+                        field.value = choice.value;
                         field.dispatchEvent(new Event('change', { bubbles: true }));
                     });
-                    wrapper.appendChild(select);
-                } else {
-                    var choices = element('div', 'product-option__choices');
-                    choices.setAttribute('role', 'group');
-                    choices.setAttribute('aria-label', option.label);
-                    (option.choices || []).forEach(function (choice) {
-                        var item = element('button', 'product-option__choice');
-                        item.type = 'button';
-                        item.dataset.optionChoice = '';
-                        item.dataset.optionGroup = option.key;
-                        item.dataset.optionValue = choice.value;
-                        item.setAttribute('aria-pressed', 'false');
-                        item.setAttribute('aria-label', option.label + ': ' + choice.label);
-                        if (kind === 'swatches') {
-                            item.classList.add('product-option__choice--swatch');
-                            item.style.setProperty('--swatch-color', swatchColor(choice.label));
-                            item.appendChild(element('span', 'screen-reader-text', choice.label));
-                        } else item.textContent = choice.label;
-                        item.addEventListener('click', function () {
-                            if (item.disabled) return;
-                            field.value = choice.value;
-                            field.dispatchEvent(new Event('change', { bubbles: true }));
-                        });
-                        choices.appendChild(item);
-                    });
-                    wrapper.appendChild(choices);
-                }
+                    choices.appendChild(item);
+                });
+                wrapper.appendChild(choices);
                 target.appendChild(wrapper);
             });
         });
