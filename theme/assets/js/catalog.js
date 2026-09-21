@@ -398,13 +398,13 @@
         return card;
     }
 
-    function makeRelatedCard(product, rules, includeOutOfStock, index, whatsappNumber) {
+    function makeStorefrontCard(product, rules, includeOutOfStock, index, whatsappNumber) {
         var href = validUrl(product.permalink, true);
         if (!href) return null;
 
-        var article = element('article', 'related-product-card');
-        var media = element('div', 'related-product-card__media');
-        var imageLink = element('a', 'related-product-card__image-link');
+        var article = element('article', 'storefront-product-card');
+        var media = element('div', 'storefront-product-card__media');
+        var imageLink = element('a', 'storefront-product-card__image-link');
         var imageUrl = validUrl(product.product_image, false);
         var pricing = displayPricing(product, rules, includeOutOfStock);
         var stock = (product.stock_status && product.stock_status.values) || [];
@@ -424,17 +424,17 @@
         media.appendChild(imageLink);
 
         if (pricing.sale) {
-            media.appendChild(element('span', 'related-product-card__badge',
+            media.appendChild(element('span', 'storefront-product-card__badge',
                 Math.round((pricing.price - pricing.sale) / pricing.price * 100) + '%'));
         }
-        if (stock.includes('onbackorder')) media.appendChild(element('span', 'related-product-card__stock', '15 days preorder'));
-        else if (stock.includes('outofstock')) media.appendChild(element('span', 'related-product-card__stock', 'Out of stock'));
+        if (stock.includes('onbackorder')) media.appendChild(element('span', 'storefront-product-card__stock', '15 days preorder'));
+        else if (stock.includes('outofstock')) media.appendChild(element('span', 'storefront-product-card__stock', 'Out of stock'));
 
         var phone = String(whatsappNumber || '').replace(/\D/g, '');
         if (phone) {
             var message = 'I AM INTERESTED IN THE PRODUCT: ' + String(product.name || '') +
                 ' with SKU: ' + String(product.sku || '') + ' Link: ' + href;
-            var whatsapp = element('a', 'related-product-card__whatsapp');
+            var whatsapp = element('a', 'storefront-product-card__whatsapp');
             whatsapp.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
             whatsapp.target = '_blank';
             whatsapp.rel = 'noopener noreferrer';
@@ -451,11 +451,11 @@
         }
         article.appendChild(media);
 
-        var details = element('a', 'related-product-card__details');
+        var details = element('a', 'storefront-product-card__details');
         details.href = href;
-        details.appendChild(element('h3', 'related-product-card__name', product.name || 'Product'));
+        details.appendChild(element('h3', 'storefront-product-card__name', product.name || 'Product'));
         if (pricing.price > 0) {
-            var price = element('span', 'related-product-card__price');
+            var price = element('span', 'storefront-product-card__price');
             if (pricing.sale) {
                 price.appendChild(element('s', '', formatPrice(pricing.price, product.currency)));
                 price.appendChild(element('strong', '', formatPrice(pricing.sale, product.currency)));
@@ -483,8 +483,8 @@
                 var rules = Array.isArray(data.discount_rules) ? data.discount_rules : [];
                 var cards = data.products.filter(function (product) { return Number(product.id) !== excluded; })
                     .slice(0, limit).map(function (product, index) {
-                        return grid.dataset.relatedProducts !== undefined
-                            ? makeRelatedCard(product, rules, Boolean(data.include_out_of_stock), index, data.whatsapp_number)
+                        return grid.dataset.storefrontProductCards !== undefined
+                            ? makeStorefrontCard(product, rules, Boolean(data.include_out_of_stock), index, data.whatsapp_number)
                             : makeRailCard(product, rules, Boolean(data.include_out_of_stock));
                     }).filter(Boolean);
                 grid.replaceChildren.apply(grid, cards);

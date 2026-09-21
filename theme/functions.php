@@ -379,6 +379,34 @@ function staticbridge_department_page_url(string $department): string
 }
 
 /**
+ * Build a product-category archive URL that filters by a real product-category
+ * slug and its current WordPress term name. The catalogue filter requires the
+ * value in `slug:Name` form; category ancestry is not consistent across the
+ * imported catalogue, so callers must provide the canonical archive path.
+ */
+function staticbridge_catalog_category_url(string $path, string $category = ''): string
+{
+    $url = home_url('/' . ltrim($path, '/'));
+
+    if ('' === $category) {
+        return $url;
+    }
+
+    $slug = sanitize_title($category);
+    $name = ucwords(str_replace('-', ' ', preg_replace('/-(?:women|man)$/', '', $slug)));
+
+    if (taxonomy_exists('product_cat')) {
+        $term = get_term_by('slug', $slug, 'product_cat');
+
+        if ($term instanceof WP_Term) {
+            $name = $term->name;
+        }
+    }
+
+    return add_query_arg('categories', $slug . ':' . $name, $url);
+}
+
+/**
  * The storefront gateway intentionally omits visible global navigation.
  * The explicit view check keeps generated front-page documents deterministic.
  */

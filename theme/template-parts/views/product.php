@@ -166,7 +166,7 @@ $share_title = rawurlencode($product->get_name());
     <?php if ($related_source) : ?>
       <section class="product-recommendations" aria-labelledby="related-products-title">
         <div class="product-section__heading"><h2 id="related-products-title"><?php esc_html_e('Related products', 'dakabrand'); ?></h2></div>
-        <div class="product-grid product-recommendations__grid" data-product-grid data-related-products data-catalog-source="<?php echo esc_url($related_source); ?>" data-catalog-limit="4" data-catalog-exclude="<?php echo esc_attr((string) $product->get_id()); ?>" aria-busy="true"></div>
+        <div class="product-grid product-recommendations__grid" data-product-grid data-storefront-product-cards data-catalog-source="<?php echo esc_url($related_source); ?>" data-catalog-limit="4" data-catalog-exclude="<?php echo esc_attr((string) $product->get_id()); ?>" aria-busy="true"></div>
         <p class="catalog-rail-status" role="status" data-catalog-rail-status><?php esc_html_e('Loading products…', 'dakabrand'); ?></p>
       </section>
     <?php endif; ?>

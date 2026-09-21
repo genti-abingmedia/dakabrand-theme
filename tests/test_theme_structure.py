@@ -28,11 +28,14 @@ class ThemeStructureTests(unittest.TestCase):
 
     def test_header_preserves_wordpress_and_navigation_contracts(self) -> None:
         header = self.read("header.php")
+        functions = self.read("functions.php")
 
         for contract in ("wp_head()", "wp_body_open()"):
             self.assertIn(contract, header)
         self.assertIn('id="mobile-navigation"', header)
-        self.assertIn("wp_nav_menu", header)
+        self.assertIn('class="mobile-navigation__menu"', header)
+        self.assertIn("staticbridge_catalog_category_url", header)
+        self.assertIn("$slug . ':' . $name", functions)
 
     def test_theme_has_cookie_backed_english_and_albanian_ui(self) -> None:
         functions = self.read("functions.php")

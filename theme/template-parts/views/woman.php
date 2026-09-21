@@ -60,7 +60,7 @@ $woman_collections = array(
 
         <section class="woman-collection man-collection site-shell" aria-labelledby="woman-<?php echo esc_attr($collection_key); ?>-title">
             <h2 id="woman-<?php echo esc_attr($collection_key); ?>-title"><?php echo esc_html($collection[0]); ?></h2>
-            <div class="woman-product-grid man-product-grid product-grid" data-product-grid data-catalog-source="<?php echo esc_url($collection[1]); ?>" data-catalog-limit="10" aria-busy="true"></div>
+            <div class="woman-product-grid man-product-grid product-grid" data-product-grid data-storefront-product-cards data-catalog-source="<?php echo esc_url($collection[1]); ?>" data-catalog-limit="10" aria-busy="true"></div>
             <p class="catalog-rail-status" role="status" data-catalog-rail-status><?php esc_html_e('Loading products…', 'dakabrand'); ?></p>
 
             <a class="woman-collection__cta man-collection__cta" href="<?php echo esc_url(home_url($collection[1])); ?>"><?php esc_html_e('View all', 'dakabrand'); ?></a>
