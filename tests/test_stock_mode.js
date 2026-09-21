@@ -55,7 +55,8 @@ test('homepage entry actions save the expected browsing mode and update the badg
     assert.equal(page.badge.textContent, 'Preorder Only');
     page.available.handlers.click();
     assert.equal(page.storage['stock-mode'], 'instock:instock,outofstock:outofstock');
-    assert.equal(page.badge.textContent, 'Available Products');
+    assert.equal(page.badge.hidden, true);
+    assert.equal(page.badge.textContent, '');
     assert.equal(new URL(page.available.href).searchParams.get('stock_status'), 'instock:instock,outofstock:outofstock');
 });
 
@@ -78,7 +79,8 @@ test('direct stock-status URLs are displayed without replacing the saved browsin
 test('mixed stock-status selections are not labeled preorder only', () => {
     const page = fixture({ href: 'https://shop.test/shop/?stock_status=instock%3Ainstock%2Conbackorder%3Aonbackorder%2Coutofstock%3Aoutofstock' });
     assert.equal(page.window.StaticBridgeStockMode.modeForStatus(page.window.StaticBridgeStockMode.currentStatus()), 'available');
-    assert.equal(page.badge.textContent, 'Available Products');
+    assert.equal(page.badge.hidden, true);
+    assert.equal(page.badge.textContent, '');
 });
 
 test('storage failures do not prevent stock-mode URLs from being formed', () => {

@@ -109,12 +109,11 @@
         function refreshBadge() {
             var status = currentStatus();
             var mode = modeForStatus(status);
-            var label = mode === 'preorder'
-                ? message('preorderOnly', 'Preorder Only')
-                : message('availableProducts', 'Available Products');
             document.querySelectorAll('[data-stock-mode-badge]').forEach(function (badge) {
-                badge.hidden = !status;
-                badge.textContent = status ? label : '';
+                badge.hidden = mode !== 'preorder';
+                badge.textContent = mode === 'preorder'
+                    ? message('preorderOnly', 'Preorder Only')
+                    : '';
             });
         }
 
