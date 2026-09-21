@@ -23,7 +23,8 @@ function element() {
         scrollIntoView() {},
         append(...children) { this.children.push(...children); },
         appendChild(child) { this.children.push(child); },
-        querySelector() { return null; }
+        querySelector() { return null; },
+        parentNode: null
     };
 }
 
@@ -56,6 +57,9 @@ function gallery(count) {
     const next = element();
     const thumbs = Array.from({ length: count }, (_, index) => {
         const thumb = element();
+        const image = element();
+        image.parentNode = thumb;
+        thumb.querySelector = selector => selector === 'img' ? image : null;
         thumb.dataset = { imageSrc: `/image-${index}.jpg`, imageSrcset: `/image-${index}-large.jpg 2x`, imageAlt: `View ${index + 1}` };
         return thumb;
     });
@@ -67,6 +71,7 @@ function gallery(count) {
         },
         querySelectorAll() { return thumbs; }
     };
+    main.parentNode = stage;
     return { gallery, stage, main, counter, prev, next, thumbs };
 }
 
@@ -91,6 +96,25 @@ test('single-image gallery leaves its static image unchanged', () => {
     run([g.gallery], null, null);
     assert.equal(Object.keys(g.stage.handlers).length, 0);
     assert.equal(g.main.src, undefined);
+});
+
+test('gallery replaces failed images with the DAKA fallback state', () => {
+    const g = gallery(3);
+    run([g.gallery], null, null);
+    g.main.handlers.error();
+    assert.equal(g.stage.classList.contains('has-image-error'), true);
+    g.thumbs[1].querySelector('img').handlers.error();
+    assert.equal(g.thumbs[1].classList.contains('has-image-error'), true);
+    g.thumbs[1].handlers.click();
+    assert.equal(g.stage.classList.contains('has-image-error'), false);
+});
+
+test('gallery detects an image that failed before its listeners were attached', () => {
+    const g = gallery(3);
+    g.main.complete = true;
+    g.main.naturalWidth = 0;
+    run([g.gallery], null, null);
+    assert.equal(g.stage.classList.contains('has-image-error'), true);
 });
 
 test('variable product updates price, availability, and purchase state', () => {

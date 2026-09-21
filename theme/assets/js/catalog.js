@@ -613,7 +613,7 @@
         var visible = (data.filter || []).filter(function (facet) { return facet.show_in_filter; });
         var activeCount = 0;
         if (params.get('keyword')) {
-            var searchChip = element('button', '', 'Search: ' + params.get('keyword') + '  ×');
+            var searchChip = element('button', '', params.get('keyword') + '  ×');
             searchChip.type = 'button';
             searchChip.addEventListener('click', function () { updateParam('keyword', '', true); });
             nodes.active.appendChild(searchChip);
@@ -624,7 +624,7 @@
             if (!value) return;
             var tokens = facet.display === 'range' ? [value] : selectedTokens(value);
             tokens.forEach(function (token) {
-                var text = facet.display === 'range' ? 'Price: ' + token.replace(',', '–') : facet.label + ': ' + (token.split(':').slice(1).join(':') || token);
+                var text = facet.display === 'range' ? token.replace(',', '–') : (token.split(':').slice(1).join(':') || token);
                 var button = element('button', '', text + '  ×');
                 button.type = 'button';
                 button.addEventListener('click', function () {

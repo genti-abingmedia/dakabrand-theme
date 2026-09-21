@@ -281,6 +281,12 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn('data-checkout-order-total', checkout)
         self.assertIn("'staticbridge-checkout'", functions)
 
+    def test_product_purchase_state_uses_actual_product_stock(self) -> None:
+        product = self.read("template-parts/views/product.php")
+
+        self.assertNotIn("$_GET['stock_status']", product)
+        self.assertIn("'onbackorder' === $product->get_stock_status()", product)
+
     def test_contact_and_policy_pages_share_the_static_render_contract(self) -> None:
         render_api = self.read("inc/render-api.php")
         functions = self.read("functions.php")

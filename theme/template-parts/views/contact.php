@@ -3,7 +3,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-$maps_query = 'Rruga Muhamet Gjollesha Pallati 18, Tiranë, Albania';
+$maps_query = 'DAKA Brand - Clothing Shop in Tirana, Rruga Muhamet Gjollesha, Tiranë 1001, Albania';
 $maps_url = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($maps_query);
 $contact_endpoint = trim((string) apply_filters('staticbridge_contact_endpoint', ''));
 $contact_form_id = staticbridge_wpforms_form_id('contact');
@@ -15,7 +15,7 @@ $contact_form_id = staticbridge_wpforms_form_id('contact');
 
     <div class="contact-page__map">
         <iframe title="<?php esc_attr_e('Map showing Daka Brand in Tiranë', 'dakabrand'); ?>" src="<?php echo esc_url('https://maps.google.com/maps?q=' . rawurlencode($maps_query) . '&output=embed'); ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-        <div class="contact-page__map-label" aria-hidden="true"><strong>Daka Brand</strong><span>Rruga Muhamet Gjollesha Pallati 18, Tiranë</span></div>
+        <div class="contact-page__map-label" aria-hidden="true"><strong>DAKA Brand - Clothing Shop in Tirana</strong><span>Rruga Muhamet Gjollesha, Tiranë 1001, Albania</span></div>
     </div>
 
     <div class="contact-page__layout">
@@ -53,12 +53,12 @@ $contact_form_id = staticbridge_wpforms_form_id('contact');
         <aside class="contact-page__details" aria-label="<?php esc_attr_e('Contact details', 'dakabrand'); ?>">
             <div>
                 <h2><?php esc_html_e('Address', 'dakabrand'); ?></h2>
-                <address>Rruga Muhamet Gjollesha Pallati 18<br>Tiranë, Albania</address>
+                <address>Rruga Muhamet Gjollesha<br>Tiranë 1001, Albania</address>
                 <a href="<?php echo esc_url($maps_url); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('See us on the map', 'dakabrand'); ?> <span aria-hidden="true">↗</span></a>
             </div>
             <div>
                 <h2><?php esc_html_e('Information', 'dakabrand'); ?></h2>
-                <p>+391 (0)35 2568 4593</p>
+                <p><a href="tel:+355683885286">+355 68 388 5286</a></p>
                 <p>info@dakabrand.uk</p>
             </div>
         </aside>

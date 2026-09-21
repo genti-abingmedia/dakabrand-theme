@@ -1,8 +1,22 @@
 (function () {
     'use strict';
 
+    var config = typeof window === 'undefined' ? {} : (window.StaticBridgeConfig || {});
+    var messages = config.messages || {};
+    var locale = String(config.locale || 'en_US');
     var contactApi = 'https://filter.gliterin.net/public/filter';
     var contactSource = 'https://dakabrand.uk/shop/?page=1&limit=1';
+
+    function message(key, fallback) { return messages[key] || fallback; }
+
+    function format(template) {
+        var values = Array.prototype.slice.call(arguments, 1);
+        var sequentialIndex = 0;
+        return String(template).replace(/%(?:(\d+)\$)?s/g, function (match, position) {
+            var index = position ? Number(position) - 1 : sequentialIndex++;
+            return typeof values[index] === 'undefined' ? '' : String(values[index]);
+        });
+    }
 
     function discountPercentage(regular, current, sale) {
         regular = Number(regular);
@@ -13,9 +27,14 @@
             ? Math.round((1 - current / regular) * 100) : 0;
     }
 
-    function deliveryRange(today, preorder) {
+    function deliveryRange(today, preorder, requestedLocale) {
         var start = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (preorder ? 22 : 7));
         var end = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (preorder ? 29 : 14));
+        var normalizedLocale = String(requestedLocale || 'en_US').replace('_', '-');
+        if (requestedLocale && normalizedLocale !== 'en-US' && typeof Intl !== 'undefined' && Intl.DateTimeFormat) {
+            var formatter = new Intl.DateTimeFormat(normalizedLocale, { day: 'numeric', month: 'short', year: 'numeric' });
+            return formatter.format(start) + ' – ' + formatter.format(end);
+        }
         var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         function format(date) { return date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear(); }
         return format(start) + ' – ' + format(end);
@@ -50,7 +69,7 @@
         }
         if (preorder) preorder.hidden = !isPreorder;
         if (delivery) delivery.hidden = !available;
-        if (range && available) range.textContent = deliveryRange(new Date(), isPreorder);
+        if (range && available) range.textContent = deliveryRange(new Date(), isPreorder, locale);
         if (detail.dataset) detail.dataset.deliveryPreorder = isPreorder ? 'true' : 'false';
     }
 
@@ -62,12 +81,33 @@
         var index = 0;
         var touchStart = null;
 
+        function setImageState(image, failed) {
+            var container = image && image.parentNode;
+            if (!image || !image.classList) return;
+            image.classList.toggle('is-image-error', failed);
+            if (image === main && stage && stage.classList) stage.classList.toggle('has-image-error', failed);
+            if (container && container.classList) container.classList.toggle('has-image-error', failed);
+        }
+
+        function watchImage(image) {
+            if (!image || typeof image.addEventListener !== 'function') return;
+            image.addEventListener('error', function () { setImageState(image, true); });
+            image.addEventListener('load', function () {
+                if (!image.dataset || image.dataset.imageFallback !== 'true') setImageState(image, false);
+            });
+            if (image.complete && image.naturalWidth === 0) setImageState(image, true);
+        }
+
+        watchImage(main);
+        thumbs.forEach(function (thumb) { watchImage(thumb.querySelector('img')); });
+
         if (!stage || !main || thumbs.length < 2) return;
 
         function show(next) {
             var thumb;
             index = (next + thumbs.length) % thumbs.length;
             thumb = thumbs[index];
+            setImageState(main, false);
             main.src = thumb.dataset.imageSrc;
             if (thumb.dataset.imageSrcset) main.srcset = thumb.dataset.imageSrcset;
             else main.removeAttribute('srcset');
@@ -124,11 +164,21 @@
         next = lightbox.querySelector('[data-lightbox-next]');
         if (!main || !close) return;
 
+        function setImageState(failed) {
+            main.classList.toggle('is-image-error', failed);
+            lightbox.classList.toggle('has-image-error', failed);
+        }
+
+        main.addEventListener('error', function () { setImageState(true); });
+        main.addEventListener('load', function () { setImageState(false); });
+        if (main.complete && main.naturalWidth === 0) setImageState(true);
+
         function show(nextIndex) {
             var thumb;
             if (!thumbs.length) return;
             index = (nextIndex + thumbs.length) % thumbs.length;
             thumb = thumbs[index];
+            setImageState(false);
             main.src = thumb.dataset.imageSrc;
             if (thumb.dataset.imageSrcset) main.srcset = thumb.dataset.imageSrcset;
             else main.removeAttribute('srcset');
@@ -183,8 +233,8 @@
         if (fields.length !== product.options.length || !price || !button) return;
         var initialPrice = price.innerHTML;
         var chooseLabel = product.options.length === 1
-            ? 'Choose ' + product.options[0].label.toLowerCase()
-            : 'Choose options';
+            ? format(message('choose', 'Choose %s'), product.options[0].label.toLowerCase())
+            : message('chooseOptions', 'Choose options');
 
         function update() {
             var selected = {};
@@ -201,12 +251,12 @@
 
             price.innerHTML = variation && variation.price_html ? variation.price_html : initialPrice;
             if (availability) {
-                availability.textContent = !complete ? chooseLabel : !variation ? 'Unavailable' : available ? 'Available' : 'Out of stock';
+                availability.textContent = !complete ? chooseLabel : !variation ? message('unavailable', 'Unavailable') : available ? message('available', 'Available') : message('outOfStock', 'Out of stock');
                 availability.classList.toggle('is-pending', !complete);
                 availability.classList.toggle('is-unavailable', complete && !available);
             }
             button.disabled = !available;
-            button.textContent = !complete ? chooseLabel : !variation ? 'Unavailable' : available ? 'Add to cart' : 'Out of stock';
+            button.textContent = !complete ? chooseLabel : !variation ? message('unavailable', 'Unavailable') : available ? message('addToCart', 'Add to cart') : message('outOfStock', 'Out of stock');
             updatePurchaseDetails(detail, variation, available);
 
             choices.forEach(function (choice) {
@@ -244,7 +294,7 @@
         if (delivery && window.setInterval) {
             window.setInterval(function () {
                 var range = detail.querySelector('[data-product-delivery-range]');
-                if (range && !delivery.hidden) range.textContent = deliveryRange(new Date(), detail.dataset.deliveryPreorder === 'true');
+                if (range && !delivery.hidden) range.textContent = deliveryRange(new Date(), detail.dataset.deliveryPreorder === 'true', locale);
             }, 60000);
         }
     }
@@ -303,7 +353,7 @@
             var field = questionForm.querySelector('textarea');
             var question = field.value.trim();
             if (!question) { field.reportValidity(); return; }
-            var url = whatsappUrl(phone, 'Question about ' + product.name + ' (' + productLink + '): ' + question);
+            var url = whatsappUrl(phone, format(message('questionAboutProduct', 'Question about %1$s (%2$s): %3$s'), product.name, productLink, question));
             if (!url) return;
             questionDialog.close();
             window.location.assign(url);
@@ -313,13 +363,13 @@
             Promise.resolve().then(function () {
                 if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('Clipboard unavailable');
                 return navigator.clipboard.writeText(value);
-            }).then(function () { copyStatus.textContent = 'Link copied'; }, function () {
+            }).then(function () { copyStatus.textContent = message('linkCopied', 'Link copied'); }, function () {
                 shareInput.focus();
                 shareInput.select();
                 try {
                     copyStatus.textContent = document.execCommand && document.execCommand('copy')
-                        ? 'Link copied' : 'Select and copy the link above';
-                } catch (error) { copyStatus.textContent = 'Select and copy the link above'; }
+                        ? message('linkCopied', 'Link copied') : message('copyLinkFallback', 'Select and copy the link above');
+                } catch (error) { copyStatus.textContent = message('copyLinkFallback', 'Select and copy the link above'); }
             });
         });
 
@@ -328,8 +378,7 @@
             .then(function (payload) {
                 phone = String(payload && payload.result && payload.result.whatsapp_number || '').replace(/\D/g, '');
                 if (!phone) throw new Error('Contact number unavailable');
-                whatsapp.href = whatsappUrl(phone, 'I AM INTERESTED IN THE PRODUCT: ' + product.name +
-                    ' with SKU: ' + (product.sku || '') + ' Link: ' + productLink);
+                whatsapp.href = whatsappUrl(phone, format(message('productInterest', 'I AM INTERESTED IN THE PRODUCT: %1$s with SKU: %2$s Link: %3$s'), product.name, product.sku || '', productLink));
                 whatsapp.target = '_blank';
                 whatsapp.rel = 'noopener noreferrer';
                 whatsapp.hidden = false;

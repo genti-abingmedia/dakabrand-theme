@@ -105,6 +105,8 @@ function staticbridge_frontend_messages(): array
         'outOfStock'            => __('Out of stock', 'dakabrand'),
         'linkCopied'            => __('Link copied', 'dakabrand'),
         'copyLinkFallback'      => __('Select and copy the link above', 'dakabrand'),
+        'questionAboutProduct'  => __('Question about %1$s (%2$s): %3$s', 'dakabrand'),
+        'productInterest'       => __('I AM INTERESTED IN THE PRODUCT: %1$s with SKU: %2$s Link: %3$s', 'dakabrand'),
         'showFilters'           => __('Show filters', 'dakabrand'),
         'hideFilters'           => __('Hide filters', 'dakabrand'),
         'tryAgain'              => __('Try again', 'dakabrand'),

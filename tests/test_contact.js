@@ -5,6 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '../theme/assets/js/contact.js'), 'utf8');
+const contactTemplate = fs.readFileSync(path.join(__dirname, '../theme/template-parts/views/contact.php'), 'utf8');
 
 function loadForm(endpoint, fetchImpl) {
     const classes = new Set();
@@ -112,4 +113,12 @@ test('contact form keeps the message and reports a failed response', async () =>
     assert.equal(state.status.textContent, 'Service unavailable');
     assert.equal(state.classes.has('is-error'), true);
     assert.equal(state.submit.disabled, false);
+});
+
+test('contact details use the named DAKA Brand location and support phone', () => {
+    assert.match(contactTemplate, /DAKA Brand - Clothing Shop in Tirana/);
+    assert.match(contactTemplate, /Rruga Muhamet Gjollesha, Tiranë 1001, Albania/);
+    assert.doesNotMatch(contactTemplate, /41\.3223374,19\.8052229/);
+    assert.match(contactTemplate, /tel:\+355683885286/);
+    assert.doesNotMatch(contactTemplate, /\+391/);
 });

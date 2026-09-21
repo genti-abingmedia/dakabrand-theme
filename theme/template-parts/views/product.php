@@ -21,15 +21,32 @@ $display_rating = $review_count > 0 && $average_rating > 0 ? (float) $average_ra
 $is_variable = $product->is_type('variable');
 $regular_price = (float) $product->get_regular_price();
 $current_price = (float) $product->get_price();
-$discount = !$is_variable && $product->is_on_sale() && $regular_price > $current_price && $regular_price > 0
-    ? (int) round((1 - $current_price / $regular_price) * 100)
+$discounted_price = (float) apply_filters('advanced_woo_discount_rules_get_product_discount_price', $current_price, $product);
+$discount = !$is_variable && $regular_price > $discounted_price && $discounted_price > 0
+    ? (int) round((1 - $discounted_price / $regular_price) * 100)
     : 0;
+$preorder = !$is_variable && 'onbackorder' === $product->get_stock_status();
+if ($is_variable) {
+    $purchasable_variations = array_values($payload['variations']);
+    foreach ($purchasable_variations as $variation) {
+        $variation_regular_price = (float) $variation['regular_price'];
+        $variation_product = wc_get_product($variation['variation_id']);
+        $variation_current_price = $variation_product instanceof WC_Product
+            ? (float) apply_filters('advanced_woo_discount_rules_get_product_discount_price', $variation_product->get_price(), $variation_product)
+            : (float) $variation['price'];
+        if ($variation_regular_price > $variation_current_price && $variation_current_price > 0) {
+            $discount = max($discount, (int) round((1 - $variation_current_price / $variation_regular_price) * 100));
+        }
+    }
+    $preorder = $preorder || (!empty($purchasable_variations) && count(array_filter($purchasable_variations, static function ($variation) {
+        return 'onbackorder' === $variation['stock_status'];
+    })) === count($purchasable_variations));
+}
 $created_at = $product->get_date_created();
 $is_new_product = $created_at instanceof WC_DateTime && $created_at->getTimestamp() >= (current_time('timestamp') - MONTH_IN_SECONDS);
 $viewer_min = ($is_new_product || $product->is_on_sale()) ? 15 : 2;
 $viewer_max = ($is_new_product || $product->is_on_sale()) ? 45 : 25;
 $viewer_count = wp_rand($viewer_min, $viewer_max);
-$preorder = !$is_variable && 'onbackorder' === $product->get_stock_status();
 $product_url = get_permalink($product->get_id());
 $share_url = rawurlencode($product_url);
 $share_title = rawurlencode($product->get_name());
@@ -43,11 +60,11 @@ $share_title = rawurlencode($product->get_name());
     </nav>
     <article <?php wc_product_class('product-detail', $product); ?> data-product-id="<?php echo esc_attr((string) $product->get_id()); ?>" data-product-type="<?php echo esc_attr($product->get_type()); ?>">
       <section class="product-detail__media" aria-label="<?php esc_attr_e('Product images', 'dakabrand'); ?>" data-product-gallery>
-        <div class="product-gallery__stage" <?php if (count($image_ids) > 1) : ?>tabindex="0"<?php endif; ?> aria-label="<?php esc_attr_e('Product image gallery', 'dakabrand'); ?>">
+        <div class="product-gallery__stage<?php echo !$image_ids ? ' has-image-error' : ''; ?>" <?php if (count($image_ids) > 1) : ?>tabindex="0"<?php endif; ?> aria-label="<?php esc_attr_e('Product image gallery', 'dakabrand'); ?>">
           <?php if ($image_ids) : ?>
             <?php echo wp_get_attachment_image($image_ids[0], 'woocommerce_single', false, array('class' => 'product-gallery__main', 'data-gallery-main' => '', 'fetchpriority' => 'high', 'decoding' => 'sync', 'alt' => $product->get_name())); ?>
           <?php else : ?>
-            <img class="product-gallery__main" data-gallery-main src="<?php echo esc_url(wc_placeholder_img_src()); ?>" alt="<?php echo esc_attr($product->get_name()); ?>">
+            <img class="product-gallery__main is-image-error" data-gallery-main data-image-fallback="true" src="<?php echo esc_url(wc_placeholder_img_src()); ?>" alt="<?php echo esc_attr($product->get_name()); ?>">
           <?php endif; ?>
           <?php if (count($image_ids) > 1) : ?>
             <button type="button" class="product-gallery__arrow product-gallery__arrow--prev" data-gallery-prev aria-label="<?php esc_attr_e('Previous image', 'dakabrand'); ?>"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 5-7 7 7 7"/></svg></button>
@@ -64,7 +81,7 @@ $share_title = rawurlencode($product->get_name());
               <button type="button" class="product-gallery__thumb<?php echo 0 === $index ? ' is-active' : ''; ?>" data-gallery-thumb
                 data-image-src="<?php echo esc_url(wp_get_attachment_image_url($image_id, 'woocommerce_single')); ?>"
                 data-image-srcset="<?php echo esc_attr((string) wp_get_attachment_image_srcset($image_id, 'woocommerce_single')); ?>"
-                data-image-alt="<?php echo esc_attr($product->get_name() . ' — view ' . ($index + 1)); ?>"
+                data-image-alt="<?php echo esc_attr(sprintf(__('%1$s — view %2$d', 'dakabrand'), $product->get_name(), $index + 1)); ?>"
                 aria-label="<?php echo esc_attr(sprintf(__('Show image %1$d of %2$d', 'dakabrand'), $index + 1, count($image_ids))); ?>"
                 aria-pressed="<?php echo 0 === $index ? 'true' : 'false'; ?>">
                 <?php echo wp_get_attachment_image($image_id, 'woocommerce_thumbnail', false, array('alt' => '', 'loading' => 'lazy')); ?>
@@ -83,7 +100,7 @@ $share_title = rawurlencode($product->get_name());
             <?php if (count($image_ids) > 1) : ?>
               <div class="product-lightbox__thumbs" aria-label="<?php esc_attr_e('Choose product image', 'dakabrand'); ?>">
                 <?php foreach ($image_ids as $index => $image_id) : ?>
-                  <button type="button" class="product-lightbox__thumb<?php echo 0 === $index ? ' is-active' : ''; ?>" data-lightbox-thumb data-image-src="<?php echo esc_url(wp_get_attachment_image_url($image_id, 'full')); ?>" data-image-srcset="<?php echo esc_attr((string) wp_get_attachment_image_srcset($image_id, 'full')); ?>" data-image-alt="<?php echo esc_attr($product->get_name() . ' — view ' . ($index + 1)); ?>" aria-label="<?php echo esc_attr(sprintf(__('Show image %1$d of %2$d', 'dakabrand'), $index + 1, count($image_ids))); ?>" aria-pressed="<?php echo 0 === $index ? 'true' : 'false'; ?>"><?php echo wp_get_attachment_image($image_id, 'woocommerce_thumbnail', false, array('alt' => '', 'loading' => 'lazy')); ?></button>
+                  <button type="button" class="product-lightbox__thumb<?php echo 0 === $index ? ' is-active' : ''; ?>" data-lightbox-thumb data-image-src="<?php echo esc_url(wp_get_attachment_image_url($image_id, 'full')); ?>" data-image-srcset="<?php echo esc_attr((string) wp_get_attachment_image_srcset($image_id, 'full')); ?>" data-image-alt="<?php echo esc_attr(sprintf(__('%1$s — view %2$d', 'dakabrand'), $product->get_name(), $index + 1)); ?>" aria-label="<?php echo esc_attr(sprintf(__('Show image %1$d of %2$d', 'dakabrand'), $index + 1, count($image_ids))); ?>" aria-pressed="<?php echo 0 === $index ? 'true' : 'false'; ?>"><?php echo wp_get_attachment_image($image_id, 'woocommerce_thumbnail', false, array('alt' => '', 'loading' => 'lazy')); ?></button>
                 <?php endforeach; ?>
               </div>
             <?php endif; ?>
@@ -99,16 +116,18 @@ $share_title = rawurlencode($product->get_name());
           <p class="product-detail__rating" aria-label="<?php echo esc_attr(sprintf(__('%1$s out of 5 stars from %2$s reviews', 'dakabrand'), number_format_i18n($display_rating, 1), number_format_i18n($display_review_count))); ?>"><span class="product-detail__stars" style="--rating-percent: <?php echo esc_attr((string) ($display_rating * 20)); ?>%" aria-hidden="true">★★★★★</span><span><?php echo esc_html(sprintf(_n('%s review', '%s reviews', $display_review_count, 'dakabrand'), number_format_i18n($display_review_count))); ?></span></p>
         </div>
         <span class="product-detail__preorder" data-product-preorder <?php if (!$preorder) : ?>hidden<?php endif; ?>><?php esc_html_e('15 Days Preorder', 'dakabrand'); ?></span>
-        <div data-product-options></div>
-        <div class="product-purchase">
-          <div class="product-quantity" data-product-quantity-control>
-            <span id="product-quantity-label"><?php esc_html_e('Quantity', 'dakabrand'); ?></span>
-            <button type="button" data-product-quantity-decrease aria-label="<?php esc_attr_e('Decrease quantity', 'dakabrand'); ?>">&#8722;</button>
-            <input type="number" inputmode="numeric" min="1" step="1" value="1" data-product-quantity aria-labelledby="product-quantity-label">
-            <button type="button" data-product-quantity-increase aria-label="<?php esc_attr_e('Increase quantity', 'dakabrand'); ?>">+</button>
+        <?php if (!$preorder) : ?>
+          <div data-product-options></div>
+          <div class="product-purchase">
+            <div class="product-quantity" data-product-quantity-control>
+              <span id="product-quantity-label"><?php esc_html_e('Quantity', 'dakabrand'); ?></span>
+              <button type="button" data-product-quantity-decrease aria-label="<?php esc_attr_e('Decrease quantity', 'dakabrand'); ?>">&#8722;</button>
+              <input type="number" inputmode="numeric" min="1" step="1" value="1" data-product-quantity aria-labelledby="product-quantity-label">
+              <button type="button" data-product-quantity-increase aria-label="<?php esc_attr_e('Increase quantity', 'dakabrand'); ?>">+</button>
+            </div>
+            <button type="button" class="add-to-cart-button" data-add-to-cart data-product-id="<?php echo esc_attr((string) $product->get_id()); ?>" <?php disabled(!$product->is_purchasable()); ?>><?php esc_html_e('Add to cart', 'dakabrand'); ?></button>
           </div>
-          <button type="button" class="add-to-cart-button" data-add-to-cart data-product-id="<?php echo esc_attr((string) $product->get_id()); ?>" <?php disabled(!$product->is_purchasable()); ?>><?php esc_html_e('Add to cart', 'dakabrand'); ?></button>
-        </div>
+        <?php endif; ?>
         <div class="product-detail__extras">
           <p class="product-detail__viewers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.7-5.5 10-5.5S22 12 22 12s-3.7 5.5-10 5.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg><strong><span data-product-viewer-count data-viewer-min="<?php echo esc_attr((string) $viewer_min); ?>" data-viewer-max="<?php echo esc_attr((string) $viewer_max); ?>" aria-live="polite"><?php echo esc_html((string) $viewer_count); ?></span> <?php esc_html_e('people are viewing this right now', 'dakabrand'); ?></strong></p>
           <a class="product-detail__whatsapp" data-product-whatsapp href="<?php echo esc_url(home_url('/contact-us/')); ?>" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.7-1.2A9 9 0 1 0 12 3Z"/><path d="M8.4 7.9c-.5.5-.8 1.3-.5 2.1.8 2.3 2.5 4.1 4.8 5.3.9.5 2.1.7 2.8.1l1.1-1.1-2.2-1.3-1 1c-1.3-.7-2.3-1.7-3-3l1-1-1.4-2.1Z"/></svg><?php esc_html_e('Contact us on WhatsApp', 'dakabrand'); ?></a>
@@ -132,7 +151,7 @@ $share_title = rawurlencode($product->get_name());
               <?php if ($visible_attributes) : ?>
                 <dl class="product-attributes">
                   <?php foreach ($visible_attributes as $attribute) : ?>
-                    <div><dt><?php echo esc_html(wc_attribute_label($attribute->get_name())); ?></dt><dd><?php echo wp_kses_post($product->get_attribute($attribute->get_name())); ?></dd></div>
+                    <div><dt><?php echo esc_html(staticbridge_product_attribute_label($attribute->get_name())); ?></dt><dd><?php echo wp_kses_post($product->get_attribute($attribute->get_name())); ?></dd></div>
                   <?php endforeach; ?>
                 </dl>
               <?php endif; ?>

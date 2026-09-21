@@ -5,6 +5,28 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Return the storefront label for a product attribute.
+ *
+ * The imported shoe-size taxonomy is named "Atlete". Keep its stored name
+ * intact while presenting the customer-facing label in the active language.
+ */
+function staticbridge_product_attribute_label(string $attribute_name): string
+{
+    $label = (string) wc_attribute_label($attribute_name);
+    $taxonomy_name = preg_replace('/^(?:attribute_|pa_)/', '', $attribute_name);
+    $is_shoe_size = 'atlete' === sanitize_title($label)
+        || 'atlete' === sanitize_title((string) $taxonomy_name);
+
+    if (!$is_shoe_size) {
+        return $label;
+    }
+
+    return 'sq_AL' === staticbridge_requested_locale()
+        ? __('Numri', 'dakabrand')
+        : __('Size', 'dakabrand');
+}
+
+/**
  * Return the public, static-safe product data consumed by frontend JavaScript.
  */
 function staticbridge_product_data(WC_Product $product): array
@@ -33,7 +55,7 @@ function staticbridge_product_data(WC_Product $product): array
             }
             $options[] = array(
                 'key'     => wc_variation_attribute_name($attribute_name),
-                'label'   => wc_attribute_label($attribute_name),
+                'label'   => staticbridge_product_attribute_label($attribute_name),
                 'choices' => $choices,
             );
         }

@@ -22,6 +22,141 @@ msgstr "Shporta"
 msgid "Add to cart"
 msgstr "Shto në shportë"
 
+msgid "Big Offer"
+msgstr "Oferta"
+
+msgid "Question about %1$s (%2$s): %3$s"
+msgstr "Pyetje rreth %1$s (%2$s): %3$s"
+
+msgid "I AM INTERESTED IN THE PRODUCT: %1$s with SKU: %2$s Link: %3$s"
+msgstr "JAM I INTERESUAR PËR PRODUKTIN: %1$s me SKU: %2$s Lidhja: %3$s"
+
+msgid "Breadcrumb"
+msgstr "Gjurmët e navigimit"
+
+msgid "Product images"
+msgstr "Imazhet e produktit"
+
+msgid "%1$s out of 5 stars from %2$s reviews"
+msgstr "%1$s nga 5 yje, nga %2$s vlerësime"
+
+msgid "%s review"
+msgstr "%s vlerësim"
+
+msgid "%s reviews"
+msgstr "%s vlerësime"
+
+msgid "Product image gallery"
+msgstr "Galeria e imazheve të produktit"
+
+msgid "Previous image"
+msgstr "Imazhi i mëparshëm"
+
+msgid "Next image"
+msgstr "Imazhi tjetër"
+
+msgid "View image fullscreen"
+msgstr "Shiko imazhin në ekran të plotë"
+
+msgid "Choose product image"
+msgstr "Zgjidh imazhin e produktit"
+
+msgid "Show image %1$d of %2$d"
+msgstr "Shfaq imazhin %1$d nga %2$d"
+
+msgid "%1$s — view %2$d"
+msgstr "%1$s — pamja %2$d"
+
+msgid "Fullscreen product images"
+msgstr "Imazhet e produktit në ekran të plotë"
+
+msgid "Close fullscreen image viewer"
+msgstr "Mbyll shikuesin e imazheve në ekran të plotë"
+
+msgid "15 Days Preorder"
+msgstr "Porosi paraprake 15-ditore"
+
+msgid "people are viewing this right now"
+msgstr "persona po e shikojnë këtë tani"
+
+msgid "Contact us on WhatsApp"
+msgstr "Na kontaktoni në WhatsApp"
+
+msgid "Ask a Question"
+msgstr "Bëni një pyetje"
+
+msgid "Estimated Delivery:"
+msgstr "Dërgesa e parashikuar:"
+
+msgid "Payment methods"
+msgstr "Mënyrat e pagesës"
+
+msgid "Guaranteed safe & secure checkout"
+msgstr "Pagesë e garantuar e sigurt"
+
+msgid "SKU"
+msgstr "SKU"
+
+msgid "Size"
+msgstr "Numri"
+
+msgid "More product details are coming soon."
+msgstr "Më shumë detaje për produktin do të vijnë së shpejti."
+
+msgid "Delivery & returns"
+msgstr "Dërgesa dhe kthimet"
+
+msgid "Shipping cost is based on weight. Just add products to your cart and use the Shipping Calculator to see the shipping price."
+msgstr "Kostoja e dërgesës bazohet në peshë. Shtoni produktet në shportë dhe përdorni llogaritësin e dërgesës për të parë çmimin."
+
+msgid "We want you to be 100% satisfied with your purchase. Items can be returned or exchanged within 30 days of delivery."
+msgstr "Duam të jeni 100% të kënaqur me blerjen tuaj. Artikujt mund të kthehen ose ndërrohen brenda 30 ditëve nga dërgesa."
+
+msgid "Close question dialog"
+msgstr "Mbyll dialogun e pyetjes"
+
+msgid "Your Message"
+msgstr "Mesazhi juaj"
+
+msgid "Your Message*"
+msgstr "Mesazhi juaj*"
+
+msgid "Submit Now"
+msgstr "Dërgo tani"
+
+msgid "Close share dialog"
+msgstr "Mbyll dialogun e ndarjes"
+
+msgid "Copy link"
+msgstr "Kopjo lidhjen"
+
+msgid "Product link"
+msgstr "Lidhja e produktit"
+
+msgid "Copy"
+msgstr "Kopjo"
+
+msgid "Share"
+msgstr "Ndaj"
+
+msgid "Share on Facebook"
+msgstr "Ndaj në Facebook"
+
+msgid "Share on X"
+msgstr "Ndaj në X"
+
+msgid "Share on LinkedIn"
+msgstr "Ndaj në LinkedIn"
+
+msgid "Share on Tumblr"
+msgstr "Ndaj në Tumblr"
+
+msgid "Share by email"
+msgstr "Ndaj me email"
+
+msgid "Related products"
+msgstr "Produkte të ngjashme"
+
 msgid "Search"
 msgstr "Kërko"
 
