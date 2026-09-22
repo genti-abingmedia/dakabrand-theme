@@ -5,6 +5,8 @@
     var rails = document.querySelectorAll('[data-product-grid][data-catalog-source]');
     if (!root && !rails.length) return;
 
+    var config = window.StaticBridgeConfig || {};
+    var messages = config.messages || {};
     var API = 'https://filter.gliterin.net/public/filter';
     var STOREFRONT = (window.StaticBridgeConfig || {}).catalogSourceOrigin || 'https://dakabrand.uk/';
     var VIEWS = {
@@ -43,6 +45,17 @@
         grid: root.querySelector('[data-catalog-grid]'),
         pagination: root.querySelector('[data-catalog-pagination]')
     } : null;
+
+    function message(key, fallback) {
+        return messages[key] || fallback;
+    }
+
+    function format(template) {
+        var values = Array.prototype.slice.call(arguments, 1);
+        return String(template).replace(/%[0-9]+\$s|%s/g, function () {
+            return String(values.shift() || '');
+        });
+    }
 
     function element(tag, className, value) {
         var node = document.createElement(tag);
@@ -113,7 +126,7 @@
             button.setAttribute('aria-pressed', String(button.dataset.catalogView === view));
         });
         nodes.toggleFilters.setAttribute('aria-pressed', String(!hidden));
-        nodes.toggleFilters.title = hidden ? 'Show filters' : 'Hide filters';
+        nodes.toggleFilters.title = hidden ? message('showFilters', 'Show filters') : message('hideFilters', 'Hide filters');
         nodes.toggleFiltersLabel.textContent = nodes.toggleFilters.title;
     }
 
@@ -139,7 +152,7 @@
         if (loading) nodes.status.appendChild(element('span', 'catalog-status__loader'));
         nodes.status.appendChild(element('span', '', statusMessage));
         if (retry) {
-            var button = element('button', '', 'Try again');
+            var button = element('button', '', message('tryAgain', 'Try again'));
             button.type = 'button';
             button.addEventListener('click', function () { load(true); });
             nodes.status.appendChild(button);
@@ -274,7 +287,7 @@
         var media = element('div', 'catalog-card__media');
         var imageLink = element('a', 'catalog-card__image-link');
         imageLink.href = href;
-        imageLink.setAttribute('aria-label', String(product.name || 'View product'));
+        imageLink.setAttribute('aria-label', String(product.name || message('viewProduct', 'View product')));
         var imageUrl = validUrl(product.product_image, false);
         if (imageUrl) {
             var image = element('img');
@@ -301,20 +314,19 @@
             media.appendChild(element('span', 'catalog-card__badge', percentage + '%'));
         }
         var stock = (product.stock_status && product.stock_status.values) || [];
-        if (stock.includes('instock')) media.appendChild(element('span', 'catalog-card__stock', 'In stock'));
-        else if (stock.includes('outofstock')) media.appendChild(element('span', 'catalog-card__stock', 'Out of stock'));
-        else if (stock.includes('onbackorder')) media.appendChild(element('span', 'catalog-card__stock', '15 days preorder'));
+        if (stock.includes('instock')) media.appendChild(element('span', 'catalog-card__stock', message('inStock', 'In stock')));
+        else if (stock.includes('outofstock')) media.appendChild(element('span', 'catalog-card__stock', message('outOfStock', 'Out of stock')));
+        else if (stock.includes('onbackorder')) media.appendChild(element('span', 'catalog-card__stock', message('preorderDays', '15 days preorder')));
 
         var phone = String(whatsappNumber || '').replace(/\D/g, '');
         if (phone) {
-            var whatsappMessage = 'I AM INTERESTED IN THE PRODUCT: ' + String(product.name || '') +
-                ' with SKU: ' + String(product.sku || '') + ' Link: ' + href;
+            var whatsappMessage = format(message('whatsAppInterest', 'I AM INTERESTED IN THE PRODUCT: %1$s with SKU: %2$s Link: %3$s'), String(product.name || ''), String(product.sku || ''), href);
             var whatsapp = element('a', 'catalog-card__whatsapp');
             whatsapp.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(whatsappMessage);
             whatsapp.target = '_blank';
             whatsapp.rel = 'noopener noreferrer';
-            whatsapp.title = 'Contact on WhatsApp';
-            whatsapp.setAttribute('aria-label', 'Contact on WhatsApp about ' + String(product.name || 'this product'));
+            whatsapp.title = message('contactWhatsApp', 'Contact on WhatsApp');
+            whatsapp.setAttribute('aria-label', format(message('contactWhatsAppAbout', 'Contact on WhatsApp about %s'), String(product.name || message('thisProduct', 'this product'))));
             var whatsappIcon = element('img');
             whatsappIcon.src = 'https://static.gliterin.net/filter/whatsapp-logo.png';
             whatsappIcon.alt = '';
@@ -328,7 +340,7 @@
 
         var details = element('a', 'catalog-card__details');
         details.href = href;
-        details.appendChild(element('h2', 'catalog-card__name', product.name || 'Product'));
+        details.appendChild(element('h2', 'catalog-card__name', product.name || message('product', 'Product')));
         if (pricing.price > 0) {
             var price = element('span', 'catalog-card__price');
             if (pricing.sale) {
@@ -366,7 +378,7 @@
             link.appendChild(image);
         }
         if (category) link.appendChild(element('p', 'product-card__category', category.name || category.label || ''));
-        link.appendChild(element('h2', '', product.name || 'Product'));
+        link.appendChild(element('h2', '', product.name || message('product', 'Product')));
         card.appendChild(link);
         if (price.price > 0) {
             var priceNode = element('div', 'product-price');
@@ -377,13 +389,13 @@
             card.appendChild(priceNode);
         }
         if (purchasable) {
-            var button = element('button', '', 'Add to cart');
+            var button = element('button', '', message('addToCart', 'Add to cart'));
             button.type = 'button';
             button.dataset.addToCart = '';
             button.dataset.productId = String(product.id);
             card.appendChild(button);
             var payload = {
-                product_id: Number(product.id), name: String(product.name || 'Product'), permalink: href,
+                product_id: Number(product.id), name: String(product.name || message('product', 'Product')), permalink: href,
                 image: imageUrl, currency: String(product.currency || 'GBP'), type: 'simple',
                 price: price.sale || price.price, stock_status: stock.includes('onbackorder') ? 'onbackorder' : 'instock',
                 purchasable: true
@@ -394,7 +406,7 @@
             script.textContent = JSON.stringify(payload);
             card.appendChild(script);
         } else {
-            var choose = element('a', '', product.type === 'variable' ? 'Choose options' : 'View product');
+            var choose = element('a', '', product.type === 'variable' ? message('chooseOptions', 'Choose options') : message('viewProduct', 'View product'));
             choose.href = href;
             card.appendChild(choose);
         }
@@ -413,7 +425,7 @@
         var stock = (product.stock_status && product.stock_status.values) || [];
 
         imageLink.href = href;
-        imageLink.setAttribute('aria-label', String(product.name || 'View product'));
+        imageLink.setAttribute('aria-label', String(product.name || message('viewProduct', 'View product')));
         if (imageUrl) {
             var image = element('img');
             image.src = imageUrl;
@@ -430,19 +442,18 @@
             media.appendChild(element('span', 'storefront-product-card__badge',
                 Math.round((pricing.price - pricing.sale) / pricing.price * 100) + '%'));
         }
-        if (stock.includes('onbackorder')) media.appendChild(element('span', 'storefront-product-card__stock', '15 days preorder'));
-        else if (stock.includes('outofstock')) media.appendChild(element('span', 'storefront-product-card__stock', 'Out of stock'));
+        if (stock.includes('onbackorder')) media.appendChild(element('span', 'storefront-product-card__stock', message('preorderDays', '15 days preorder')));
+        else if (stock.includes('outofstock')) media.appendChild(element('span', 'storefront-product-card__stock', message('outOfStock', 'Out of stock')));
 
         var phone = String(whatsappNumber || '').replace(/\D/g, '');
         if (phone) {
-            var message = 'I AM INTERESTED IN THE PRODUCT: ' + String(product.name || '') +
-                ' with SKU: ' + String(product.sku || '') + ' Link: ' + href;
+            var whatsappMessage = format(message('whatsAppInterest', 'I AM INTERESTED IN THE PRODUCT: %1$s with SKU: %2$s Link: %3$s'), String(product.name || ''), String(product.sku || ''), href);
             var whatsapp = element('a', 'storefront-product-card__whatsapp');
-            whatsapp.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
+            whatsapp.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(whatsappMessage);
             whatsapp.target = '_blank';
             whatsapp.rel = 'noopener noreferrer';
-            whatsapp.title = 'Contact on WhatsApp';
-            whatsapp.setAttribute('aria-label', 'Contact on WhatsApp about ' + String(product.name || 'this product'));
+            whatsapp.title = message('contactWhatsApp', 'Contact on WhatsApp');
+            whatsapp.setAttribute('aria-label', format(message('contactWhatsAppAbout', 'Contact on WhatsApp about %s'), String(product.name || message('thisProduct', 'this product'))));
             var icon = element('img');
             icon.src = 'https://static.gliterin.net/filter/whatsapp-logo.png';
             icon.alt = '';
@@ -456,7 +467,7 @@
 
         var details = element('a', 'storefront-product-card__details');
         details.href = href;
-        details.appendChild(element('h3', 'storefront-product-card__name', product.name || 'Product'));
+        details.appendChild(element('h3', 'storefront-product-card__name', product.name || message('product', 'Product')));
         if (pricing.price > 0) {
             var price = element('span', 'storefront-product-card__price');
             if (pricing.sale) {
@@ -491,11 +502,11 @@
                             : makeRailCard(product, rules, Boolean(data.include_out_of_stock));
                     }).filter(Boolean);
                 grid.replaceChildren.apply(grid, cards);
-                status.textContent = cards.length ? '' : 'No products found.';
+                status.textContent = cards.length ? '' : message('noProducts', 'No products found.');
                 status.hidden = Boolean(cards.length);
             })
             .catch(function () {
-                status.textContent = 'We could not load products right now.';
+                status.textContent = message('catalogLoadError', 'We could not load products right now.');
                 status.hidden = false;
             })
             .finally(function () { grid.setAttribute('aria-busy', 'false'); });
@@ -640,7 +651,7 @@
             });
         });
         if (activeCount > 1) {
-            var clear = element('button', 'catalog-active__clear', 'Clear filters');
+            var clear = element('button', 'catalog-active__clear', message('clearFilters', 'Clear filters'));
             clear.type = 'button';
             clear.addEventListener('click', clearFacets);
             nodes.active.appendChild(clear);
@@ -682,7 +693,7 @@
         nodes.pagination.replaceChildren();
         nodes.pagination.hidden = pages <= 1;
         if (pages <= 1) return;
-        if (page > 1) nodes.pagination.appendChild(paginationLink('Previous', page - 1, false));
+        if (page > 1) nodes.pagination.appendChild(paginationLink(message('previousPage', 'Previous'), page - 1, false));
         var shown = new Set([1, pages]);
         for (var i = Math.max(1, page - 2); i <= Math.min(pages, page + 2); i += 1) shown.add(i);
         var previous = 0;
@@ -691,7 +702,7 @@
             nodes.pagination.appendChild(paginationLink(String(value), value, value === page));
             previous = value;
         });
-        if (page < pages) nodes.pagination.appendChild(paginationLink('Next', page + 1, false));
+        if (page < pages) nodes.pagination.appendChild(paginationLink(message('nextPage', 'Next'), page + 1, false));
     }
 
     function render(data) {
@@ -701,10 +712,10 @@
         var keyword = params.get('keyword');
 
         var defaultHeading =
-            nodes.heading.dataset.defaultHeading || 'Shop';
+            nodes.heading.dataset.defaultHeading || message('shop', 'Shop');
 
         nodes.heading.textContent = keyword
-            ? 'Results for “' + keyword + '”'
+            ? format(message('resultsFor', 'Results for “%s”'), keyword)
             : defaultHeading;
 
         nodes.toolbar.hidden = false;
@@ -769,7 +780,7 @@
             hideStatus();
         } else {
             showStatus(
-                'No products found. Try removing a filter.',
+                message('noProductsAfterFilter', 'No products found. Try removing a filter.'),
                 false,
                 false
             );
@@ -845,7 +856,7 @@
         }
 
         nodes.grid.setAttribute('aria-busy', 'true');
-        showStatus('Loading products…', true, false);
+        showStatus(message('loadingProducts', 'Loading products…'), true, false);
 
         controller = new AbortController();
         var signal = controller.signal;
@@ -880,7 +891,7 @@
                 nodes.pagination.hidden = true;
 
                 showStatus(
-                    'We could not load products right now.',
+                    message('catalogLoadError', 'We could not load products right now.'),
                     false,
                     true
                 );

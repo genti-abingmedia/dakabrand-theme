@@ -124,6 +124,19 @@ function staticbridge_frontend_messages(): array
         'stockCheckFailed'      => __('Could not check live stock. Please try again.', 'dakabrand'),
         'preorderOnly'          => __('Preorder Only', 'dakabrand'),
         'availableProducts'     => __('Available Products', 'dakabrand'),
+        'filters'               => __('Filters', 'dakabrand'),
+        'filter'                => __('Filter', 'dakabrand'),
+        'clearFilters'          => __('Clear filters', 'dakabrand'),
+        'previousPage'          => __('Previous', 'dakabrand'),
+        'nextPage'              => __('Next', 'dakabrand'),
+        'loadingProducts'       => __('Loading products…', 'dakabrand'),
+        'noProductsAfterFilter' => __('No products found. Try removing a filter.', 'dakabrand'),
+        'inStock'               => __('In stock', 'dakabrand'),
+        'preorderDays'          => __('15 days preorder', 'dakabrand'),
+        'product'               => __('Product', 'dakabrand'),
+        'shop'                  => __('Shop', 'dakabrand'),
+        'whatsAppInterest'      => __('I AM INTERESTED IN THE PRODUCT: %1$s with SKU: %2$s Link: %3$s', 'dakabrand'),
+        'contactWhatsAppAbout'  => __('Contact on WhatsApp about %s', 'dakabrand'),
     );
 }
 
@@ -714,6 +727,8 @@ function staticbridge_enqueue_assets(): void
     $css_path = get_template_directory() . '/assets/css/main.css';
     $js_path  = get_template_directory() . '/assets/js/main.js';
     $cart_js_path = get_template_directory() . '/assets/js/cart.js';
+    $video_popup_css_path = get_template_directory() . '/assets/css/video-popup.css';
+    $video_popup_js_path = get_template_directory() . '/assets/js/video-popup.js';
 
     wp_enqueue_style(
         'staticbridge-bootstrap',
@@ -744,6 +759,34 @@ function staticbridge_enqueue_assets(): void
         file_exists($js_path) ? (string) filemtime($js_path) : STATICBRIDGE_THEME_VERSION,
         true
     );
+
+    wp_enqueue_style(
+        'staticbridge-video-popup',
+        get_template_directory_uri() . '/assets/css/video-popup.css',
+        array('staticbridge-main'),
+        file_exists($video_popup_css_path) ? (string) filemtime($video_popup_css_path) : STATICBRIDGE_THEME_VERSION
+    );
+
+    wp_enqueue_script(
+        'staticbridge-video-popup',
+        get_template_directory_uri() . '/assets/js/video-popup.js',
+        array(),
+        file_exists($video_popup_js_path) ? (string) filemtime($video_popup_js_path) : STATICBRIDGE_THEME_VERSION,
+        true
+    );
+
+    wp_localize_script('staticbridge-video-popup', 'StaticBridgeVideoPopup', array(
+        'videoUrl' => (string) apply_filters(
+            'staticbridge_video_popup_url',
+            'https://dakabrand.uk/wp-content/uploads/2026/09/dakabrand_backtoschool.mp4'
+        ),
+        'storageKey' => 'daka_back_to_school_popup',
+        'maxShowsPerDay' => 2,
+        'hoursBetweenShows' => 5,
+        'showDelay' => 1000,
+        'dialogLabel' => __('Daka Outlet Back to School', 'dakabrand'),
+        'closeLabel' => __('Close video popup', 'dakabrand'),
+    ));
 
     wp_enqueue_script(
         'staticbridge-cart',

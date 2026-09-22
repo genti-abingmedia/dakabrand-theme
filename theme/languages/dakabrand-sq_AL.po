@@ -181,6 +181,96 @@ msgstr "Vetëm porosi paraprake"
 msgid "Available Products"
 msgstr "Produkte të disponueshme"
 
+msgid "Filters"
+msgstr "Filtrat"
+
+msgid "Filter"
+msgstr "Filtro"
+
+msgid "Clear filters"
+msgstr "Pastro filtrat"
+
+msgid "Previous"
+msgstr "Mëparshme"
+
+msgid "Next"
+msgstr "Tjetër"
+
+msgid "No products found. Try removing a filter."
+msgstr "Nuk u gjetën produkte. Provoni të hiqni një filtër."
+
+msgid "In stock"
+msgstr "Në stok"
+
+msgid "15 days preorder"
+msgstr "Porosi paraprake 15-ditore"
+
+msgid "Product"
+msgstr "Produkt"
+
+msgid "Contact on WhatsApp about %s"
+msgstr "Kontakto në WhatsApp për %s"
+
+msgid "< Back"
+msgstr "< Mbrapa"
+
+msgid "Catalog display options"
+msgstr "Opsionet e shfaqjes së katalogut"
+
+msgid "Product layout"
+msgstr "Paraqitja e produkteve"
+
+msgid "3 columns, 15 products per page"
+msgstr "3 kolona, 15 produkte për faqe"
+
+msgid "4 columns, 20 products per page"
+msgstr "4 kolona, 20 produkte për faqe"
+
+msgid "5 columns, 25 products per page"
+msgstr "5 kolona, 25 produkte për faqe"
+
+msgid "List view"
+msgstr "Pamje liste"
+
+msgid "Sort by"
+msgstr "Rendit sipas"
+
+msgid "Latest"
+msgstr "Më të rejat"
+
+msgid "Price: low to high"
+msgstr "Çmimi: nga i ulëti te i larti"
+
+msgid "Price: high to low"
+msgstr "Çmimi: nga i larti te i ulëti"
+
+msgid "Sort products"
+msgstr "Rendit produktet"
+
+msgid "Product filters"
+msgstr "Filtrat e produkteve"
+
+msgid "Close filters"
+msgstr "Mbyll filtrat"
+
+msgid "Clear all"
+msgstr "Pastro të gjitha"
+
+msgid "Show products"
+msgstr "Shfaq produktet"
+
+msgid "Products"
+msgstr "Produktet"
+
+msgid "Product pages"
+msgstr "Faqet e produkteve"
+
+msgid "Enable JavaScript to browse this catalog."
+msgstr "Aktivizoni JavaScript për të shfletuar këtë katalog."
+
+msgid "Shop at DakaBrand"
+msgstr "Bli te DakaBrand"
+
 msgid "Checkout"
 msgstr "Pagesa"
 

@@ -1,0 +1,78 @@
+.daka-video-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 9999999;
+    display: grid;
+    place-items: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 1.875rem;
+    background: rgba(0, 0, 0, .72);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s ease, visibility .3s ease;
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+}
+
+.daka-video-popup.is-visible { opacity: 1; visibility: visible; }
+.daka-video-popup__content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 92vw;
+    max-height: 90vh;
+    background: #000;
+    border-radius: .5rem;
+    box-shadow: 0 1.56rem 5rem rgba(0, 0, 0, .45);
+    transform: translateY(.94rem) scale(.98);
+    transition: transform .35s cubic-bezier(.2, .8, .2, 1);
+}
+
+.daka-video-popup.is-visible .daka-video-popup__content { transform: translateY(0) scale(1); }
+.daka-video-popup__video {
+    display: block;
+    max-width: 92vw;
+    max-height: 90vh;
+    border-radius: .5rem;
+    background: #000;
+    object-fit: contain;
+}
+
+.daka-video-popup__close {
+    position: absolute;
+    top: -1rem;
+    right: -1rem;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.625rem;
+    height: 2.625rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    color: #111;
+    box-shadow: 0 .31rem 1.25rem rgba(0, 0, 0, .3);
+    font-family: Arial, sans-serif;
+    font-size: 1.69rem;
+    font-weight: 300;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform .2s ease, background-color .2s ease;
+}
+
+.daka-video-popup__close:hover { background: #f2f2f2; transform: scale(1.08); }
+.daka-video-popup__close:focus-visible { outline: 3px solid var(--brand-red, #be0101); outline-offset: 3px; }
+
+@media (max-width: 767px) {
+    .daka-video-popup { padding: .94rem; }
+    .daka-video-popup__content, .daka-video-popup__video { max-width: 94vw; max-height: 88vh; border-radius: .38rem; }
+    .daka-video-popup__close { top: -.75rem; right: -.5rem; width: 2.38rem; height: 2.38rem; font-size: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .daka-video-popup, .daka-video-popup__content, .daka-video-popup__close { transition: none; }
+}
