@@ -100,7 +100,7 @@
 .catalog-card__image-link.has-image-error { display: block; background: #f3f1ed; }
 .catalog-card__image-link img { width: 100%; height: 100%; object-fit: contain; transition: transform 350ms ease; }
 .catalog-card__image-link:hover img, .catalog-card__image-link:focus-visible img { transform: scale(1.025); }
-.catalog-card__badge, .catalog-card__stock { position: absolute; z-index: 1; top: .35rem; padding: .34rem .55rem; color: #fff; background: #f00; border-radius: .3rem; font-size: .68rem; font-weight: 700; line-height: 1; text-transform: uppercase; pointer-events: none; }
+.catalog-card__badge, .catalog-card__stock { position: absolute; z-index: 1; top: .35rem; padding: .34rem .55rem; color: #fff; background: var(--brand-red); border-radius: .3rem; font-size: .68rem; font-weight: 700; line-height: 1; text-transform: uppercase; pointer-events: none; }
 .catalog-card__badge { left: .35rem; }
 .catalog-card__stock { right: .35rem; text-align: right; }
 .catalog-card__whatsapp { position: absolute; z-index: 2; right: .4rem; bottom: .35rem; width: 2rem; height: 2rem; border-radius: 50%; transition: transform 180ms ease; }

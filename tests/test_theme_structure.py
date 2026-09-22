@@ -88,6 +88,7 @@ class ThemeStructureTests(unittest.TestCase):
         card = self.read("template-parts/components/product-card.php")
         catalog = self.read("assets/js/catalog.js")
         main_css = self.read("assets/css/main.css")
+        functions = self.read("functions.php")
 
         self.assertIn("while (have_posts())", archive)
         self.assertIn("template-parts/components/product-card", archive)
@@ -98,6 +99,16 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn(".catalog-card__image-link.has-image-error::after", main_css)
         self.assertIn(".storefront-product-card__image-link.has-image-error::after", main_css)
         self.assertIn(".product-card__link.has-image-error::after", main_css)
+        self.assertIn("advanced_woo_discount_rules_do_strikeout_for_out_of_stock_variants", functions)
+
+    def test_recently_published_products_show_a_new_detail_badge(self) -> None:
+        product = self.read("template-parts/views/product.php")
+        stylesheet = self.read("assets/css/main.css")
+
+        self.assertIn("get_post_timestamp", product)
+        self.assertIn("WEEK_IN_SECONDS", product)
+        self.assertIn("product-detail__new", product)
+        self.assertIn("product-detail__badges", stylesheet)
 
     def test_cart_drawer_is_shared_and_product_data_supports_it(self) -> None:
         header = self.read("header.php")
@@ -198,6 +209,17 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("'landing'   => staticbridge_department_page_url('man')", front_page)
         self.assertIn("href=\"<?php echo esc_url($section['landing']); ?>\"", front_page)
         self.assertNotIn("WP_Query", front_page)
+
+    def test_theme_uses_a_global_broken_image_fallback(self) -> None:
+        script = self.read("assets/js/main.js")
+        stylesheet = self.read("assets/css/main.css")
+
+        self.assertIn("enhanceImageFallbacks", script)
+        self.assertIn("fallbackApplied", script)
+        self.assertIn("fallbackImage", script)
+        self.assertIn(".home-gateway__image-link.has-image-error", stylesheet)
+        self.assertIn(".man-hero__media.has-image-error", stylesheet)
+        self.assertIn(".fashion-mega-menu__feature.has-image-error", stylesheet)
 
     def test_mobile_app_toolbar_remains_available_on_front_page(self) -> None:
         footer = self.read("footer.php")

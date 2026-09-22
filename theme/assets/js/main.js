@@ -13,6 +13,28 @@
         return String(template).replace(/%s/g, function () { return String(values.shift() || ''); });
     }
 
+    function enhanceImageFallbacks() {
+        var fallbackImage = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600"%3E%3Crect width="600" height="600" fill="%23f3f1ed"/%3E%3Ctext x="300" y="315" fill="%23cfcfcf" font-family="Arial,sans-serif" font-size="64" font-weight="700" letter-spacing="12" text-anchor="middle"%3EDAKA%3C/text%3E%3C/svg%3E';
+        var managedImages = '.product-gallery__main, .product-gallery__thumb img, .product-lightbox__image, .catalog-card__image-link img, .storefront-product-card__image-link img, .product-card__link img';
+        var themedContainers = '.site-brand, .custom-logo-link, .fashion-mega-menu__feature, .home-gateway__image-link, .man-hero__media, .man-editorial';
+
+        document.addEventListener('error', function (event) {
+            var image = event.target;
+            if (!image || image.tagName !== 'IMG' || (image.closest && image.closest(managedImages))) return;
+            if (image.dataset && image.dataset.fallbackApplied === 'true') return;
+
+            var container = image.closest ? image.closest(themedContainers) : null;
+            if (container && container.classList) {
+                image.classList.add('is-image-error');
+                container.classList.add('has-image-error');
+                return;
+            }
+
+            if (image.dataset) image.dataset.fallbackApplied = 'true';
+            image.src = fallbackImage;
+        }, true);
+    }
+
     function cartQuantity(cart) {
         var items;
 
@@ -553,6 +575,7 @@
         }
     }
 
+    enhanceImageFallbacks();
     enhanceStockMode();
     enhanceMobileNavigation();
     enhanceFashionNavigation();

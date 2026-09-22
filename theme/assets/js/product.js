@@ -72,9 +72,11 @@
         var range = detail.querySelector('[data-product-delivery-range]');
         var percent = item ? discountPercentage(item.regular_price, item.price, item.sale_price) : 0;
         var isPreorder = Boolean(item && item.stock_status === 'onbackorder');
-        if (badge) {
-            badge.hidden = !percent;
-            badge.textContent = percent ? percent + '%' : '';
+        // Keep the server-rendered promotion visible when no selectable
+        // variation is available (for example, every size is out of stock).
+        if (badge && percent) {
+            badge.hidden = false;
+            badge.textContent = percent + '%';
         }
         if (preorder) preorder.hidden = !isPreorder;
         if (delivery) delivery.hidden = !available;

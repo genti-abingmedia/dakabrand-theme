@@ -315,6 +315,11 @@ function staticbridge_add_product_api_data(WP_REST_Response $response, WC_Produc
 }
 add_filter('woocommerce_rest_prepare_product_object', 'staticbridge_add_product_api_data', 10, 3);
 
+// Keep the discount-rule sale/strikeout display on unavailable products too.
+// The catalog already includes those products in promotion results, and the
+// product page must present the same promotion rather than the full price.
+add_filter('advanced_woo_discount_rules_do_strikeout_for_out_of_stock_variants', '__return_true');
+
 /** Keep unavailable variations from being selectable by storefront clients. */
 function staticbridge_disable_out_of_stock_variations(bool $is_active, WC_Product_Variation $variation): bool
 {

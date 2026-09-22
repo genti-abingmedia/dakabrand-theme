@@ -125,6 +125,8 @@ test('variable product updates price, availability, and purchase state', () => {
     price.innerHTML = '$99–$119';
     const availability = element();
     const discount = element();
+    discount.hidden = false;
+    discount.textContent = '20%';
     const preorder = element();
     const delivery = element();
     const range = element();
@@ -157,7 +159,8 @@ test('variable product updates price, availability, and purchase state', () => {
     run([], detail, null);
     assert.equal(button.disabled, true);
     assert.equal(button.textContent, 'Choose size');
-    assert.equal(discount.hidden, true);
+    assert.equal(discount.hidden, false);
+    assert.equal(discount.textContent, '20%');
     assert.equal(delivery.hidden, true);
     assert.equal(size40.disabled, false);
     assert.equal(size42.disabled, true);
@@ -175,7 +178,8 @@ test('variable product updates price, availability, and purchase state', () => {
     select.handlers.change();
     assert.equal(button.disabled, true);
     assert.equal(availability.textContent, 'Out of stock');
-    assert.equal(discount.hidden, true);
+    assert.equal(discount.hidden, false);
+    assert.equal(discount.textContent, '20%');
     assert.equal(preorder.hidden, true);
     assert.equal(delivery.hidden, true);
     select.value = '';

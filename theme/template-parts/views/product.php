@@ -8,7 +8,6 @@ if (!$product instanceof WC_Product) { return; }
 $payload = staticbridge_product_data($product);
 $image_ids = array_values(array_unique(array_filter(array_merge(array($product->get_image_id()), $product->get_gallery_image_ids()))));
 $categories = $product->get_category_ids();
-$category_names = wc_get_product_category_list($product->get_id(), ', ');
 $related_source = $categories ? get_term_link($categories[0], 'product_cat') : '';
 if (is_wp_error($related_source)) { $related_source = ''; }
 $visible_attributes = array_filter($product->get_attributes(), static function ($attribute) {
@@ -42,8 +41,8 @@ if ($is_variable) {
         return 'onbackorder' === $variation['stock_status'];
     })) === count($purchasable_variations));
 }
-$created_at = $product->get_date_created();
-$is_new_product = $created_at instanceof WC_DateTime && $created_at->getTimestamp() >= (current_time('timestamp') - MONTH_IN_SECONDS);
+$published_at = (int) get_post_timestamp($product->get_id());
+$is_new_product = $published_at > 0 && $published_at >= (current_time('timestamp') - WEEK_IN_SECONDS);
 $viewer_min = ($is_new_product || $product->is_on_sale()) ? 15 : 2;
 $viewer_max = ($is_new_product || $product->is_on_sale()) ? 45 : 25;
 $viewer_count = wp_rand($viewer_min, $viewer_max);
@@ -108,8 +107,10 @@ $share_title = rawurlencode($product->get_name());
         <?php endif; ?>
       </section>
       <div class="product-detail__summary">
-        <?php if ($category_names) : ?><p class="product-detail__category"><?php echo wp_kses_post($category_names); ?></p><?php endif; ?>
-        <span class="product-detail__discount" data-product-discount <?php if (!$discount) : ?>hidden<?php endif; ?>><?php echo esc_html($discount . '%'); ?></span>
+        <div class="product-detail__badges">
+          <span class="product-detail__discount" data-product-discount <?php if (!$discount) : ?>hidden<?php endif; ?>><?php echo esc_html($discount . '%'); ?></span>
+          <?php if ($is_new_product) : ?><span class="product-detail__new"><?php esc_html_e('New', 'dakabrand'); ?></span><?php endif; ?>
+        </div>
         <h1><?php echo esc_html($product->get_name()); ?></h1>
         <div class="product-detail__price-row">
           <div class="product-price" data-product-price><?php echo wp_kses_post($product->get_price_html()); ?></div>
