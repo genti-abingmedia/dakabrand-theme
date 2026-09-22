@@ -68,6 +68,23 @@
         return node;
     }
 
+    function showNoImage(link, image) {
+        if (!link || !link.classList) return;
+        link.classList.add('has-image-error');
+        if (image && typeof image.remove === 'function') image.remove();
+        else if (image && image.parentNode) image.parentNode.removeChild(image);
+    }
+
+    function addImageFallback(image, link) {
+        image.addEventListener('error', function () { showNoImage(link, image); });
+    }
+
+    function enhanceExistingCardImages() {
+        document.querySelectorAll('.catalog-card__image-link img').forEach(function (image) {
+            addImageFallback(image, image.parentNode);
+        });
+    }
+
     function pageNumber(params) {
         var parsed = Number(params.get('page') || 1);
         return Number.isInteger(parsed) ? Math.min(MAX_PAGE, Math.max(1, parsed)) : 1;
@@ -313,7 +330,11 @@
             image.srcset = resizeBase + '&width=300&height=300 300w, ' + resizeBase + '&width=480&height=480 480w';
             image.sizes = '(max-width: 700px) 48vw, (max-width: 1200px) 30vw, 23vw';
             image.addEventListener('error', function () {
-                if (image.src === imageUrl) return;
+                if (image.dataset.originalImageTried === 'true') {
+                    showNoImage(imageLink, image);
+                    return;
+                }
+                image.dataset.originalImageTried = 'true';
                 image.removeAttribute('srcset');
                 image.src = imageUrl;
             });
@@ -323,7 +344,7 @@
             image.loading = index < 2 ? 'eager' : 'lazy';
             image.decoding = 'async';
             imageLink.appendChild(image);
-        }
+        } else showNoImage(imageLink);
         media.appendChild(imageLink);
         var pricing = displayPricing(product, rules, includeOutOfStock);
         if (pricing.sale) {
@@ -392,8 +413,9 @@
             image.width = 300;
             image.height = 300;
             image.loading = 'lazy';
+            addImageFallback(image, link);
             link.appendChild(image);
-        }
+        } else showNoImage(link);
         if (category) link.appendChild(element('p', 'product-card__category', category.name || category.label || ''));
         link.appendChild(element('h2', '', product.name || message('product', 'Product')));
         card.appendChild(link);
@@ -451,8 +473,9 @@
             image.height = 300;
             image.loading = index < 2 ? 'eager' : 'lazy';
             image.decoding = 'async';
+            addImageFallback(image, imageLink);
             imageLink.appendChild(image);
-        }
+        } else showNoImage(imageLink);
         media.appendChild(imageLink);
 
         if (pricing.sale) {
@@ -950,6 +973,7 @@
         }
     }
 
+    enhanceExistingCardImages();
     rails.forEach(loadRail);
     if (!root) return;
 

@@ -85,10 +85,19 @@ class ThemeStructureTests(unittest.TestCase):
 
     def test_catalog_has_server_rendered_product_discovery(self) -> None:
         archive = self.read("template-parts/views/product-archive.php")
+        card = self.read("template-parts/components/product-card.php")
+        catalog = self.read("assets/js/catalog.js")
+        main_css = self.read("assets/css/main.css")
 
         self.assertIn("while (have_posts())", archive)
         self.assertIn("template-parts/components/product-card", archive)
         self.assertIn("paginate_links", archive)
+        self.assertIn("has-image-error", card)
+        self.assertIn("showNoImage", catalog)
+        self.assertIn("addImageFallback", catalog)
+        self.assertIn(".catalog-card__image-link.has-image-error::after", main_css)
+        self.assertIn(".storefront-product-card__image-link.has-image-error::after", main_css)
+        self.assertIn(".product-card__link.has-image-error::after", main_css)
 
     def test_cart_drawer_is_shared_and_product_data_supports_it(self) -> None:
         header = self.read("header.php")

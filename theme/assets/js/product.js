@@ -5,9 +5,18 @@
     var messages = config.messages || {};
     var locale = String(config.locale || 'en_US');
     var contactApi = 'https://filter.gliterin.net/public/filter';
-    var contactSource = 'https://dakabrand.uk/shop/?page=1&limit=1';
+    var localhostFallbackStorefront = 'https://dakabrand.uk/';
 
     function message(key, fallback) { return messages[key] || fallback; }
+
+    // Gliterin must query the storefront the visitor opened.  A remote filter
+    // cannot reach a developer's localhost site, so localhost uses production.
+    function contactSource() {
+        var location = window.location || {};
+        var isLocalhost = ['localhost', '127.0.0.1'].includes(location.hostname);
+        var storefront = isLocalhost ? localhostFallbackStorefront : location.origin;
+        return String(storefront || localhostFallbackStorefront).replace(/\/+$/, '') + '/shop/?page=1&limit=1';
+    }
 
     function format(template) {
         var values = Array.prototype.slice.call(arguments, 1);
@@ -373,7 +382,7 @@
             });
         });
 
-        fetch(contactApi + '?url=' + encodeURIComponent(contactSource))
+        fetch(contactApi + '?url=' + encodeURIComponent(contactSource()))
             .then(function (response) { if (!response.ok) throw new Error('Contact lookup failed'); return response.json(); })
             .then(function (payload) {
                 phone = String(payload && payload.result && payload.result.whatsapp_number || '').replace(/\D/g, '');

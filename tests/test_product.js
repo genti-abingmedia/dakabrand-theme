@@ -201,7 +201,7 @@ test('WhatsApp links sanitize the shared contact number and encode questions', (
     assert.equal(details.whatsappUrl('', 'Question'), '');
 });
 
-function actionPage(fetchResult) {
+function actionPage(fetchResult, origin = 'https://example.com') {
     const nodes = Object.fromEntries([
         '[data-product-whatsapp]', '[data-product-contact-fallback]', '[data-product-ask]',
         '[data-product-share]', '[data-question-form]', '[data-share-url]', '[data-share-copy]',
@@ -233,7 +233,11 @@ function actionPage(fetchResult) {
         querySelectorAll() { return []; },
         querySelector(selector) { return selector === '.product-detail' ? detail : null; }
     };
-    const window = { location: { href: product.permalink, assign(url) { destinations.push(url); } } };
+    const location = new URL(origin);
+    const window = { location: {
+        href: product.permalink, origin: location.origin, hostname: location.hostname,
+        assign(url) { destinations.push(url); }
+    } };
     const navigator = { clipboard: { writeText(value) { destinations.push('copied:' + value); return Promise.resolve(); } } };
     vm.runInNewContext(source, { document, window, navigator, fetch: fetchResult, localStorage: { getItem() { return null; } } });
     return { nodes, destinations, textarea };
@@ -260,4 +264,17 @@ test('contact failure reveals the contact page fallback', async () => {
     await new Promise(setImmediate);
     assert.equal(page.nodes['[data-product-contact-fallback]'].hidden, false);
     assert.equal(page.nodes['[data-product-whatsapp]'].hidden, true);
+});
+
+test('contact lookup uses the page storefront, with production as the localhost fallback', async () => {
+    const requested = [];
+    const fetchContact = async url => {
+        requested.push(url);
+        return { ok: true, json: async () => ({ result: { whatsapp_number: '+44 7700 900123' } }) };
+    };
+    actionPage(fetchContact, 'https://preview.example.test');
+    actionPage(fetchContact, 'http://localhost:8080');
+    await new Promise(setImmediate);
+    assert.match(decodeURIComponent(requested[0]), /url=https:\/\/preview\.example\.test\/shop\/\?page=1&limit=1/);
+    assert.match(decodeURIComponent(requested[1]), /url=https:\/\/dakabrand\.uk\/shop\/\?page=1&limit=1/);
 });

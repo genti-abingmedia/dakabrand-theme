@@ -16,6 +16,7 @@ $card_price = (float) $card_product->get_price();
 $card_on_sale = $card_product->is_on_sale() && $card_regular_price > $card_sale_price && $card_sale_price > 0;
 $card_stock_status = $card_product->get_stock_status();
 $card_categories = wc_get_product_category_list($card_product->get_id(), ', ');
+$card_image_id = $card_product->get_image_id();
 ?>
 <article
     class="catalog-card"
@@ -24,8 +25,10 @@ $card_categories = wc_get_product_category_list($card_product->get_id(), ', ');
     data-product-type="<?php echo esc_attr($card_product->get_type()); ?>"
 >
     <div class="catalog-card__media">
-        <a class="catalog-card__image-link" href="<?php echo esc_url($card_permalink); ?>" aria-label="<?php echo esc_attr($card_product->get_name()); ?>">
-            <?php echo wp_kses_post($card_product->get_image('woocommerce_thumbnail', array('loading' => 'eager', 'decoding' => 'async'))); ?>
+        <a class="catalog-card__image-link<?php echo $card_image_id ? '' : ' has-image-error'; ?>" href="<?php echo esc_url($card_permalink); ?>" aria-label="<?php echo esc_attr($card_product->get_name()); ?>">
+            <?php if ($card_image_id) : ?>
+                <?php echo wp_kses_post($card_product->get_image('woocommerce_thumbnail', array('loading' => 'eager', 'decoding' => 'async'))); ?>
+            <?php endif; ?>
         </a>
         <?php if ($card_on_sale) : ?>
             <span class="catalog-card__badge"><?php echo esc_html((string) round((($card_regular_price - $card_sale_price) / $card_regular_price) * 100) . '%'); ?></span>
