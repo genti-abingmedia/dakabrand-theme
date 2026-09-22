@@ -58,17 +58,9 @@
         }
     }
 
-    function languageUrl(locale) {
-        var endpoint = config.languageEndpoint || '';
-        if (!endpoint) return '';
-
-        try {
-            var url = new URL(endpoint, window.location.origin);
-            url.searchParams.set('locale', locale);
-            return url.href;
-        } catch (error) {
-            return '';
-        }
+    function languageMessages(locale) {
+        var catalogues = config.languageCatalogues || {};
+        return locale === 'sq_AL' && catalogues.sq_AL ? catalogues.sq_AL : {};
     }
 
     function replaceText(text, messages) {
@@ -81,13 +73,16 @@
     }
 
     function applyLanguage(locale, messages) {
-        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        var walker = document.body && typeof document.createTreeWalker === 'function' && typeof NodeFilter !== 'undefined'
+            ? document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT) : null;
         var node;
         var attributes = ['aria-label', 'placeholder', 'title', 'value'];
 
-        while ((node = walker.nextNode())) {
-            if (!node.parentElement || ['SCRIPT', 'STYLE'].indexOf(node.parentElement.tagName) !== -1) continue;
-            node.nodeValue = replaceText(node.nodeValue, messages);
+        if (walker) {
+            while ((node = walker.nextNode())) {
+                if (!node.parentElement || ['SCRIPT', 'STYLE'].indexOf(node.parentElement.tagName) !== -1) continue;
+                node.nodeValue = replaceText(node.nodeValue, messages);
+            }
         }
 
         document.querySelectorAll('*').forEach(function (element) {
@@ -98,7 +93,7 @@
             });
         });
 
-        document.documentElement.lang = locale === 'sq_AL' ? 'sq-AL' : 'en-US';
+        if (document.documentElement) document.documentElement.lang = locale === 'sq_AL' ? 'sq-AL' : 'en-US';
         config.locale = locale;
         config.messages = Object.assign({}, config.messages || {}, messages);
         document.querySelectorAll('[data-language-locale]').forEach(function (button) {
@@ -113,24 +108,10 @@
         }));
     }
 
-    async function loadLanguage(locale) {
-        var url = languageUrl(locale);
-        var response;
-        var payload;
-
-        if (!url) return;
-        response = await fetch(url, { credentials: 'same-origin' });
-        if (!response.ok) throw new Error('Language catalogue could not be loaded.');
-        payload = await response.json();
-        applyLanguage(payload.locale === 'sq_AL' ? 'sq_AL' : 'en_US', payload.messages || {});
-    }
-
     function enhanceLanguageSwitcher() {
         var locale = selectedLocale();
 
-        loadLanguage(locale).catch(function () {
-            applyLanguage('en_US', {});
-        });
+        applyLanguage(locale, languageMessages(locale));
 
         document.querySelectorAll('[data-language-locale]').forEach(function (button) {
             button.addEventListener('click', function () {
@@ -139,16 +120,13 @@
 
                 try {
                     localStorage.setItem(languageStorageKey(), nextLocale);
-                } catch (error) {
-                    // The API still provides the selected language for this page.
-                }
-                loadLanguage(nextLocale).then(function () {
                     // Start from the generated English document on each change;
                     // this also restores English after an Albanian selection.
                     window.location.reload();
-                }).catch(function () {
-                    // Keep the currently rendered language if the proxy is unavailable.
-                });
+                } catch (error) {
+                    // Still switch for this page when browser storage is blocked.
+                    applyLanguage(nextLocale, languageMessages(nextLocale));
+                }
             });
         });
     }

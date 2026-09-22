@@ -50,10 +50,10 @@ and its checkout rejects the required remittance payment method.
   completed because no browser was available in this session. Perform them on
   the restored hosted pages, including navigation, product variations, cart,
   checkout, focus, dialogs, and the optional form unavailable notices.
-- Configure the proxy to forward the public, cacheable language catalogue:
-  `GET /api/staticbridge/v1/language?locale=en_US|sq_AL`. Generated pages keep
-  the selected locale in browser storage and must never post to
-  `wp-admin/admin-post.php` or depend on a WordPress cookie.
+- Confirm the generated pages include the static Albanian catalogue. Language
+  selection is stored in the browser and must never post to
+  `wp-admin/admin-post.php`, depend on a WordPress cookie, or call a language
+  API route.
 - Publish and review real contact and policy page content on the hosted site.
   The local pages used for this audit contain fixture text only.
 

@@ -7,7 +7,6 @@ if (!defined('ABSPATH')) {
 define('STATICBRIDGE_THEME_VERSION', '0.2.0');
 define('STATICBRIDGE_RENDER_API_VERSION', '1.0');
 define('STATICBRIDGE_BOOTSTRAP_VERSION', '5.3.8');
-define('STATICBRIDGE_LANGUAGE_API_NAMESPACE', 'staticbridge/v1');
 
 /**
  * The storefront UI is available in English and Albanian without requiring a
@@ -36,43 +35,6 @@ function staticbridge_language_messages(string $locale): array
 
     return is_array($catalogue['messages'] ?? null) ? $catalogue['messages'] : array();
 }
-
-/**
- * Public, read-only catalogue endpoint for generated storefront pages.
- *
- * This deliberately has no nonce, cookie, or session state: a static page can
- * safely request it through the same /api/ proxy and persist the preference in
- * localStorage. Its response can therefore be cached by the CDN per locale.
- */
-function staticbridge_register_language_api(): void
-{
-    register_rest_route(STATICBRIDGE_LANGUAGE_API_NAMESPACE, '/language', array(
-        'methods'             => WP_REST_Server::READABLE,
-        'permission_callback' => '__return_true',
-        'args'                => array(
-            'locale' => array(
-                'default'           => 'en_US',
-                'sanitize_callback' => 'sanitize_text_field',
-                'validate_callback' => static function ($value): bool {
-                    return in_array($value, staticbridge_supported_locales(), true);
-                },
-            ),
-        ),
-        'callback' => static function (WP_REST_Request $request): WP_REST_Response {
-            $locale = (string) $request->get_param('locale');
-            $response = new WP_REST_Response(array(
-                'locale'       => $locale,
-                'messages'     => staticbridge_language_messages($locale),
-                'cacheable'    => true,
-            ));
-            $response->header('Cache-Control', 'public, max-age=3600');
-            $response->header('Vary', 'Accept-Encoding');
-
-            return $response;
-        },
-    ));
-}
-add_action('rest_api_init', 'staticbridge_register_language_api');
 
 function staticbridge_language_switcher(string $class_name = ''): string
 {
@@ -886,9 +848,10 @@ function staticbridge_enqueue_assets(): void
         'cartUrl'          => home_url('/cart/'),
         'shopUrl'          => home_url('/shop/'),
         'locale'           => staticbridge_requested_locale(),
-        'languageEndpoint' => trailingslashit((string) apply_filters('staticbridge_api_base',
-            'local' === wp_get_environment_type() ? '/wp-json/' : '/api/')) . STATICBRIDGE_LANGUAGE_API_NAMESPACE . '/language',
         'languageStorageKey' => 'staticbridge_language_v1',
+        // This is emitted into every generated document, so changing language
+        // never requires a runtime request to WordPress or the API proxy.
+        'languageCatalogues' => array('sq_AL' => staticbridge_language_messages('sq_AL')),
         'messages'         => staticbridge_frontend_messages(),
         'staticLabels'     => array(
             'Clothing' => __('Clothing', 'dakabrand'), 'Shoes' => __('Shoes', 'dakabrand'),
