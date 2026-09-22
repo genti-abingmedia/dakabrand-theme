@@ -44,6 +44,7 @@
         toggleFilters: root.querySelector('[data-catalog-toggle-filters]'),
         toggleFiltersLabel: root.querySelector('[data-catalog-toggle-filters-label]'),
         viewButtons: root.querySelectorAll('[data-catalog-view]'),
+        loading: root.querySelector('[data-catalog-loading]'),
         status: root.querySelector('[data-catalog-status]'),
         grid: root.querySelector('[data-catalog-grid]'),
         pagination: root.querySelector('[data-catalog-pagination]')
@@ -171,6 +172,12 @@
     function hideStatus() {
         nodes.status.hidden = true;
         nodes.status.replaceChildren();
+    }
+
+    function finishInitialLoad() {
+        root.classList.remove('catalog--loading');
+        root.setAttribute('aria-busy', 'false');
+        if (nodes.loading) nodes.loading.hidden = true;
     }
 
     function validUrl(value, productLink) {
@@ -495,7 +502,11 @@
         var limit = Math.max(1, Math.min(20, Number(grid.dataset.catalogLimit) || 10));
         var excluded = Number(grid.dataset.catalogExclude) || 0;
         var requested = new URL(grid.dataset.catalogSource, window.location.origin);
-        var source = new URL(requested.pathname + requested.search, STOREFRONT);
+        // Rails power related products and the smaller grids on the Man/Women
+        // pages. Like the full catalog, they must point Gliterin at the public
+        // storefront while this theme runs on localhost.
+        var storefront = isLocalhost() ? LOCALHOST_FALLBACK_STOREFRONT : STOREFRONT;
+        var source = new URL(requested.pathname + requested.search, storefront);
         source.searchParams.set('page', '1');
         source.searchParams.set('limit', String(limit + (excluded ? 1 : 0)));
         grid.setAttribute('aria-busy', 'true');
@@ -718,6 +729,8 @@
     function render(data) {
         currentData = data;
 
+        finishInitialLoad();
+
         var params = new URLSearchParams(window.location.search);
         var keyword = params.get('keyword');
 
@@ -900,6 +913,8 @@
                 ) {
                     return;
                 }
+
+                finishInitialLoad();
 
                 nodes.grid.replaceChildren();
                 nodes.grid.setAttribute('aria-busy', 'false');

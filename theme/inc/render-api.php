@@ -57,6 +57,19 @@ function staticbridge_campaign_page_view(): ?string
 }
 
 /**
+ * Static storefront documents deliberately bypass the conventional WordPress
+ * shell. Restore its toolbar hooks for administrators without adding plugin
+ * output or administration UI to public pages.
+ */
+function staticbridge_should_show_admin_toolbar(): bool
+{
+    return !is_admin()
+        && is_user_logged_in()
+        && current_user_can('manage_options')
+        && is_admin_bar_showing();
+}
+
+/**
  * Public contract used by both WordPress templates and the static generator.
  *
  * The generator is responsible for preparing the correct global $wp_query and
@@ -65,6 +78,7 @@ function staticbridge_campaign_page_view(): ?string
 function staticbridge_render_document_start(): void
 {
     $seo = staticbridge_seo_document();
+    $show_admin_toolbar = staticbridge_should_show_admin_toolbar();
     ?>
     <!doctype html>
     <html <?php language_attributes(); ?>>
@@ -73,8 +87,10 @@ function staticbridge_render_document_start(): void
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <?php staticbridge_render_seo_head($seo); ?>
         <?php staticbridge_render_document_assets(); ?>
+        <?php if ($show_admin_toolbar) { wp_head(); } ?>
     </head>
     <body <?php body_class(); ?>>
+    <?php if ($show_admin_toolbar) { wp_body_open(); } ?>
     <?php staticbridge_render_tag_manager_body(); ?>
     <?php get_template_part('header'); ?>
     <?php
@@ -82,9 +98,11 @@ function staticbridge_render_document_start(): void
 
 function staticbridge_render_document_end(): void
 {
+    $show_admin_toolbar = staticbridge_should_show_admin_toolbar();
     ?>
     <?php get_template_part('footer'); ?>
     <?php staticbridge_render_document_scripts(); ?>
+    <?php if ($show_admin_toolbar) { wp_footer(); } ?>
     </body>
     </html>
     <?php

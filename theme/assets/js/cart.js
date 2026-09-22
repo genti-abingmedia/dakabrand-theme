@@ -318,6 +318,10 @@
             var product = productData(detail);
             var target = detail.querySelector('[data-product-options]');
             if (!product || product.type !== 'variable' || !target) return;
+            // This bundle can be evaluated again by cache/navigation tooling. Keep
+            // the original controls (and their variation listeners) rather than
+            // appending a second set of selectors.
+            if (target.querySelector('[data-option-key]')) return;
             (product.options || []).forEach(function (option) {
                 var normalizedLabel = String(option.label || '').toLowerCase();
                 // Chips make every textual variation immediately scannable. Keep colour

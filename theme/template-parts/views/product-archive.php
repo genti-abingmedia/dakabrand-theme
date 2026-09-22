@@ -32,7 +32,7 @@ if ($breadcrumb_terms) {
     }
 }
 ?>
-<main id="main" class="site-main site-shell catalog" data-static-view="product-archive" data-catalog>
+<main id="main" class="site-main site-shell catalog catalog--loading" data-static-view="product-archive" data-catalog aria-busy="true">
     <header class="catalog-heading">
         <nav class="catalog-breadcrumb" aria-label="<?php esc_attr_e('Breadcrumb', 'dakabrand'); ?>">
             <a class="catalog-breadcrumb__back" href="<?php echo esc_url($back_url); ?>"><?php esc_html_e('< Back', 'dakabrand'); ?></a>
@@ -54,6 +54,33 @@ if ($breadcrumb_terms) {
             <div class="catalog-heading__description"><?php echo wp_kses_post($archive_description); ?></div>
         <?php endif; ?>
     </header>
+
+    <div class="catalog-loading" data-catalog-loading role="status" aria-live="polite">
+        <span class="screen-reader-text"><?php esc_html_e('Loading products and filters…', 'dakabrand'); ?></span>
+        <div class="catalog-loading__toolbar" aria-hidden="true">
+            <span class="catalog-skeleton catalog-skeleton--label"></span>
+            <span class="catalog-skeleton catalog-skeleton--controls"></span>
+        </div>
+        <div class="catalog-loading__layout" aria-hidden="true">
+            <aside class="catalog-loading__filters">
+                <span class="catalog-skeleton catalog-skeleton--filter-title"></span>
+                <span class="catalog-skeleton catalog-skeleton--filter-option"></span>
+                <span class="catalog-skeleton catalog-skeleton--filter-option"></span>
+                <span class="catalog-skeleton catalog-skeleton--filter-title"></span>
+                <span class="catalog-skeleton catalog-skeleton--filter-option"></span>
+                <span class="catalog-skeleton catalog-skeleton--filter-option"></span>
+            </aside>
+            <div class="catalog-loading__grid">
+                <?php for ($skeleton_card = 0; $skeleton_card < 8; $skeleton_card++) : ?>
+                    <div class="catalog-loading__card">
+                        <span class="catalog-skeleton catalog-skeleton--image"></span>
+                        <span class="catalog-skeleton catalog-skeleton--name"></span>
+                        <span class="catalog-skeleton catalog-skeleton--price"></span>
+                    </div>
+                <?php endfor; ?>
+            </div>
+        </div>
+    </div>
 
     <div class="catalog-toolbar" data-catalog-toolbar hidden>
         <div class="catalog-toolbar__summary">
@@ -153,3 +180,4 @@ if ($breadcrumb_terms) {
         </section>
     </div>
 </main>
+<noscript><style>.catalog--loading .catalog-loading{display:none!important}.catalog--loading .catalog-layout{display:grid!important}</style></noscript>

@@ -27,6 +27,9 @@ test('checkout totals use WooCommerce minor units and all shipping packages need
     assert.equal(checkout.hasSelectedRates({ needs_shipping: true, shipping_rates: [{ shipping_rates: [{ selected: true }] }] }), true);
     assert.equal(checkout.cartMatchesLines({ items: [{ id: 43, quantity: 2 }], errors: [] }, [{ productId: 20, variationId: 43, quantity: 2 }]), true);
     assert.equal(checkout.cartMatchesLines({ items: [{ id: 43, quantity: 1 }], errors: [] }, [{ productId: 20, variationId: 43, quantity: 2 }]), false);
+    assert.deepEqual(checkout.enabledPaymentMethods({ payment_methods: ['cod', 'staticbridge_remittance', 'cod'] }), ['cod', 'staticbridge_remittance']);
+    assert.equal(checkout.paymentMethodLabel('cod'), 'Cash on delivery');
+    assert.equal(checkout.paymentMethodLabel('custom_gateway'), 'Custom Gateway');
 });
 
 test('billing address supplies delivery address until another address is selected', () => {
@@ -156,7 +159,10 @@ async function checkoutScenario(failureMode, exerciseOptions) {
         { rate_id: 'flat_rate:1', name: 'Standard', price: '200', selected },
         { rate_id: 'flat_rate:2', name: 'Express', price: '400', selected: false }
     ] }];
-    const cart = shipping_rates => ({ items: [{ ...item, id: 40 }], totals, needs_shipping: true, shipping_rates });
+    const cart = shipping_rates => ({
+        items: [{ ...item, id: 40 }], totals, needs_shipping: true, shipping_rates,
+        payment_methods: ['staticbridge_remittance']
+    });
     const calls = [];
     const fetch = async (url, options) => {
         const path = url.split('/wc/store/v1/')[1];

@@ -92,10 +92,31 @@
         };
     }
 
+    function enabledPaymentMethods(cart) {
+        var seen = new Set();
+        return (Array.isArray(cart && cart.payment_methods) ? cart.payment_methods : []).filter(function (method) {
+            method = String(method || '').trim();
+            if (!method || seen.has(method)) return false;
+            seen.add(method);
+            return true;
+        });
+    }
+
+    function paymentMethodLabel(method) {
+        var labels = {
+            cod: 'Cash on delivery',
+            bacs: 'Direct bank transfer',
+            cheque: 'Cheque payment',
+            staticbridge_remittance: 'Western Union / MoneyGram / Ria'
+        };
+        return labels[method] || String(method || '').replace(/[-_]+/g, ' ').replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
+    }
+
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = { variationPayload: variationPayload, cartLinePayload: cartLinePayload,
             formatMinor: formatMinor, hasSelectedRates: hasSelectedRates, cartMatchesLines: cartMatchesLines,
-            customerAddress: customerAddress };
+            customerAddress: customerAddress, enabledPaymentMethods: enabledPaymentMethods,
+            paymentMethodLabel: paymentMethodLabel };
         return;
     }
 
@@ -121,6 +142,8 @@
     var shippingTotalNode = root.querySelector('[data-checkout-shipping-total]');
     var adjustmentsNode = root.querySelector('[data-checkout-adjustments]');
     var totalNode = root.querySelector('[data-checkout-order-total]');
+    var paymentMethodsNode = root.querySelector('[data-checkout-payment-methods]');
+    var paymentNote = root.querySelector('[data-checkout-payment-note]');
     var token = '';
     var cart = null;
     var syncedSignature = '';
@@ -137,6 +160,8 @@
     var estimateAddress = false;
     var couponBusy = false;
     var appliedCouponCodes = [];
+    var paymentMethods = [];
+    var selectedPaymentId = '';
 
     function showStatus(message, error) {
         status.textContent = message;
@@ -229,7 +254,7 @@
             !refreshingAddress && !selectingRate && !couponBusy &&
             !addressTimer && addressComplete() && addressSignature === JSON.stringify(addressData()) &&
             syncedSignature === lineSignature(readLines()) && hasSelectedRates(cart) &&
-            cart.items && cart.items.length);
+            Boolean(selectedPaymentMethod()) && cart.items && cart.items.length);
     }
 
     function updateSubmit() {
@@ -283,11 +308,40 @@
     }
 
     function selectedPaymentMethod() {
-        return 'staticbridge_remittance';
+        return paymentMethods.includes(selectedPaymentId) ? selectedPaymentId : '';
     }
 
     function confirmationPaymentLabel() {
-        return 'Western Union / MoneyGram / Ria';
+        return paymentMethodLabel(selectedPaymentMethod());
+    }
+
+    function renderPaymentMethods(current) {
+        paymentMethods = enabledPaymentMethods(current);
+        if (!paymentMethods.includes(selectedPaymentId)) selectedPaymentId = paymentMethods[0] || '';
+        if (!paymentMethodsNode) return;
+        paymentMethodsNode.replaceChildren();
+        if (!paymentMethods.length) {
+            paymentMethodsNode.appendChild(element('p', '', 'No payment methods are currently available.'));
+        } else {
+            paymentMethods.forEach(function (method) {
+                var label = element('label', 'checkout-payment-method');
+                var input = element('input');
+                input.type = 'radio';
+                input.name = 'payment_method';
+                input.value = method;
+                input.checked = method === selectedPaymentId;
+                input.disabled = submitting;
+                input.addEventListener('change', function () {
+                    selectedPaymentId = method;
+                    renderPaymentMethods(current);
+                    updateSubmit();
+                });
+                label.append(input, element('span', '', paymentMethodLabel(method)));
+                if (method === 'staticbridge_remittance') label.appendChild(element('span', 'checkout-payment-method__western-union', 'WESTERN UNION'));
+                paymentMethodsNode.appendChild(label);
+            });
+        }
+        if (paymentNote) paymentNote.hidden = selectedPaymentId !== 'staticbridge_remittance';
     }
 
     function confirmationDeliveryLabel() {
@@ -393,6 +447,7 @@
         });
         totalNode.textContent = formatMinor(current.totals.total_price, current.totals);
         renderShipping(current);
+        renderPaymentMethods(current);
         updateSubmit();
     }
 

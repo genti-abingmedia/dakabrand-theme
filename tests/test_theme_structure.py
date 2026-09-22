@@ -31,12 +31,15 @@ class ThemeStructureTests(unittest.TestCase):
         render_api = self.read("inc/render-api.php")
 
         for forbidden in ("wp_head()", "wp_footer()", "wp_body_open()", "get_header()", "get_footer()"):
-            self.assertNotIn(forbidden, "\n".join((header, self.read("footer.php"), render_api)))
+            self.assertNotIn(forbidden, "\n".join((header, self.read("footer.php"))))
+        for forbidden in ("get_header()", "get_footer()"):
+            self.assertNotIn(forbidden, render_api)
         self.assertIn('id="mobile-navigation"', header)
         self.assertIn('class="mobile-navigation__menu"', header)
         self.assertIn("staticbridge_catalog_category_url", header)
         self.assertIn("get_template_part('header')", render_api)
         self.assertIn("get_template_part('footer')", render_api)
+        self.assertIn("staticbridge_should_show_admin_toolbar", render_api)
 
     def test_theme_has_static_english_and_albanian_ui(self) -> None:
         functions = self.read("functions.php")
@@ -149,15 +152,17 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn('billing_name', view)
         self.assertIn('billing_address_1', view)
 
-    def test_checkout_offers_only_remittance(self) -> None:
+    def test_checkout_uses_store_api_payment_methods(self) -> None:
         view = self.read("template-parts/views/checkout.php")
         script = self.read("assets/js/checkout.js")
         gateway = self.read("inc/remittance-gateway.php")
 
-        self.assertIn("Western union / Moneygram / Ria", view)
+        self.assertIn("data-checkout-payment-methods", view)
+        self.assertIn("data-checkout-payment-note", view)
         self.assertNotIn('value="cod"', view)
         self.assertNotIn('checkout_payment_option', view)
-        self.assertIn("return 'staticbridge_remittance'", script)
+        self.assertIn("payment_methods", script)
+        self.assertIn("data.payment_method = selectedPaymentMethod()", script)
         self.assertIn("$this->id = 'staticbridge_remittance'", gateway)
 
     def test_shell_has_no_minimog_or_elementor_runtime_dependency(self) -> None:
