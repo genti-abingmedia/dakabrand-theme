@@ -71,9 +71,9 @@ The same-origin proxy must expose `GET /api/wc/store/v1/products/{id}`,
 responses. Keep the theme's `staticbridge_remittance` gateway available in
 WooCommerce. The theme defaults to `/api/`
 in production and `/wp-json/` in the local Docker environment. Override the
-base with `staticbridge_api_base` if needed. The filter source origin defaults
-to `https://static-daka.gliterindemo.com` and can be changed with
-`staticbridge_catalog_source_origin`.
+base with `staticbridge_api_base` if needed. The filter source is always the
+URL currently open in the visitor's browser, so each deployment loads its own
+catalogue.
 
 ## Static language selection
 

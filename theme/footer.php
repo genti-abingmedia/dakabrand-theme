@@ -126,6 +126,3 @@ $newsletter_form_id = staticbridge_wpforms_form_id('newsletter');
         <button type="button" data-bs-dismiss="offcanvas"><?php esc_html_e('Continue shopping', 'dakabrand'); ?></button>
     </div>
 </aside>
-<?php wp_footer(); ?>
-</body>
-</html>

@@ -26,16 +26,17 @@ class ThemeStructureTests(unittest.TestCase):
         for location in ("primary", "footer", "footer_information", "footer_services"):
             self.assertIn(f"'{location}'", functions)
 
-    def test_header_preserves_wordpress_and_navigation_contracts(self) -> None:
+    def test_header_is_a_custom_document_component(self) -> None:
         header = self.read("header.php")
-        functions = self.read("functions.php")
+        render_api = self.read("inc/render-api.php")
 
-        for contract in ("wp_head()", "wp_body_open()"):
-            self.assertIn(contract, header)
+        for forbidden in ("wp_head()", "wp_footer()", "wp_body_open()", "get_header()", "get_footer()"):
+            self.assertNotIn(forbidden, "\n".join((header, self.read("footer.php"), render_api)))
         self.assertIn('id="mobile-navigation"', header)
         self.assertIn('class="mobile-navigation__menu"', header)
         self.assertIn("staticbridge_catalog_category_url", header)
-        self.assertIn("$slug . ':' . $name", functions)
+        self.assertIn("get_template_part('header')", render_api)
+        self.assertIn("get_template_part('footer')", render_api)
 
     def test_theme_has_static_english_and_albanian_ui(self) -> None:
         functions = self.read("functions.php")
@@ -58,17 +59,33 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("'Man' => 'Meshkuj'", catalogue)
         self.assertIn('Language: sq_AL', source_catalogue)
 
-    def test_footer_preserves_lifecycle_and_newsletter_contracts(self) -> None:
+    def test_footer_preserves_custom_shell_and_newsletter_contracts(self) -> None:
         footer = self.read("footer.php")
-        functions = self.read("functions.php")
 
-        for contract in ("wp_footer()", "data-newsletter-form", "data-newsletter-status"):
+        for contract in ("data-newsletter-form", "data-newsletter-status"):
             self.assertIn(contract, footer)
-        self.assertIn("staticbridge_newsletter_endpoint", functions)
-        self.assertIn("newsletterEndpoint", functions)
+        seo_document = self.read("inc/seo-document.php")
+        self.assertIn("staticbridge_newsletter_endpoint", seo_document)
+        self.assertIn("newsletterEndpoint", seo_document)
         self.assertIn("staticbridge_wpforms_form_id('newsletter')", footer)
         self.assertIn("wpforms_display($newsletter_form_id", footer)
         self.assertNotIn("receive 10% off", footer)
+
+    def test_custom_seo_document_owns_metadata_and_assets(self) -> None:
+        seo = self.read("inc/seo-document.php")
+        render_api = self.read("inc/render-api.php")
+
+        for contract in ("canonical", "noindex,follow", "application/ld+json", "BreadcrumbList", "AggregateOffer", "staticbridge_render_document_assets"):
+            self.assertIn(contract, seo)
+        self.assertIn("staticbridge_render_seo_head", render_api)
+        self.assertIn("staticbridge_render_document_scripts", render_api)
+
+    def test_catalog_has_server_rendered_product_discovery(self) -> None:
+        archive = self.read("template-parts/views/product-archive.php")
+
+        self.assertIn("while (have_posts())", archive)
+        self.assertIn("template-parts/components/product-card", archive)
+        self.assertIn("paginate_links", archive)
 
     def test_cart_drawer_is_shared_and_product_data_supports_it(self) -> None:
         header = self.read("header.php")
@@ -273,7 +290,7 @@ class ThemeStructureTests(unittest.TestCase):
         checkout = self.read("template-parts/views/checkout.php")
         self.assertNotIn("home_url('/my-account/')", header)
         self.assertNotIn("home_url('/my-account/')", functions)
-        self.assertIn("staticbridge_hide_account_menu_items", functions)
+        self.assertIn("staticbridge_hide_restricted_menu_items", functions)
         self.assertIn("is_page('my-account')", render_api)
         self.assertIn("'page-checkout.php' => 'checkout'", render_api)
         self.assertIn("'checkout' => 'checkout'", render_api)

@@ -202,6 +202,7 @@ network responses are shown as accessible inline errors.
 find theme -name '*.php' -print0 | xargs -0 -n1 php -l
 python3 -m unittest -v tests/test_theme_ftp.py tests/test_theme_structure.py tests/test_local_wordpress.py
 node --test tests/test_cart.js tests/test_checkout.js tests/test_product.js tests/test_contact.js
+python3 scripts/audit-seo.py http://localhost:8080/
 python3 scripts/theme_ftp.py status
 ```
 

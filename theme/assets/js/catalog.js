@@ -8,7 +8,10 @@
     var config = window.StaticBridgeConfig || {};
     var messages = config.messages || {};
     var API = 'https://filter.gliterin.net/public/filter';
-    var STOREFRONT = (window.StaticBridgeConfig || {}).catalogSourceOrigin || 'https://dakabrand.uk/';
+    // The filter must query the storefront the visitor has actually opened.
+    // This keeps preview, staging, and custom-domain catalogs independent.
+    var STOREFRONT = window.location.origin;
+    var LOCALHOST_FALLBACK_STOREFRONT = 'https://dakabrand.uk/';
     var VIEWS = {
         large: { pageSize: 15 },
         small: { pageSize: 20 },
@@ -84,9 +87,15 @@
         return url;
     }
 
-    function sourceUrl(page, limit) {
+    function isLocalhost() {
+        return ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    }
+
+    function sourceUrl(page, limit, storefront) {
         var params = new URLSearchParams(window.location.search);
-        var url = new URL(window.location.pathname, STOREFRONT);
+        var url = new URL(window.location.href);
+        url.hash = '';
+        if (storefront) url = new URL(url.pathname + url.search, storefront);
         params.delete('limit');
         params.delete('catalog_view');
         params.delete('catalog_filters');
@@ -170,8 +179,9 @@
             if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
             if (productLink) {
                 var source = new URL(STOREFRONT);
-                if (![window.location.hostname, source.hostname, 'dakabrand.uk', 'www.dakabrand.uk'].includes(url.hostname)) return '';
-                if (url.hostname === source.hostname && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+                var fallbackSource = new URL(LOCALHOST_FALLBACK_STOREFRONT);
+                if (url.origin !== source.origin && !(isLocalhost() && url.origin === fallbackSource.origin)) return '';
+                if (url.origin !== window.location.origin) {
                     url = new URL(url.pathname + url.search + url.hash, window.location.origin);
                 }
             }
@@ -787,8 +797,8 @@
         }
     }
 
-    function fetchCatalogPage(page, limit, signal) {
-        return fetch(API + '?url=' + encodeURIComponent(sourceUrl(page, limit)), { signal: signal })
+    function requestCatalog(source, signal) {
+        return fetch(API + '?url=' + encodeURIComponent(source), { signal: signal })
             .then(function (response) {
                 if (!response.ok) throw new Error('Catalog request failed');
                 return response.json();
@@ -800,6 +810,14 @@
                 }
                 return data;
             });
+    }
+
+    function fetchCatalogPage(page, limit, signal) {
+        // The remote filter cannot access a developer's localhost site.
+        // Use the production catalogue directly rather than issuing a failed
+        // localhost request first.
+        var storefront = isLocalhost() ? LOCALHOST_FALLBACK_STOREFRONT : null;
+        return requestCatalog(sourceUrl(page, limit, storefront), signal);
     }
 
     function catalogPageSize(params) {

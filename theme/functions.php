@@ -167,6 +167,7 @@ function staticbridge_theme_gettext_fallback(string $translation, string $text, 
 }
 add_filter('gettext', 'staticbridge_theme_gettext_fallback', 10, 3);
 
+require_once get_template_directory() . '/inc/seo-document.php';
 require_once get_template_directory() . '/inc/render-api.php';
 require_once get_template_directory() . '/inc/product-data.php';
 require_once get_template_directory() . '/inc/remittance-gateway.php';
@@ -264,7 +265,6 @@ function staticbridge_google_tag_manager_head(): void
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<?php echo esc_js($container); ?>');</script>
     <?php
 }
-add_action('wp_head', 'staticbridge_google_tag_manager_head');
 
 function staticbridge_google_tag_manager_body(): void
 {
@@ -276,7 +276,6 @@ function staticbridge_google_tag_manager_body(): void
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<?php echo esc_attr($container); ?>" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <?php
 }
-add_action('wp_body_open', 'staticbridge_google_tag_manager_body');
 
 function staticbridge_discount_rule_price(WC_Product $product): string
 {
@@ -842,7 +841,6 @@ function staticbridge_enqueue_assets(): void
         'renderApiVersion' => STATICBRIDGE_RENDER_API_VERSION,
         'apiBase'          => (string) apply_filters('staticbridge_api_base',
             'local' === wp_get_environment_type() ? '/wp-json/' : '/api/'),
-        'catalogSourceOrigin' => (string) apply_filters('staticbridge_catalog_source_origin', 'https://dakabrand.uk/'),
         'cartStorageKey'   => 'staticbridge_cart_v1',
         'stockModeStorageKey' => 'staticbridge_stock_mode_v1',
         'cartUrl'          => home_url('/cart/'),

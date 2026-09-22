@@ -83,6 +83,7 @@
         }
 
         closeButton.addEventListener('click', closePopup);
+        popup.querySelector('.daka-video-popup__video').addEventListener('ended', closePopup);
         popup.addEventListener('click', function (event) { if (event.target === popup) closePopup(); });
         document.addEventListener('keydown', function onKeydown(event) {
             if (event.key === 'Escape' && popup.classList.contains('is-visible')) {

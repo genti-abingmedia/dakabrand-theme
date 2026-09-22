@@ -22,6 +22,9 @@ if ($is_category) {
 }
 
 $back_url = $is_category ? $shop_url : home_url('/');
+$archive_page = max(1, (int) get_query_var('paged'), (int) get_query_var('page'));
+$archive_query = $GLOBALS['wp_query'] ?? null;
+$archive_total_pages = $archive_query instanceof WP_Query ? max(1, (int) $archive_query->max_num_pages) : 1;
 if ($breadcrumb_terms) {
     $parent_url = get_term_link(end($breadcrumb_terms));
     if (!is_wp_error($parent_url)) {
@@ -117,13 +120,36 @@ if ($breadcrumb_terms) {
         </aside>
 
         <section class="catalog-results" aria-label="<?php esc_attr_e('Products', 'dakabrand'); ?>">
-            <div class="catalog-status" data-catalog-status role="status" aria-live="polite">
-                <span class="catalog-status__loader" aria-hidden="true"></span>
+            <div class="catalog-status" data-catalog-status role="status" aria-live="polite" hidden>
                 <?php esc_html_e('Loading products…', 'dakabrand'); ?>
             </div>
-            <div class="catalog-grid" data-catalog-grid aria-busy="true"></div>
-            <nav class="catalog-pagination" data-catalog-pagination aria-label="<?php esc_attr_e('Product pages', 'dakabrand'); ?>" hidden></nav>
+            <div class="catalog-grid" data-catalog-grid aria-busy="false">
+                <?php if (have_posts()) : ?>
+                    <?php while (have_posts()) : the_post(); ?>
+                        <?php get_template_part('template-parts/components/product-card'); ?>
+                    <?php endwhile; ?>
+                    <?php wp_reset_postdata(); ?>
+                <?php else : ?>
+                    <p><?php esc_html_e('No products found.', 'dakabrand'); ?></p>
+                <?php endif; ?>
+            </div>
+            <?php if ($archive_total_pages > 1) : ?>
+                <nav class="catalog-pagination" data-catalog-pagination aria-label="<?php esc_attr_e('Product pages', 'dakabrand'); ?>">
+                    <?php
+                    echo wp_kses_post(paginate_links(array(
+                        'base' => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
+                        'format' => '?paged=%#%',
+                        'current' => $archive_page,
+                        'total' => $archive_total_pages,
+                        'type' => 'list',
+                        'prev_text' => __('Previous', 'dakabrand'),
+                        'next_text' => __('Next', 'dakabrand'),
+                    )));
+                    ?>
+                </nav>
+            <?php else : ?>
+                <nav class="catalog-pagination" data-catalog-pagination aria-label="<?php esc_attr_e('Product pages', 'dakabrand'); ?>" hidden></nav>
+            <?php endif; ?>
         </section>
     </div>
-    <noscript><p class="catalog-noscript"><?php esc_html_e('Enable JavaScript to browse this catalog.', 'dakabrand'); ?> <a href="https://dakabrand.uk/shop/"><?php esc_html_e('Shop at DakaBrand', 'dakabrand'); ?></a></p></noscript>
 </main>

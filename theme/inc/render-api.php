@@ -62,6 +62,34 @@ function staticbridge_campaign_page_view(): ?string
  * The generator is responsible for preparing the correct global $wp_query and
  * queried object before calling this function.
  */
+function staticbridge_render_document_start(): void
+{
+    $seo = staticbridge_seo_document();
+    ?>
+    <!doctype html>
+    <html <?php language_attributes(); ?>>
+    <head>
+        <meta charset="<?php bloginfo('charset'); ?>">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <?php staticbridge_render_seo_head($seo); ?>
+        <?php staticbridge_render_document_assets(); ?>
+    </head>
+    <body <?php body_class(); ?>>
+    <?php staticbridge_render_tag_manager_body(); ?>
+    <?php get_template_part('header'); ?>
+    <?php
+}
+
+function staticbridge_render_document_end(): void
+{
+    ?>
+    <?php get_template_part('footer'); ?>
+    <?php staticbridge_render_document_scripts(); ?>
+    </body>
+    </html>
+    <?php
+}
+
 function staticbridge_render_document(string $view, array $context = array()): void
 {
     if ('page' === $view) {
@@ -96,7 +124,7 @@ function staticbridge_render_document(string $view, array $context = array()): v
     set_query_var('staticbridge_context', $context);
     set_query_var('staticbridge_view', $view);
 
-    get_header();
+    staticbridge_render_document_start();
 
     /**
      * Allows the frontend team to add shared markup without changing the
@@ -108,7 +136,7 @@ function staticbridge_render_document(string $view, array $context = array()): v
 
     do_action('staticbridge_after_main', $view, $context);
 
-    get_footer();
+    staticbridge_render_document_end();
 }
 
 /**
