@@ -345,6 +345,10 @@ class ThemeStructureTests(unittest.TestCase):
 
         self.assertNotIn("$_GET['stock_status']", product)
         self.assertIn("'onbackorder' === $product->get_stock_status()", product)
+        self.assertIn("$is_sold_out = !$has_stock && !$preorder", product)
+        self.assertIn("if (!$preorder && !$is_sold_out)", product)
+        self.assertIn("product-detail__sold-out", product)
+        self.assertIn("product-detail__availability--sold-out", product)
 
     def test_contact_and_policy_pages_share_the_static_render_contract(self) -> None:
         render_api = self.read("inc/render-api.php")

@@ -4,19 +4,8 @@
     var config = typeof window === 'undefined' ? {} : (window.StaticBridgeConfig || {});
     var messages = config.messages || {};
     var locale = String(config.locale || 'en_US');
-    var contactApi = 'https://filter.gliterin.net/public/filter';
-    var localhostFallbackStorefront = 'https://dakabrand.uk/';
 
     function message(key, fallback) { return messages[key] || fallback; }
-
-    // Gliterin must query the storefront the visitor opened.  A remote filter
-    // cannot reach a developer's localhost site, so localhost uses production.
-    function contactSource() {
-        var location = window.location || {};
-        var isLocalhost = ['localhost', '127.0.0.1'].includes(location.hostname);
-        var storefront = isLocalhost ? localhostFallbackStorefront : location.origin;
-        return String(storefront || localhostFallbackStorefront).replace(/\/+$/, '') + '/shop/?page=1&limit=1';
-    }
 
     function format(template) {
         var values = Array.prototype.slice.call(arguments, 1);
@@ -240,6 +229,7 @@
         var price = detail.querySelector('[data-product-price]');
         var availability = detail.querySelector('[data-product-availability]');
         var button = detail.querySelector('[data-add-to-cart]');
+        var buyNow = detail.querySelector('[data-buy-now]');
         var choices = Array.from(detail.querySelectorAll('[data-option-choice]'));
         if (fields.length !== product.options.length || !price || !button) return;
         var initialPrice = price.innerHTML;
@@ -268,6 +258,7 @@
             }
             button.disabled = !available;
             button.textContent = !complete ? chooseLabel : !variation ? message('unavailable', 'Unavailable') : available ? message('addToCart', 'Add to cart') : message('outOfStock', 'Out of stock');
+            if (buyNow) buyNow.disabled = !available;
             updatePurchaseDetails(detail, variation, available);
 
             choices.forEach(function (choice) {
@@ -344,7 +335,7 @@
             !questionForm || !shareInput || !copy || !copyStatus ||
             typeof questionDialog.showModal !== 'function' || typeof shareDialog.showModal !== 'function') return;
 
-        var phone = '';
+        var phone = String(config.whatsappNumber || '').replace(/\D/g, '');
         var productLink = String(product.permalink || window.location.href);
         var opener = null;
 
@@ -384,18 +375,15 @@
             });
         });
 
-        fetch(contactApi + '?url=' + encodeURIComponent(contactSource()))
-            .then(function (response) { if (!response.ok) throw new Error('Contact lookup failed'); return response.json(); })
-            .then(function (payload) {
-                phone = String(payload && payload.result && payload.result.whatsapp_number || '').replace(/\D/g, '');
-                if (!phone) throw new Error('Contact number unavailable');
-                whatsapp.href = whatsappUrl(phone, format(message('productInterest', 'I AM INTERESTED IN THE PRODUCT: %1$s with SKU: %2$s Link: %3$s'), product.name, product.sku || '', productLink));
-                whatsapp.target = '_blank';
-                whatsapp.rel = 'noopener noreferrer';
-                whatsapp.hidden = false;
-                ask.hidden = false;
-            })
-            .catch(function () { fallback.hidden = false; });
+        if (!phone) {
+            fallback.hidden = false;
+            return;
+        }
+        whatsapp.href = whatsappUrl(phone, format(message('productInterest', 'I AM INTERESTED IN THE PRODUCT: %1$s with SKU: %2$s Link: %3$s'), product.name, product.sku || '', productLink));
+        whatsapp.target = '_blank';
+        whatsapp.rel = 'noopener noreferrer';
+        whatsapp.hidden = Boolean(detail.dataset && detail.dataset.productSoldOut === 'true');
+        ask.hidden = false;
     }
 
     function enhanceQuantity(detail) {

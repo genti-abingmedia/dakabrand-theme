@@ -70,7 +70,9 @@ test('live stock lookup checks total quantity and selected variation', async () 
     try {
         const variation = { ...simple, variationId: 101 };
         assert.equal((await cart.validateStock(variation, 2)).ok, true);
-        assert.equal((await cart.validateStock(variation, 3)).ok, false);
+        const unavailable = await cart.validateStock(variation, 3);
+        assert.equal(unavailable.ok, false);
+        assert.equal(unavailable.message, 'Only 2 left in stock.');
         assert.equal(requests[0].url, '/api/wc/store/v1/products/101');
         assert.equal(requests[0].options.cache, 'no-store');
         assert.equal((await cart.validateStock(variation, 0)).ok, false);

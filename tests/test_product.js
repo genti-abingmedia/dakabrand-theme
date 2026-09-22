@@ -205,7 +205,7 @@ test('WhatsApp links sanitize the shared contact number and encode questions', (
     assert.equal(details.whatsappUrl('', 'Question'), '');
 });
 
-function actionPage(fetchResult, origin = 'https://example.com') {
+function actionPage(whatsappNumber = '447700900123', origin = 'https://example.com') {
     const nodes = Object.fromEntries([
         '[data-product-whatsapp]', '[data-product-contact-fallback]', '[data-product-ask]',
         '[data-product-share]', '[data-question-form]', '[data-share-url]', '[data-share-copy]',
@@ -243,13 +243,13 @@ function actionPage(fetchResult, origin = 'https://example.com') {
         assign(url) { destinations.push(url); }
     } };
     const navigator = { clipboard: { writeText(value) { destinations.push('copied:' + value); return Promise.resolve(); } } };
-    vm.runInNewContext(source, { document, window, navigator, fetch: fetchResult, localStorage: { getItem() { return null; } } });
+    window.StaticBridgeConfig = { whatsappNumber };
+    vm.runInNewContext(source, { document, window, navigator, localStorage: { getItem() { return null; } } });
     return { nodes, destinations, textarea };
 }
 
 test('question opens a WhatsApp message and share copies the product URL', async () => {
-    const page = actionPage(async () => ({ ok: true, json: async () => ({ result: { whatsapp_number: '+44 7700 900123' } }) }));
-    await new Promise(setImmediate);
+    const page = actionPage();
     assert.equal(page.nodes['[data-product-whatsapp]'].hidden, false);
     page.nodes['[data-product-ask]'].handlers.click();
     assert.equal(page.nodes['[data-question-dialog]'].open, true);
@@ -263,22 +263,13 @@ test('question opens a WhatsApp message and share copies the product URL', async
     assert.equal(page.destinations[1], 'copied:https://example.com/product/bag/');
 });
 
-test('contact failure reveals the contact page fallback', async () => {
-    const page = actionPage(async () => { throw new Error('offline'); });
-    await new Promise(setImmediate);
+test('a missing static contact number reveals the contact page fallback', () => {
+    const page = actionPage('');
     assert.equal(page.nodes['[data-product-contact-fallback]'].hidden, false);
     assert.equal(page.nodes['[data-product-whatsapp]'].hidden, true);
 });
 
-test('contact lookup uses the page storefront, with production as the localhost fallback', async () => {
-    const requested = [];
-    const fetchContact = async url => {
-        requested.push(url);
-        return { ok: true, json: async () => ({ result: { whatsapp_number: '+44 7700 900123' } }) };
-    };
-    actionPage(fetchContact, 'https://preview.example.test');
-    actionPage(fetchContact, 'http://localhost:8080');
-    await new Promise(setImmediate);
-    assert.match(decodeURIComponent(requested[0]), /url=https:\/\/preview\.example\.test\/shop\/\?page=1&limit=1/);
-    assert.match(decodeURIComponent(requested[1]), /url=https:\/\/dakabrand\.uk\/shop\/\?page=1&limit=1/);
+test('product actions do not make a contact lookup request', () => {
+    assert.equal(source.includes('filter.gliterin.net/public/filter'), false);
+    assert.equal(source.includes('fetch('), false);
 });

@@ -87,6 +87,7 @@ function staticbridge_frontend_messages(): array
         'thisProduct'           => __('this product', 'dakabrand'),
         'productUnavailable'    => __('This item is currently unavailable.', 'dakabrand'),
         'quantityUnavailable'   => __('The requested quantity is not available.', 'dakabrand'),
+        'quantityUnavailableWithStock' => __('Only %s left in stock.', 'dakabrand'),
         'validQuantity'         => __('Choose a valid quantity.', 'dakabrand'),
         'productDetailsMissing' => __('Product details are unavailable.', 'dakabrand'),
         'stockCheckFailed'      => __('Could not check live stock. Please try again.', 'dakabrand'),
@@ -106,6 +107,11 @@ function staticbridge_frontend_messages(): array
         'whatsAppInterest'      => __('I AM INTERESTED IN THE PRODUCT: %1$s with SKU: %2$s Link: %3$s', 'dakabrand'),
         'contactWhatsAppAbout'  => __('Contact on WhatsApp about %s', 'dakabrand'),
     );
+}
+
+function staticbridge_whatsapp_number(): string
+{
+    return preg_replace('/\D+/', '', (string) apply_filters('staticbridge_whatsapp_number', '355683885286'));
 }
 
 /**
@@ -854,6 +860,7 @@ function staticbridge_enqueue_assets(): void
         'stockModeStorageKey' => 'staticbridge_stock_mode_v1',
         'cartUrl'          => home_url('/cart/'),
         'shopUrl'          => home_url('/shop/'),
+        'whatsappNumber'   => staticbridge_whatsapp_number(),
         'locale'           => staticbridge_requested_locale(),
         'languageStorageKey' => 'staticbridge_language_v1',
         // This is emitted into every generated document, so changing language

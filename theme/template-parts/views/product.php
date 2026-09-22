@@ -25,6 +25,7 @@ $discount = !$is_variable && $regular_price > $discounted_price && $discounted_p
     ? (int) round((1 - $discounted_price / $regular_price) * 100)
     : 0;
 $preorder = !$is_variable && 'onbackorder' === $product->get_stock_status();
+$has_stock = $product->is_purchasable() && $product->is_in_stock();
 if ($is_variable) {
     $purchasable_variations = array_values($payload['variations']);
     foreach ($purchasable_variations as $variation) {
@@ -41,6 +42,7 @@ if ($is_variable) {
         return 'onbackorder' === $variation['stock_status'];
     })) === count($purchasable_variations));
 }
+$is_sold_out = !$has_stock && !$preorder;
 $published_at = (int) get_post_timestamp($product->get_id());
 $is_new_product = $published_at > 0 && $published_at >= (current_time('timestamp') - WEEK_IN_SECONDS);
 $viewer_min = ($is_new_product || $product->is_on_sale()) ? 15 : 2;
@@ -57,7 +59,7 @@ $share_title = rawurlencode($product->get_name());
       <a href="<?php echo esc_url(wc_get_page_permalink('shop')); ?>"><?php esc_html_e('Shop', 'dakabrand'); ?></a><span aria-hidden="true">/</span>
       <span aria-current="page"><?php echo esc_html($product->get_name()); ?></span>
     </nav>
-    <article <?php wc_product_class('product-detail', $product); ?> data-product-id="<?php echo esc_attr((string) $product->get_id()); ?>" data-product-type="<?php echo esc_attr($product->get_type()); ?>">
+    <article <?php wc_product_class('product-detail', $product); ?> data-product-id="<?php echo esc_attr((string) $product->get_id()); ?>" data-product-type="<?php echo esc_attr($product->get_type()); ?>" data-product-sold-out="<?php echo $is_sold_out ? 'true' : 'false'; ?>">
       <section class="product-detail__media" aria-label="<?php esc_attr_e('Product images', 'dakabrand'); ?>" data-product-gallery>
         <div class="product-gallery__stage<?php echo !$image_ids ? ' has-image-error' : ''; ?>" <?php if (count($image_ids) > 1) : ?>tabindex="0"<?php endif; ?> aria-label="<?php esc_attr_e('Product image gallery', 'dakabrand'); ?>">
           <?php if ($image_ids) : ?>
@@ -108,7 +110,8 @@ $share_title = rawurlencode($product->get_name());
       </section>
       <div class="product-detail__summary">
         <div class="product-detail__badges">
-          <span class="product-detail__discount" data-product-discount <?php if (!$discount) : ?>hidden<?php endif; ?>><?php echo esc_html($discount . '%'); ?></span>
+          <span class="product-detail__discount" data-product-discount <?php if (!$discount || $is_sold_out) : ?>hidden<?php endif; ?>><?php echo esc_html($discount . '%'); ?></span>
+          <?php if ($is_sold_out) : ?><span class="product-detail__sold-out"><?php esc_html_e('Sold Out', 'dakabrand'); ?></span><?php endif; ?>
           <?php if ($is_new_product) : ?><span class="product-detail__new"><?php esc_html_e('New', 'dakabrand'); ?></span><?php endif; ?>
         </div>
         <h1><?php echo esc_html($product->get_name()); ?></h1>
@@ -117,7 +120,7 @@ $share_title = rawurlencode($product->get_name());
           <p class="product-detail__rating" aria-label="<?php echo esc_attr(sprintf(__('%1$s out of 5 stars from %2$s reviews', 'dakabrand'), number_format_i18n($display_rating, 1), number_format_i18n($display_review_count))); ?>"><span class="product-detail__stars" style="--rating-percent: <?php echo esc_attr((string) ($display_rating * 20)); ?>%" aria-hidden="true">★★★★★</span><span><?php echo esc_html(sprintf(_n('%s review', '%s reviews', $display_review_count, 'dakabrand'), number_format_i18n($display_review_count))); ?></span></p>
         </div>
         <span class="product-detail__preorder" data-product-preorder <?php if (!$preorder) : ?>hidden<?php endif; ?>><?php esc_html_e('15 Days Preorder', 'dakabrand'); ?></span>
-        <?php if (!$preorder) : ?>
+        <?php if (!$preorder && !$is_sold_out) : ?>
           <div data-product-options></div>
           <div class="product-purchase">
             <div class="product-quantity" data-product-quantity-control>
@@ -130,7 +133,11 @@ $share_title = rawurlencode($product->get_name());
           </div>
         <?php endif; ?>
         <div class="product-detail__extras">
+          <?php if ($has_stock && !$preorder) : ?>
+            <button type="button" class="product-detail__buy-now" data-add-to-cart data-buy-now data-product-id="<?php echo esc_attr((string) $product->get_id()); ?>" <?php disabled($is_variable); ?>><?php esc_html_e('Buy now', 'dakabrand'); ?></button>
+          <?php endif; ?>
           <p class="product-detail__viewers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.7-5.5 10-5.5S22 12 22 12s-3.7 5.5-10 5.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg><strong><span data-product-viewer-count data-viewer-min="<?php echo esc_attr((string) $viewer_min); ?>" data-viewer-max="<?php echo esc_attr((string) $viewer_max); ?>" aria-live="polite"><?php echo esc_html((string) $viewer_count); ?></span> <?php esc_html_e('people are viewing this right now', 'dakabrand'); ?></strong></p>
+          <?php if ($is_sold_out) : ?><p class="product-detail__availability product-detail__availability--sold-out" role="status"><?php esc_html_e('Out of stock', 'dakabrand'); ?></p><?php endif; ?>
           <a class="product-detail__whatsapp" data-product-whatsapp href="<?php echo esc_url(home_url('/contact-us/')); ?>" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.7-1.2A9 9 0 1 0 12 3Z"/><path d="M8.4 7.9c-.5.5-.8 1.3-.5 2.1.8 2.3 2.5 4.1 4.8 5.3.9.5 2.1.7 2.8.1l1.1-1.1-2.2-1.3-1 1c-1.3-.7-2.3-1.7-3-3l1-1-1.4-2.1Z"/></svg><?php esc_html_e('Contact us on WhatsApp', 'dakabrand'); ?></a>
           <a class="product-detail__contact-fallback" data-product-contact-fallback href="<?php echo esc_url(home_url('/contact-us/')); ?>" hidden><?php esc_html_e('Contact us', 'dakabrand'); ?></a>
           <div class="product-detail__quick-links">
