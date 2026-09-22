@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
 define('STATICBRIDGE_THEME_VERSION', '0.2.0');
 define('STATICBRIDGE_RENDER_API_VERSION', '1.0');
 define('STATICBRIDGE_BOOTSTRAP_VERSION', '5.3.8');
-define('STATICBRIDGE_LANGUAGE_COOKIE', 'dakabrand_language');
+define('STATICBRIDGE_LANGUAGE_API_NAMESPACE', 'staticbridge/v1');
 
 /**
  * The storefront UI is available in English and Albanian without requiring a
@@ -20,65 +20,71 @@ function staticbridge_supported_locales(): array
 
 function staticbridge_requested_locale(): string
 {
-    $requested = isset($_COOKIE[STATICBRIDGE_LANGUAGE_COOKIE])
-        ? sanitize_text_field(wp_unslash($_COOKIE[STATICBRIDGE_LANGUAGE_COOKIE]))
-        : 'en_US';
-
-    return in_array($requested, staticbridge_supported_locales(), true) ? $requested : 'en_US';
+    // Generated pages are intentionally locale-neutral. The browser chooses a
+    // locale and loads its catalogue through the public API instead of relying
+    // on a WordPress cookie (which static files cannot vary on).
+    return 'en_US';
 }
 
-function staticbridge_preferred_locale(string $locale): string
+function staticbridge_language_messages(string $locale): array
 {
-    if (is_admin() && !wp_doing_ajax()) {
-        return $locale;
+    if ('sq_AL' !== $locale) {
+        return array();
     }
 
-    return staticbridge_requested_locale();
+    $catalogue = require get_template_directory() . '/languages/dakabrand-sq_AL.l10n.php';
+
+    return is_array($catalogue['messages'] ?? null) ? $catalogue['messages'] : array();
 }
-add_filter('locale', 'staticbridge_preferred_locale', 0);
-add_filter('determine_locale', 'staticbridge_preferred_locale', 0);
 
-function staticbridge_set_language_preference(): void
+/**
+ * Public, read-only catalogue endpoint for generated storefront pages.
+ *
+ * This deliberately has no nonce, cookie, or session state: a static page can
+ * safely request it through the same /api/ proxy and persist the preference in
+ * localStorage. Its response can therefore be cached by the CDN per locale.
+ */
+function staticbridge_register_language_api(): void
 {
-    check_admin_referer('staticbridge_set_language');
+    register_rest_route(STATICBRIDGE_LANGUAGE_API_NAMESPACE, '/language', array(
+        'methods'             => WP_REST_Server::READABLE,
+        'permission_callback' => '__return_true',
+        'args'                => array(
+            'locale' => array(
+                'default'           => 'en_US',
+                'sanitize_callback' => 'sanitize_text_field',
+                'validate_callback' => static function ($value): bool {
+                    return in_array($value, staticbridge_supported_locales(), true);
+                },
+            ),
+        ),
+        'callback' => static function (WP_REST_Request $request): WP_REST_Response {
+            $locale = (string) $request->get_param('locale');
+            $response = new WP_REST_Response(array(
+                'locale'       => $locale,
+                'messages'     => staticbridge_language_messages($locale),
+                'cacheable'    => true,
+            ));
+            $response->header('Cache-Control', 'public, max-age=3600');
+            $response->header('Vary', 'Accept-Encoding');
 
-    $locale = isset($_POST['language']) ? sanitize_text_field(wp_unslash($_POST['language'])) : 'en_US';
-    if (!in_array($locale, staticbridge_supported_locales(), true)) {
-        $locale = 'en_US';
-    }
-
-    setcookie(STATICBRIDGE_LANGUAGE_COOKIE, $locale, array(
-        'expires'  => time() + YEAR_IN_SECONDS,
-        'path'     => defined('COOKIEPATH') && COOKIEPATH ? COOKIEPATH : '/',
-        'domain'   => defined('COOKIE_DOMAIN') ? COOKIE_DOMAIN : '',
-        'secure'   => is_ssl(),
-        'httponly' => true,
-        'samesite' => 'Lax',
+            return $response;
+        },
     ));
-
-    $redirect = isset($_POST['redirect_to']) ? wp_unslash($_POST['redirect_to']) : home_url('/');
-    wp_safe_redirect(wp_validate_redirect($redirect, home_url('/')));
-    exit;
 }
-add_action('admin_post_staticbridge_set_language', 'staticbridge_set_language_preference');
-add_action('admin_post_nopriv_staticbridge_set_language', 'staticbridge_set_language_preference');
+add_action('rest_api_init', 'staticbridge_register_language_api');
 
 function staticbridge_language_switcher(string $class_name = ''): string
 {
-    $current = staticbridge_requested_locale();
-    $redirect = (is_ssl() ? 'https://' : 'http://') . (string) ($_SERVER['HTTP_HOST'] ?? '') . (string) ($_SERVER['REQUEST_URI'] ?? '/');
     $classes = trim('language-switcher ' . $class_name);
 
     ob_start();
     ?>
-    <form class="<?php echo esc_attr($classes); ?>" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post" aria-label="<?php esc_attr_e('Choose language', 'dakabrand'); ?>" data-language-switcher>
-        <input type="hidden" name="action" value="staticbridge_set_language">
-        <input type="hidden" name="redirect_to" value="<?php echo esc_url($redirect); ?>">
-        <?php wp_nonce_field('staticbridge_set_language'); ?>
-        <button type="submit" name="language" value="en_US"<?php echo 'en_US' === $current ? ' aria-current="true"' : ''; ?>>EN</button>
+    <div class="<?php echo esc_attr($classes); ?>" aria-label="<?php esc_attr_e('Choose language', 'dakabrand'); ?>" data-language-switcher>
+        <button type="button" data-language-locale="en_US">EN</button>
         <span aria-hidden="true">/</span>
-        <button type="submit" name="language" value="sq_AL"<?php echo 'sq_AL' === $current ? ' aria-current="true"' : ''; ?>>SQ</button>
-    </form>
+        <button type="button" data-language-locale="sq_AL">SQ</button>
+    </div>
     <?php
 
     return (string) ob_get_clean();
@@ -880,6 +886,9 @@ function staticbridge_enqueue_assets(): void
         'cartUrl'          => home_url('/cart/'),
         'shopUrl'          => home_url('/shop/'),
         'locale'           => staticbridge_requested_locale(),
+        'languageEndpoint' => trailingslashit((string) apply_filters('staticbridge_api_base',
+            'local' === wp_get_environment_type() ? '/wp-json/' : '/api/')) . STATICBRIDGE_LANGUAGE_API_NAMESPACE . '/language',
+        'languageStorageKey' => 'staticbridge_language_v1',
         'messages'         => staticbridge_frontend_messages(),
         'staticLabels'     => array(
             'Clothing' => __('Clothing', 'dakabrand'), 'Shoes' => __('Shoes', 'dakabrand'),

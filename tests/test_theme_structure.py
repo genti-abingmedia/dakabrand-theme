@@ -37,18 +37,23 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("staticbridge_catalog_category_url", header)
         self.assertIn("$slug . ':' . $name", functions)
 
-    def test_theme_has_cookie_backed_english_and_albanian_ui(self) -> None:
+    def test_theme_has_api_backed_english_and_albanian_ui(self) -> None:
         functions = self.read("functions.php")
         header = self.read("header.php")
         front_page = self.read("template-parts/views/front-page.php")
         catalogue = self.read("languages/dakabrand-sq_AL.l10n.php")
         source_catalogue = self.read("languages/dakabrand-sq_AL.po")
 
-        self.assertIn("STATICBRIDGE_LANGUAGE_COOKIE", functions)
+        self.assertIn("STATICBRIDGE_LANGUAGE_API_NAMESPACE", functions)
         self.assertIn("'en_US', 'sq_AL'", functions)
-        self.assertIn("admin_post_nopriv_staticbridge_set_language", functions)
+        self.assertIn("staticbridge_register_language_api", functions)
+        self.assertIn("register_rest_route", functions)
+        self.assertIn("'/language'", functions)
+        self.assertNotIn("admin-post.php", functions)
+        self.assertNotIn("admin_post_nopriv_staticbridge_set_language", functions)
         self.assertIn("staticbridge_theme_gettext_fallback", functions)
         self.assertIn("'locale'           => staticbridge_requested_locale()", functions)
+        self.assertIn("'languageEndpoint'", functions)
         self.assertIn("staticbridge_language_switcher", header)
         self.assertIn("language-switcher--mobile", header)
         self.assertIn("language-switcher--gateway", front_page)

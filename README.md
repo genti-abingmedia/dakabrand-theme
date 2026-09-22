@@ -14,11 +14,11 @@ WordPress:
 User -> Cloudflare (CDN/WAF/cache) -> Nginx -> /static-pages/*.html
 ```
 
-The generated cart and checkout pages call the same-origin proxy only for live
-stock and order operations:
+The generated pages call the same-origin proxy only for live storefront data:
 
 ```text
 Browser -> Nginx /api/wc/store/v1/* -> WordPress/WooCommerce Store API
+Browser -> Nginx /api/staticbridge/v1/language -> WordPress theme API
 ```
 
 Publishing product content follows this path:
@@ -50,6 +50,13 @@ and checkout responses. The local Docker site uses the same-origin
 The static generator must skip `/my-account/`, delete any older generated copy,
 and purge its CDN key. The theme blocks account links and direct account-page
 rendering; it cannot delete files owned by the external generator.
+
+Language selection is client-side: the generated HTML remains locale-neutral,
+and the browser stores the selected locale in `localStorage` then fetches its
+catalogue from `GET /api/staticbridge/v1/language?locale=en_US|sq_AL`. The API
+response is public and cacheable; it must be proxied to WordPress. Do not route
+the language switcher to `wp-admin/admin-post.php` or vary static HTML by a
+WordPress cookie.
 
 The initial remote theme mirror is intentionally preserved unchanged. It
 currently uses `WC_Product`, `wc_get_product()`, WooCommerce product-loop helpers,

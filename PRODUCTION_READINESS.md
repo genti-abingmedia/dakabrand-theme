@@ -50,9 +50,10 @@ and its checkout rejects the required remittance payment method.
   completed because no browser was available in this session. Perform them on
   the restored hosted pages, including navigation, product variations, cart,
   checkout, focus, dialogs, and the optional form unavailable notices.
-- Confirm that the static generator supports locale-specific output and the
-  language switcher's WordPress `admin-post.php` request. The theme uses a
-  cookie and nonce-bearing form; static HTML cannot itself vary by cookie.
+- Configure the proxy to forward the public, cacheable language catalogue:
+  `GET /api/staticbridge/v1/language?locale=en_US|sq_AL`. Generated pages keep
+  the selected locale in browser storage and must never post to
+  `wp-admin/admin-post.php` or depend on a WordPress cookie.
 - Publish and review real contact and policy page content on the hosted site.
   The local pages used for this audit contain fixture text only.
 

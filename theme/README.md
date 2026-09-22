@@ -75,6 +75,15 @@ base with `staticbridge_api_base` if needed. The filter source origin defaults
 to `https://static-daka.gliterindemo.com` and can be changed with
 `staticbridge_catalog_source_origin`.
 
+## Language API
+
+Generated documents do not submit forms to WordPress. The language buttons
+persist `en_US` or `sq_AL` in browser storage and request the translation
+catalogue through `GET /api/staticbridge/v1/language?locale={locale}`. Proxy
+that route to the WordPress REST API (`/wp-json/staticbridge/v1/language` in
+local development). It is a public, cacheable read-only endpoint, so it should
+not require a nonce, send a cookie, or be redirected to `admin-post.php`.
+
 The generator must omit `/my-account/`, delete any previously generated static
 file for it, and purge its CDN key. Account links are suppressed in theme menus.
 

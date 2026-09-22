@@ -45,6 +45,114 @@
         });
     }
 
+    function languageStorageKey() {
+        return config.languageStorageKey || 'staticbridge_language_v1';
+    }
+
+    function selectedLocale() {
+        try {
+            var locale = localStorage.getItem(languageStorageKey());
+            return locale === 'sq_AL' || locale === 'en_US' ? locale : 'en_US';
+        } catch (error) {
+            return 'en_US';
+        }
+    }
+
+    function languageUrl(locale) {
+        var endpoint = config.languageEndpoint || '';
+        if (!endpoint) return '';
+
+        try {
+            var url = new URL(endpoint, window.location.origin);
+            url.searchParams.set('locale', locale);
+            return url.href;
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function replaceText(text, messages) {
+        var leading = text.match(/^\s*/)[0];
+        var trailing = text.match(/\s*$/)[0];
+        var source = text.trim();
+        return Object.prototype.hasOwnProperty.call(messages, source)
+            ? leading + messages[source] + trailing
+            : text;
+    }
+
+    function applyLanguage(locale, messages) {
+        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        var node;
+        var attributes = ['aria-label', 'placeholder', 'title', 'value'];
+
+        while ((node = walker.nextNode())) {
+            if (!node.parentElement || ['SCRIPT', 'STYLE'].indexOf(node.parentElement.tagName) !== -1) continue;
+            node.nodeValue = replaceText(node.nodeValue, messages);
+        }
+
+        document.querySelectorAll('*').forEach(function (element) {
+            attributes.forEach(function (attribute) {
+                if (element.hasAttribute(attribute)) {
+                    element.setAttribute(attribute, replaceText(element.getAttribute(attribute), messages));
+                }
+            });
+        });
+
+        document.documentElement.lang = locale === 'sq_AL' ? 'sq-AL' : 'en-US';
+        config.locale = locale;
+        config.messages = Object.assign({}, config.messages || {}, messages);
+        document.querySelectorAll('[data-language-locale]').forEach(function (button) {
+            if (button.getAttribute('data-language-locale') === locale) {
+                button.setAttribute('aria-current', 'true');
+            } else {
+                button.removeAttribute('aria-current');
+            }
+        });
+        document.dispatchEvent(new CustomEvent('staticbridge:language-updated', {
+            detail: { locale: locale, messages: messages }
+        }));
+    }
+
+    async function loadLanguage(locale) {
+        var url = languageUrl(locale);
+        var response;
+        var payload;
+
+        if (!url) return;
+        response = await fetch(url, { credentials: 'same-origin' });
+        if (!response.ok) throw new Error('Language catalogue could not be loaded.');
+        payload = await response.json();
+        applyLanguage(payload.locale === 'sq_AL' ? 'sq_AL' : 'en_US', payload.messages || {});
+    }
+
+    function enhanceLanguageSwitcher() {
+        var locale = selectedLocale();
+
+        loadLanguage(locale).catch(function () {
+            applyLanguage('en_US', {});
+        });
+
+        document.querySelectorAll('[data-language-locale]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var nextLocale = button.getAttribute('data-language-locale');
+                if (nextLocale !== 'en_US' && nextLocale !== 'sq_AL') return;
+
+                try {
+                    localStorage.setItem(languageStorageKey(), nextLocale);
+                } catch (error) {
+                    // The API still provides the selected language for this page.
+                }
+                loadLanguage(nextLocale).then(function () {
+                    // Start from the generated English document on each change;
+                    // this also restores English after an Albanian selection.
+                    window.location.reload();
+                }).catch(function () {
+                    // Keep the currently rendered language if the proxy is unavailable.
+                });
+            });
+        });
+    }
+
     function enhanceStockMode() {
         var storageKey = config.stockModeStorageKey || 'staticbridge_stock_mode_v1';
         var statuses = {
@@ -470,6 +578,7 @@
     enhanceStockMode();
     enhanceMobileNavigation();
     enhanceFashionNavigation();
+    enhanceLanguageSwitcher();
     translateStaticLabels();
     enhanceSiteSearch();
     enhanceNewsletter();
