@@ -36,7 +36,7 @@
         sortValue: root.querySelector('[data-catalog-sort-value]'),
         sortMenu: root.querySelector('[data-catalog-sort-menu]'),
         sortOptions: root.querySelectorAll('[data-catalog-sort-option]'),
-        active: root.querySelector('[data-catalog-active]'),
+        active: root.querySelectorAll('[data-catalog-active]'),
         facets: root.querySelector('[data-catalog-facets]'),
         filters: root.querySelector('[data-catalog-filters]'),
         backdrop: root.querySelector('[data-catalog-backdrop]'),
@@ -66,6 +66,18 @@
         if (className) node.className = className;
         if (value !== undefined) node.textContent = String(value);
         return node;
+    }
+
+    function decodeHtmlEntities(value) {
+        var decoded = String(value || '');
+        var textarea = document.createElement('textarea');
+        for (var index = 0; index < 3; index += 1) {
+            textarea.innerHTML = decoded;
+            var next = textarea.value;
+            if (next === decoded) break;
+            decoded = next;
+        }
+        return decoded;
     }
 
     function showNoImage(link, image) {
@@ -609,13 +621,14 @@
     function makeOptionFacet(facet, container) {
         var options = element('div', 'catalog-facet__options');
         sortedOptions(facet).forEach(function (option, index) {
+            var optionLabel = decodeHtmlEntities(option.label);
             var label = element('label', 'catalog-facet__option');
             var input = element('input');
             input.type = facet.select === 'single' ? 'radio' : 'checkbox';
             input.name = facet.slug;
             input.value = String(option.slug);
             input.checked = Boolean(option.is_selected);
-            label.append(input, element('span', '', option.label));
+            label.append(input, element('span', '', optionLabel));
             if (facet.show_item_count) label.appendChild(element('span', 'catalog-facet__count', number(option.count).toLocaleString('en-GB')));
             input.addEventListener('change', function () {
                 var selected;
@@ -625,7 +638,7 @@
                         return Array.from(options.querySelectorAll('input:checked')).some(function (checked) { return checked.value === String(item.slug); });
                     });
                 }
-                var value = selected.map(function (item) { return item.slug + ':' + item.label; }).join(',');
+                var value = selected.map(function (item) { return item.slug + ':' + decodeHtmlEntities(item.label); }).join(',');
                 if (facet.slug === 'stock_status' && window.StaticBridgeStockMode) {
                     window.StaticBridgeStockMode.saveStatus(value);
                 }
@@ -642,7 +655,7 @@
             var details = element('details', 'catalog-facet' + (facet.display === 'box' ? ' catalog-facet--box' : ''));
             details.dataset.facetSlug = facet.slug;
             details.open = openFacets.has(facet.slug);
-            details.appendChild(element('summary', '', facet.label));
+            details.appendChild(element('summary', '', decodeHtmlEntities(facet.label)));
             details.addEventListener('toggle', function () {
                 if (details.open) openFacets.add(facet.slug);
                 else openFacets.delete(facet.slug);
@@ -663,44 +676,46 @@
     }
 
     function renderActive(data) {
-        nodes.active.replaceChildren();
         var params = new URLSearchParams(window.location.search);
         var visible = (data.filter || []).filter(function (facet) { return facet.show_in_filter; });
-        var activeCount = 0;
-        if (params.get('keyword')) {
-            var searchChip = element('button', '', params.get('keyword') + '  ×');
-            searchChip.type = 'button';
-            searchChip.addEventListener('click', function () { updateParam('keyword', '', true); });
-            nodes.active.appendChild(searchChip);
-            activeCount += 1;
-        }
-        visible.forEach(function (facet) {
-            var value = params.get(facet.slug);
-            if (!value) return;
-            var tokens = facet.display === 'range' ? [value] : selectedTokens(value);
-            tokens.forEach(function (token) {
-                var text = facet.display === 'range' ? token.replace(',', '–') : (token.split(':').slice(1).join(':') || token);
-                var button = element('button', '', text + '  ×');
-                button.type = 'button';
-                button.addEventListener('click', function () {
-                    if (facet.slug === 'stock_status' && window.StaticBridgeStockMode) {
-                        window.StaticBridgeStockMode.clear();
-                    }
-                    if (facet.display === 'range') return updateParam(facet.slug, '', true);
-                    var remaining = selectedTokens(value).filter(function (part) { return part !== token; }).join(',');
-                    updateParam(facet.slug, remaining, true);
-                });
-                nodes.active.appendChild(button);
+        nodes.active.forEach(function (active) {
+            active.replaceChildren();
+            var activeCount = 0;
+            if (params.get('keyword')) {
+                var searchChip = element('button', '', params.get('keyword') + '  ×');
+                searchChip.type = 'button';
+                searchChip.addEventListener('click', function () { updateParam('keyword', '', true); });
+                active.appendChild(searchChip);
                 activeCount += 1;
+            }
+            visible.forEach(function (facet) {
+                var value = params.get(facet.slug);
+                if (!value) return;
+                var tokens = facet.display === 'range' ? [value] : selectedTokens(value);
+                tokens.forEach(function (token) {
+                    var text = facet.display === 'range' ? token.replace(',', '–') : decodeHtmlEntities(token.split(':').slice(1).join(':') || token);
+                    var button = element('button', '', text + '  ×');
+                    button.type = 'button';
+                    button.addEventListener('click', function () {
+                        if (facet.slug === 'stock_status' && window.StaticBridgeStockMode) {
+                            window.StaticBridgeStockMode.clear();
+                        }
+                        if (facet.display === 'range') return updateParam(facet.slug, '', true);
+                        var remaining = selectedTokens(value).filter(function (part) { return part !== token; }).join(',');
+                        updateParam(facet.slug, remaining, true);
+                    });
+                    active.appendChild(button);
+                    activeCount += 1;
+                });
             });
+            if (activeCount > 1) {
+                var clear = element('button', 'catalog-active__clear', message('clearFilters', 'Clear filters'));
+                clear.type = 'button';
+                clear.addEventListener('click', clearFacets);
+                active.appendChild(clear);
+            }
+            active.hidden = activeCount === 0;
         });
-        if (activeCount > 1) {
-            var clear = element('button', 'catalog-active__clear', message('clearFilters', 'Clear filters'));
-            clear.type = 'button';
-            clear.addEventListener('click', clearFacets);
-            nodes.active.appendChild(clear);
-        }
-        nodes.active.hidden = activeCount === 0;
     }
 
     function clearFacets() {
@@ -943,7 +958,7 @@
                 nodes.grid.setAttribute('aria-busy', 'false');
 
                 nodes.toolbar.hidden = true;
-                nodes.active.hidden = true;
+                nodes.active.forEach(function (active) { active.hidden = true; });
                 nodes.pagination.hidden = true;
 
                 showStatus(

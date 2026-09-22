@@ -116,6 +116,7 @@ if ($breadcrumb_terms) {
                 </button>
             </div>
         </div>
+        <div class="catalog-active" data-catalog-active hidden></div>
         <div class="catalog-sort" data-catalog-sort>
             <button class="catalog-sort__trigger" type="button" data-catalog-sort-trigger aria-haspopup="listbox" aria-expanded="false" aria-controls="catalog-sort-options">
                 <span class="catalog-sort__label" data-catalog-sort-label><?php esc_html_e('Sort by', 'dakabrand'); ?></span>
@@ -138,7 +139,7 @@ if ($breadcrumb_terms) {
                 <h2><?php esc_html_e('Filter', 'dakabrand'); ?></h2>
                 <button type="button" data-catalog-close-filters aria-label="<?php esc_attr_e('Close filters', 'dakabrand'); ?>">&times;</button>
             </div>
-            <div class="catalog-active" data-catalog-active hidden></div>
+            <div class="catalog-active catalog-active--drawer" data-catalog-active hidden></div>
             <div data-catalog-facets></div>
             <div class="catalog-filters__footer">
                 <button type="button" data-catalog-clear><?php esc_html_e('Clear all', 'dakabrand'); ?></button>
