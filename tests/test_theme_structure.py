@@ -40,6 +40,8 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("get_template_part('header')", render_api)
         self.assertIn("get_template_part('footer')", render_api)
         self.assertIn("staticbridge_should_show_admin_toolbar", render_api)
+        self.assertIn('return false;', render_api)
+        self.assertIn("add_filter('show_admin_bar', '__return_false', 999)", self.read("functions.php"))
 
     def test_theme_has_static_english_and_albanian_ui(self) -> None:
         functions = self.read("functions.php")
@@ -169,7 +171,8 @@ class ThemeStructureTests(unittest.TestCase):
             'data-checkout-page-subtotal',
         ):
             self.assertIn(target, view)
-        self.assertIn('billing_name', view)
+        self.assertIn('billing_first_name', view)
+        self.assertIn('billing_last_name', view)
         self.assertIn('billing_address_1', view)
 
     def test_checkout_uses_store_api_payment_methods(self) -> None:

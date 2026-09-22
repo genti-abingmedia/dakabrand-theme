@@ -24,7 +24,7 @@
     var controller = null;
     var requestNumber = 0;
     var currentData = null;
-    var openFacets = new Set(['size', 'categories', 'brands', 'price']);
+    var openFacets = new Set(['size', 'categories', 'brands', 'price', 'stock_status']);
     var drawerOpen = false;
     var drawerOpener = null;
     var nodes = root ? {

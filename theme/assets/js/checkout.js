@@ -53,10 +53,9 @@
     }
 
     function customerAddress(values) {
-        var name = String(values.get('billing_name') || '').trim().split(/\s+/);
         var address = {
-            first_name: name.shift() || '',
-            last_name: name.join(' '),
+            first_name: String(values.get('billing_first_name') || '').trim(),
+            last_name: String(values.get('billing_last_name') || '').trim(),
             address_1: String(values.get('billing_address_1') || '').trim(),
             address_2: '',
             city: String(values.get('billing_city') || '').trim(),
@@ -70,10 +69,9 @@
         };
         var shipping = Object.assign({}, address);
         if (values.get('ship_to_different_address')) {
-            var shippingName = String(values.get('shipping_name') || '').trim().split(/\s+/);
             shipping = {
-                first_name: shippingName.shift() || '',
-                last_name: shippingName.join(' '),
+                first_name: String(values.get('shipping_first_name') || '').trim(),
+                last_name: String(values.get('shipping_last_name') || '').trim(),
                 address_1: String(values.get('shipping_address_1') || '').trim(),
                 address_2: '',
                 city: String(values.get('shipping_city') || '').trim(),
@@ -128,8 +126,6 @@
     var differentField = form.querySelector('[data-ship-different]');
     var shippingFields = form.querySelector('[data-shipping-fields]');
     var shippingCountry = form.querySelector('[name="shipping_country"]');
-    var postcodeRow = form.querySelector('[data-checkout-postcode]');
-    var postcodeField = postcodeRow.querySelector('input');
     var stateRow = form.querySelector('[data-checkout-state]');
     var stateInput = stateRow.querySelector('input');
     var stateSelect = stateRow.querySelector('select');
@@ -144,6 +140,7 @@
     var totalNode = root.querySelector('[data-checkout-order-total]');
     var paymentMethodsNode = root.querySelector('[data-checkout-payment-methods]');
     var paymentNote = root.querySelector('[data-checkout-payment-note]');
+    var summary = root.querySelector('[data-checkout-page-summary]');
     var token = '';
     var cart = null;
     var syncedSignature = '';
@@ -153,6 +150,7 @@
     var pendingSync = false;
     var addressTimer = null;
     var refreshingAddress = false;
+    var refreshingAddressSignature = '';
     var selectingRate = false;
     var submitting = false;
     var uncertainOrder = false;
@@ -162,10 +160,27 @@
     var appliedCouponCodes = [];
     var paymentMethods = [];
     var selectedPaymentId = '';
+    var snackbarShownAt = 0;
+    var snackbarHideTimer = null;
+    var snackbarMinimumDuration = 3000;
 
     function showStatus(message, error) {
+        if (snackbarHideTimer) {
+            clearTimeout(snackbarHideTimer);
+            snackbarHideTimer = null;
+        }
+        if (!message) {
+            if (status.hidden) return;
+            var remaining = Math.max(0, snackbarMinimumDuration - (Date.now() - snackbarShownAt));
+            snackbarHideTimer = setTimeout(function () {
+                status.hidden = true;
+                snackbarHideTimer = null;
+            }, remaining);
+            return;
+        }
+        snackbarShownAt = Date.now();
         status.textContent = message;
-        status.hidden = !message;
+        status.hidden = false;
         status.classList.toggle('is-error', Boolean(error));
     }
 
@@ -190,26 +205,21 @@
 
     function updateCountryFields(prefix, preserve) {
         var country = prefix === 'shipping' ? shippingCountry : countryField;
-        var rowPostcode = prefix === 'shipping' ? form.querySelector('[data-shipping-postcode]') : postcodeRow;
-        var fieldPostcode = rowPostcode.querySelector('input');
         var rowState = prefix === 'shipping' ? form.querySelector('[data-shipping-state]') : stateRow;
         var inputState = rowState.querySelector('input');
         var selectState = rowState.querySelector('select');
         var oldState = preserve ? (selectState.hidden ? inputState.value : selectState.value) : '';
-        var oldPostcode = preserve ? fieldPostcode.value : '';
         var fields = countryFields[country.value] || {};
-        var needsPostcode = fields.postcode !== null && fields.postcode !== undefined;
         var needsState = fields.state !== null && fields.state !== undefined;
         var enabled = prefix !== 'shipping' || (differentField && differentField.checked);
-        rowPostcode.hidden = !needsPostcode;
-        fieldPostcode.disabled = !needsPostcode || !enabled;
-        fieldPostcode.required = Boolean(needsPostcode && fields.postcode && enabled);
-        rowPostcode.querySelector('[data-required-marker]').hidden = !fieldPostcode.required;
-        rowState.hidden = !needsState;
+        // Keep the field in its country/state row before a country is chosen;
+        // the control itself remains disabled until that choice determines its type.
+        rowState.hidden = false;
         var states = fields.states || {};
         var choices = Object.entries(states);
         inputState.hidden = choices.length > 0;
         inputState.disabled = !needsState || choices.length > 0 || !enabled;
+        inputState.placeholder = country.value ? '' : 'Select a country first';
         inputState.required = Boolean(needsState && !choices.length && fields.state && enabled);
         selectState.hidden = !choices.length;
         selectState.disabled = !needsState || !choices.length || !enabled;
@@ -228,7 +238,6 @@
         }
         inputState.value = oldState;
         selectState.value = oldState;
-        fieldPostcode.value = oldPostcode;
     }
 
     function updateDifferentAddress() {
@@ -236,7 +245,7 @@
         var enabled = differentField.checked;
         shippingFields.hidden = !enabled;
         shippingFields.querySelectorAll('input, select').forEach(function (field) {
-            if (field.name === 'shipping_postcode' || field.name === 'shipping_state') return;
+            if (field.name === 'shipping_state') return;
             field.disabled = !enabled;
         });
         updateCountryFields('shipping', true);
@@ -288,14 +297,52 @@
         return node;
     }
 
+    function safeImageUrl(value) {
+        try {
+            var url = new URL(String(value || ''), window.location.href);
+            return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function itemImageUrl(item) {
+        var image = Array.isArray(item.images) ? item.images[0] : null;
+        return image ? safeImageUrl(image.thumbnail || image.src || image.url) : '';
+    }
+
     function renderItems(current) {
         itemsNode.replaceChildren();
         (current.items || []).forEach(function (item) {
             var row = element('div', 'checkout-order__item');
-            row.appendChild(element('span', '', item.name + ' × ' + item.quantity));
-            row.appendChild(element('strong', '', formatMinor(item.totals.line_total, item.totals)));
+            var imageUrl = itemImageUrl(item);
+            var copy = element('div', 'checkout-order__item-copy');
+            var title = element('strong', 'checkout-order__item-title', item.name || 'Product');
+            title.appendChild(element('span', 'checkout-order__item-quantity', ' ×' + item.quantity));
+            copy.appendChild(title);
+            (item.item_data || []).forEach(function (detail) {
+                var value = String(detail.value || '').trim();
+                if (value) copy.appendChild(element('span', 'checkout-order__item-detail', value));
+            });
+            if (imageUrl) {
+                var image = element('img', 'checkout-order__item-image');
+                image.src = imageUrl;
+                image.alt = '';
+                image.width = 56;
+                image.height = 67;
+                image.loading = 'eager';
+                row.appendChild(image);
+            } else {
+                row.appendChild(element('span', 'checkout-order__item-image checkout-order__item-image--empty'));
+            }
+            row.append(copy, element('strong', 'checkout-order__item-price', formatMinor(item.totals.line_total, item.totals)));
             itemsNode.appendChild(row);
         });
+        if (itemsNode.removeAttribute) itemsNode.removeAttribute('aria-hidden');
+        if (summary) {
+            summary.classList.remove('checkout-order--loading');
+            summary.setAttribute('aria-busy', 'false');
+        }
     }
 
     function selectedShippingLabel(current) {
@@ -467,7 +514,12 @@
         updateSubmit();
         try {
             lines = readLines();
-            if (!lines.length) return;
+            if (!lines.length) {
+                if (summary) summary.hidden = true;
+                form.hidden = true;
+                showStatus('Your cart is empty.', false);
+                return;
+            }
             showStatus('Checking your cart with the store…', false);
             var current = await request('cart', 'GET');
             if (!token) throw new Error('The store did not provide a checkout cart token.');
@@ -510,13 +562,22 @@
     function scheduleAddress() {
         if (addressTimer) clearTimeout(addressTimer);
         addressTimer = null;
-        addressSignature = '';
         estimateAddress = false;
-        updateSubmit();
+        var signature = JSON.stringify(addressData());
         if (!addressComplete() || !token || !cart) {
+            addressSignature = '';
+            updateSubmit();
             if (cart) renderShipping(cart);
             return;
         }
+        // Browsers often emit both input and change for the same edit. Do not
+        // recalculate shipping when that exact address is already applied or
+        // currently being sent to the Store API.
+        if (signature === addressSignature || signature === refreshingAddressSignature) {
+            updateSubmit();
+            return;
+        }
+        updateSubmit();
         addressTimer = setTimeout(function () {
             addressTimer = null;
             refreshAddress();
@@ -525,10 +586,12 @@
 
     async function refreshAddress() {
         if (!token || !cart || !addressComplete()) return;
-        if (refreshingAddress || selectingRate || couponBusy) return scheduleAddress();
         var data = addressData();
         var signature = JSON.stringify(data);
+        if (signature === addressSignature || signature === refreshingAddressSignature) return;
+        if (refreshingAddress || selectingRate || couponBusy) return scheduleAddress();
         refreshingAddress = true;
+        refreshingAddressSignature = signature;
         updateSubmit();
         showStatus('Updating shipping and totals…', false);
         try {
@@ -541,6 +604,7 @@
             showStatus(error.message || 'Could not update shipping. Please try again.', true);
         } finally {
             refreshingAddress = false;
+            refreshingAddressSignature = '';
             if (cart) renderShipping(cart);
             updateSubmit();
             if (pendingSync) {
@@ -781,7 +845,11 @@
             root.querySelector('[data-checkout-confirmation-number]').textContent =
                 'Order number: ' + String(result.order_number || result.order_id);
             renderConfirmation(cart);
-            root.querySelector('[data-checkout-confirmation]').hidden = false;
+            var confirmation = root.querySelector('[data-checkout-confirmation]');
+            confirmation.hidden = false;
+            if (typeof confirmation.scrollIntoView === 'function') {
+                confirmation.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
             showStatus('', false);
         } catch (error) {
             if (error.status === 409) {

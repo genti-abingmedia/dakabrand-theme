@@ -601,6 +601,10 @@ function staticbridge_allow_empty_local_checkout(bool $redirect): bool
 }
 add_filter('woocommerce_checkout_redirect_empty_cart', 'staticbridge_allow_empty_local_checkout', 99);
 
+// The storefront renders its own document shell and assets. Suppress the
+// WordPress toolbar so its footer hooks cannot inject a second script bundle.
+add_filter('show_admin_bar', '__return_false', 999);
+
 function staticbridge_man_canonical_redirect($redirect_url)
 {
     return staticbridge_is_man_request() || staticbridge_is_woman_request() || staticbridge_is_cart_request() || staticbridge_is_checkout_request() ? false : $redirect_url;

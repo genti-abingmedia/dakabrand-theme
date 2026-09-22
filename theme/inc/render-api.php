@@ -56,17 +56,10 @@ function staticbridge_campaign_page_view(): ?string
     return null;
 }
 
-/**
- * Static storefront documents deliberately bypass the conventional WordPress
- * shell. Restore its toolbar hooks for administrators without adding plugin
- * output or administration UI to public pages.
- */
+/** Static storefront documents own their assets and never render admin UI. */
 function staticbridge_should_show_admin_toolbar(): bool
 {
-    return !is_admin()
-        && is_user_logged_in()
-        && current_user_can('manage_options')
-        && is_admin_bar_showing();
+    return false;
 }
 
 /**

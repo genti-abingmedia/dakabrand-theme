@@ -156,18 +156,9 @@
         });
     }
 
-    if (checkout) {
-        surfaces.push({
-            root: checkout,
-            itemsNode: checkout.querySelector('[data-checkout-page-items]'),
-            footerNode: checkout.querySelector('[data-checkout-page-summary]'),
-            subtotalNode: checkout.querySelector('[data-checkout-page-subtotal]'),
-            countNode: checkout.querySelector('[data-checkout-page-count]'),
-            statusNode: checkout.querySelector('[data-checkout-page-status]'),
-            formNode: checkout.querySelector('[data-checkout-form]'),
-            emptyClass: 'checkout-page__empty'
-        });
-    }
+    // Checkout has its own Store API-backed renderer. Do not render the editable
+    // local-cart cards here: doing so briefly shows a different order-summary
+    // layout before checkout.js replaces it with the confirmed cart.
 
     if (!surfaces.length) return;
 

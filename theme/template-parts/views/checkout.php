@@ -8,7 +8,6 @@ foreach (WC()->countries->get_shipping_countries() as $country_code => $country_
     $fields = WC()->countries->get_address_fields($country_code, 'billing_');
     $states = WC()->countries->get_states($country_code);
     $checkout_country_fields[$country_code] = array(
-        'postcode' => !empty($fields['billing_postcode']) && empty($fields['billing_postcode']['hidden']) ? !empty($fields['billing_postcode']['required']) : null,
         'state'    => !empty($fields['billing_state']) && empty($fields['billing_state']['hidden']) ? !empty($fields['billing_state']['required']) : null,
         'states'   => is_array($states) ? $states : array(),
     );
@@ -17,27 +16,28 @@ foreach (WC()->countries->get_shipping_countries() as $country_code => $country_
 <main id="main" class="site-main site-shell checkout-page" data-static-view="checkout" data-checkout-page>
     <header class="checkout-page__header">
         <p class="checkout-page__eyebrow"><?php esc_html_e('Secure checkout', 'dakabrand'); ?></p>
-        <h1><?php esc_html_e('Checkout', 'dakabrand'); ?> <span data-checkout-page-count aria-live="polite"></span></h1>
+        <h1><?php esc_html_e('Checkout', 'dakabrand'); ?></h1>
     </header>
 
-    <p class="checkout-page__status" data-checkout-page-status role="status" aria-live="polite" hidden></p>
+    <div class="checkout-snackbar" data-checkout-page-status role="status" aria-live="polite" aria-atomic="true" hidden></div>
 
     <div class="checkout-page__layout">
         <form id="checkout-form" class="checkout-form" data-checkout-form>
             <section class="checkout-form__section" aria-labelledby="billing-details-title">
                 <h2 id="billing-details-title"><?php esc_html_e('Billing details', 'dakabrand'); ?></h2>
                 <div class="checkout-form__grid">
-                    <p class="checkout-form__wide"><label for="billing-name"><?php esc_html_e('Name / Surname', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="billing-name" name="billing_name" autocomplete="name" placeholder="<?php esc_attr_e('Name / Surname', 'dakabrand'); ?>" pattern=".*\S\s+\S.*" title="<?php esc_attr_e('Enter your first name and surname', 'dakabrand'); ?>" required></p>
-                    <p class="checkout-form__wide"><label for="billing-country"><?php esc_html_e('Country / Region', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><select id="billing-country" name="billing_country" autocomplete="country" data-country-fields="<?php echo esc_attr(wp_json_encode($checkout_country_fields)); ?>" required>
+                    <p><label for="billing-first-name"><?php esc_html_e('Name', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="billing-first-name" name="billing_first_name" autocomplete="given-name" required></p>
+                    <p><label for="billing-last-name"><?php esc_html_e('Surname', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="billing-last-name" name="billing_last_name" autocomplete="family-name" required></p>
+                    <p><label for="billing-country"><?php esc_html_e('Country / Region', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><select id="billing-country" name="billing_country" autocomplete="country" data-country-fields="<?php echo esc_attr(wp_json_encode($checkout_country_fields)); ?>" required>
                         <option value=""><?php esc_html_e('Select a country / region…', 'dakabrand'); ?></option>
                         <?php foreach (WC()->countries->get_shipping_countries() as $code => $country) : ?>
                             <option value="<?php echo esc_attr($code); ?>"><?php echo esc_html($country); ?></option>
                         <?php endforeach; ?>
                     </select></p>
+                    <p data-checkout-state><label for="billing-state"><?php esc_html_e('State / Region', 'dakabrand'); ?> <span aria-hidden="true" data-required-marker hidden>*</span></label><input id="billing-state" name="billing_state" autocomplete="address-level1" placeholder="<?php esc_attr_e('Select a country first', 'dakabrand'); ?>" disabled><select name="billing_state" aria-label="<?php esc_attr_e('State / Region', 'dakabrand'); ?>" disabled hidden></select></p>
+                    <p><label for="billing-city"><?php esc_html_e('Town / City', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="billing-city" name="billing_city" autocomplete="address-level2" required></p>
+                    <p><label for="billing-postcode"><?php esc_html_e('Postcode / ZIP', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="billing-postcode" name="billing_postcode" autocomplete="postal-code" required></p>
                     <p class="checkout-form__wide"><label for="billing-address-1"><?php esc_html_e('Street address', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="billing-address-1" name="billing_address_1" autocomplete="street-address" placeholder="<?php esc_attr_e('House number and street name', 'dakabrand'); ?>" required></p>
-                    <p class="checkout-form__wide"><label for="billing-city"><?php esc_html_e('City', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="billing-city" name="billing_city" autocomplete="address-level2" placeholder="<?php esc_attr_e('City', 'dakabrand'); ?>" required></p>
-                    <p class="checkout-form__wide" data-checkout-postcode hidden><label for="billing-postcode"><?php esc_html_e('Postcode', 'dakabrand'); ?> <span aria-hidden="true" data-required-marker>*</span></label><input id="billing-postcode" name="billing_postcode" autocomplete="postal-code" disabled></p>
-                    <p class="checkout-form__wide" data-checkout-state hidden><label for="billing-state"><?php esc_html_e('State / Region', 'dakabrand'); ?> <span aria-hidden="true" data-required-marker>*</span></label><input id="billing-state" name="billing_state" autocomplete="address-level1" disabled><select name="billing_state" aria-label="<?php esc_attr_e('State / Region', 'dakabrand'); ?>" disabled hidden></select></p>
                     <p><label for="billing-phone"><?php esc_html_e('Phone', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="billing-phone" name="billing_phone" type="tel" autocomplete="tel" required></p>
                     <p><label for="billing-email"><?php esc_html_e('Email address', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="billing-email" name="billing_email" type="email" autocomplete="email" required></p>
                 </div>
@@ -47,35 +47,44 @@ foreach (WC()->countries->get_shipping_countries() as $country_code => $country_
                 <label class="checkout-form__different"><input type="checkbox" name="ship_to_different_address" value="1" data-ship-different> <span><?php esc_html_e('Ship to a different address?', 'dakabrand'); ?></span></label>
                 <div class="checkout-form__shipping-fields" data-shipping-fields hidden>
                     <div class="checkout-form__grid">
-                        <p class="checkout-form__wide"><label for="shipping-name"><?php esc_html_e('Name / Surname', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="shipping-name" name="shipping_name" autocomplete="shipping name" disabled required></p>
-                        <p class="checkout-form__wide"><label for="shipping-country"><?php esc_html_e('Country / Region', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><select id="shipping-country" name="shipping_country" autocomplete="shipping country" data-country-fields="<?php echo esc_attr(wp_json_encode($checkout_country_fields)); ?>" disabled required>
+                        <p><label for="shipping-first-name"><?php esc_html_e('Name', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="shipping-first-name" name="shipping_first_name" autocomplete="shipping given-name" disabled required></p>
+                        <p><label for="shipping-last-name"><?php esc_html_e('Surname', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="shipping-last-name" name="shipping_last_name" autocomplete="shipping family-name" disabled required></p>
+                        <p><label for="shipping-country"><?php esc_html_e('Country / Region', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><select id="shipping-country" name="shipping_country" autocomplete="shipping country" data-country-fields="<?php echo esc_attr(wp_json_encode($checkout_country_fields)); ?>" disabled required>
                             <option value=""><?php esc_html_e('Select a country / region…', 'dakabrand'); ?></option>
                             <?php foreach (WC()->countries->get_shipping_countries() as $code => $country) : ?>
                                 <option value="<?php echo esc_attr($code); ?>"><?php echo esc_html($country); ?></option>
                             <?php endforeach; ?>
                         </select></p>
+                        <p data-shipping-state><label for="shipping-state"><?php esc_html_e('State / Region', 'dakabrand'); ?> <span aria-hidden="true" data-required-marker hidden>*</span></label><input id="shipping-state" name="shipping_state" autocomplete="shipping address-level1" placeholder="<?php esc_attr_e('Select a country first', 'dakabrand'); ?>" disabled><select name="shipping_state" aria-label="<?php esc_attr_e('State / Region', 'dakabrand'); ?>" disabled hidden></select></p>
+                        <p><label for="shipping-city"><?php esc_html_e('Town / City', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="shipping-city" name="shipping_city" autocomplete="shipping address-level2" disabled required></p>
+                        <p><label for="shipping-postcode"><?php esc_html_e('Postcode / ZIP', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="shipping-postcode" name="shipping_postcode" autocomplete="shipping postal-code" disabled required></p>
                         <p class="checkout-form__wide"><label for="shipping-address-1"><?php esc_html_e('Street address', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="shipping-address-1" name="shipping_address_1" autocomplete="shipping street-address" disabled required></p>
-                        <p class="checkout-form__wide"><label for="shipping-city"><?php esc_html_e('City', 'dakabrand'); ?> <span aria-hidden="true">*</span></label><input id="shipping-city" name="shipping_city" autocomplete="shipping address-level2" disabled required></p>
-                        <p class="checkout-form__wide" data-shipping-postcode hidden><label for="shipping-postcode"><?php esc_html_e('Postcode', 'dakabrand'); ?> <span aria-hidden="true" data-required-marker>*</span></label><input id="shipping-postcode" name="shipping_postcode" autocomplete="shipping postal-code" disabled></p>
-                        <p class="checkout-form__wide" data-shipping-state hidden><label for="shipping-state"><?php esc_html_e('State / Region', 'dakabrand'); ?> <span aria-hidden="true" data-required-marker>*</span></label><input id="shipping-state" name="shipping_state" autocomplete="shipping address-level1" disabled><select name="shipping_state" aria-label="<?php esc_attr_e('State / Region', 'dakabrand'); ?>" disabled hidden></select></p>
                     </div>
                 </div>
             </section>
 
         </form>
 
-        <aside class="checkout-order" data-checkout-page-summary hidden aria-label="<?php esc_attr_e('Order summary', 'dakabrand'); ?>">
+        <aside class="checkout-order checkout-order--loading" data-checkout-page-summary aria-busy="true" aria-label="<?php esc_attr_e('Order summary', 'dakabrand'); ?>">
             <h2><?php esc_html_e('Order summary', 'dakabrand'); ?></h2>
-            <div data-checkout-page-items></div>
+            <div class="checkout-order__items" data-checkout-page-items aria-hidden="true">
+                <?php for ($skeleton_item = 0; $skeleton_item < 1; $skeleton_item++) : ?>
+                    <div class="checkout-order__item checkout-order__item--skeleton">
+                        <span class="checkout-skeleton checkout-skeleton--image"></span>
+                        <span class="checkout-order__item-copy"><span class="checkout-skeleton checkout-skeleton--title"></span><span class="checkout-skeleton checkout-skeleton--detail"></span></span>
+                        <span class="checkout-skeleton checkout-skeleton--price"></span>
+                    </div>
+                <?php endfor; ?>
+            </div>
             <div class="checkout-order__tools" role="group" aria-label="<?php esc_attr_e('Order options', 'dakabrand'); ?>">
                 <button type="button" data-checkout-open="note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4.5-1 11-11a2 2 0 0 0-3-3l-11 11L4 20Zm10-13 3 3"/></svg><?php esc_html_e('Note', 'dakabrand'); ?></button>
                 <button type="button" data-checkout-open="shipping"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6h12v10H2V6Zm12 3h4l3 3v4h-7V9ZM5 19a2 2 0 1 0 4 0 2 2 0 0 0-4 0Zm11 0a2 2 0 1 0 4 0 2 2 0 0 0-4 0ZM2 16h19"/></svg><?php esc_html_e('Shipping', 'dakabrand'); ?></button>
                 <button type="button" data-checkout-open="coupon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v5a2 2 0 0 0 0 4v4H3v-4a2 2 0 0 0 0-4V6Zm8 0v13"/></svg><?php esc_html_e('Coupon', 'dakabrand'); ?></button>
             </div>
-            <div class="checkout-order__subtotal"><span><?php esc_html_e('Subtotal', 'dakabrand'); ?></span><strong data-checkout-page-subtotal></strong></div>
-            <div class="checkout-order__subtotal"><span><?php esc_html_e('Shipping', 'dakabrand'); ?></span><strong data-checkout-shipping-total>—</strong></div>
+            <div class="checkout-order__subtotal"><span><?php esc_html_e('Subtotal', 'dakabrand'); ?></span><strong data-checkout-page-subtotal><span class="checkout-skeleton checkout-skeleton--total"></span></strong></div>
+            <div class="checkout-order__subtotal"><span><?php esc_html_e('Shipping', 'dakabrand'); ?></span><strong data-checkout-shipping-total><span class="checkout-skeleton checkout-skeleton--total"></span></strong></div>
             <div data-checkout-adjustments></div>
-            <div class="checkout-order__subtotal checkout-order__total"><span><?php esc_html_e('Total', 'dakabrand'); ?></span><strong data-checkout-order-total>—</strong></div>
+            <div class="checkout-order__subtotal checkout-order__total"><span><?php esc_html_e('Total', 'dakabrand'); ?></span><strong data-checkout-order-total><span class="checkout-skeleton checkout-skeleton--total"></span></strong></div>
             <section class="checkout-order__shipping" data-checkout-shipping-methods aria-labelledby="shipping-method-title" hidden>
                 <div class="checkout-order__section-heading"><h2 id="shipping-method-title"><?php esc_html_e('Shipping method', 'dakabrand'); ?></h2><span><?php esc_html_e('Select one', 'dakabrand'); ?></span></div>
                 <div data-checkout-shipping-rates role="group" aria-labelledby="shipping-method-title">

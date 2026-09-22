@@ -34,10 +34,10 @@ test('checkout totals use WooCommerce minor units and all shipping packages need
 
 test('billing address supplies delivery address until another address is selected', () => {
     const fields = {
-        billing_name: '  Ada  Lovelace  ', billing_country: 'GB',
-        billing_address_1: ' 12 Example Road ', billing_city: ' London ',
+        billing_first_name: ' Ada ', billing_last_name: ' Lovelace ', billing_country: 'GB',
+        billing_address_1: ' 12 Example Road ', billing_city: ' London ', billing_postcode: ' SW1A 1AA ',
         billing_phone: ' 123456 ', billing_email: ' ada@example.com ',
-        billing_postcode: ' SW1A 1AA ', billing_state: ''
+        billing_state: ''
     };
     const address = checkout.customerAddress({ get: key => fields[key] || '' });
     assert.deepEqual(address.shipping_address, {
@@ -50,6 +50,8 @@ test('billing address supplies delivery address until another address is selecte
     assert.notStrictEqual(address.shipping_address, address.billing_address);
     const view = fs.readFileSync('theme/template-parts/views/checkout.php', 'utf8');
     assert.match(view, /data-checkout-form/);
+    assert.match(view, /checkout-order--loading/);
+    assert.match(view, /checkout-order__item--skeleton/);
     assert.match(view, /name="ship_to_different_address"/);
     assert.match(view, /data-shipping-fields hidden/);
     assert.match(view, /name="shipping_address_1"/);
@@ -58,11 +60,10 @@ test('billing address supplies delivery address until another address is selecte
 
 test('a separate shipping address is sent without changing billing details', () => {
     const fields = {
-        billing_name: 'Ada Lovelace', billing_country: 'GB', billing_address_1: '12 Example Road',
-        billing_city: 'London', billing_phone: '123456', billing_email: 'ada@example.com',
-        ship_to_different_address: '1', shipping_name: 'Grace Hopper', shipping_country: 'US',
-        shipping_address_1: '42 Navy Street', shipping_city: 'Arlington', shipping_state: 'VA',
-        shipping_postcode: '22201'
+        billing_first_name: 'Ada', billing_last_name: 'Lovelace', billing_country: 'GB', billing_address_1: '12 Example Road', billing_city: 'London', billing_postcode: 'SW1A 1AA',
+        billing_phone: '123456', billing_email: 'ada@example.com',
+        ship_to_different_address: '1', shipping_first_name: 'Grace', shipping_last_name: 'Hopper', shipping_country: 'US',
+        shipping_address_1: '42 Navy Street', shipping_city: 'Arlington', shipping_postcode: '22201', shipping_state: 'VA'
     };
     const address = checkout.customerAddress({ get: key => fields[key] || '' });
     assert.equal(address.billing_address.first_name, 'Ada');
@@ -79,30 +80,29 @@ async function checkoutScenario(failureMode, exerciseOptions) {
             children: [], handlers: {}, hidden: false, disabled: false,
             classList: { toggle() {} },
             addEventListener(name, handler) { this.handlers[name] = handler; },
+            scrollIntoView(options) { this.scrollOptions = options; },
             append(...children) { this.children.push(...children); },
             appendChild(child) { this.children.push(child); },
             replaceChildren(...children) { this.children = children; }
         };
     }
     const names = [
-        'billing_name', 'billing_email', 'billing_phone',
-        'billing_address_1', 'billing_city', 'billing_country', 'billing_postcode'
+        'billing_first_name', 'billing_last_name', 'billing_email', 'billing_phone',
+        'billing_address_1', 'billing_city', 'billing_postcode', 'billing_country'
     ];
-    const fields = Object.fromEntries(names.map(name => [name, name === 'billing_country' ? 'GB' : name === 'billing_name' ? 'Test Customer' : 'Test']));
+    const fields = Object.fromEntries(names.map(name => [name, name === 'billing_country' ? 'GB' : 'Test']));
     const form = node();
     const submit = node();
     const countryField = { ...node(), value: 'GB', getAttribute: () => JSON.stringify({
-        GB: { postcode: true, state: null, states: {} },
-        US: { postcode: true, state: true, states: { CA: 'California' } }
+        GB: { state: null, states: {} },
+        US: { state: true, states: { CA: 'California' } }
     }) };
-    const postcodeField = { ...node(), value: 'Test' };
     const stateInput = node();
     const stateSelect = node();
-    const postcodeRow = { ...node(), querySelector: selector => selector === 'input' ? postcodeField : node() };
     const stateRow = { ...node(), querySelector: selector => selector === 'input' ? stateInput : selector === 'select' ? stateSelect : node() };
     form.querySelector = selector => ({
         '[type="submit"]': submit, '[name="billing_country"]': countryField,
-        '[data-checkout-postcode]': postcodeRow, '[data-checkout-state]': stateRow
+        '[data-checkout-state]': stateRow
     })[selector];
     form.querySelectorAll = () => names.map(name => ({ value: fields[name], checkValidity: () => true }));
     const nodes = Object.fromEntries([
@@ -192,8 +192,7 @@ async function checkoutScenario(failureMode, exerciseOptions) {
         setTimeout: callback => global.setTimeout(callback, 0), clearTimeout: global.clearTimeout,
         Intl, Array, Object, Number, String, JSON, Math
     });
-    assert.equal(postcodeField.required, true);
-    assert.equal(stateRow.hidden, true);
+    assert.equal(stateRow.hidden, false);
     countryField.value = 'US';
     countryField.handlers.change();
     assert.equal(stateSelect.required, true);
@@ -214,6 +213,11 @@ async function checkoutScenario(failureMode, exerciseOptions) {
     nodes['[data-checkout-shipping-rates]'].children[0].children[0].handlers.change();
     await new Promise(resolve => setTimeout(resolve, 20));
     assert.equal(submit.disabled, false);
+    const customerUpdateCount = calls.filter(call => call.path === 'cart/update-customer').length;
+    form.handlers.input({ target: { name: 'billing_email' } });
+    form.handlers.change({ target: { name: 'billing_email' } });
+    await new Promise(resolve => setTimeout(resolve, 20));
+    assert.equal(calls.filter(call => call.path === 'cart/update-customer').length, customerUpdateCount);
     if (exerciseOptions) {
         openButtons[0].handlers.click();
         dialogs.note.querySelector('textarea').value = 'Leave at reception';
@@ -234,7 +238,7 @@ async function checkoutScenario(failureMode, exerciseOptions) {
         assert.deepEqual(JSON.parse(calls.find(call => call.path === 'cart/apply-coupon').options.body), { code: 'SAVE20' });
     }
     assert.equal(order.shipping_address.first_name, 'Test');
-    assert.equal(order.shipping_address.last_name, 'Customer');
+    assert.equal(order.shipping_address.last_name, 'Test');
     assert.equal(order.shipping_address.phone, 'Test');
     assert.equal(order.billing_address.address_1, order.shipping_address.address_1);
     if (failureMode === 'mismatch' || failureMode === 'network') {
