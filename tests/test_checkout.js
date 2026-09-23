@@ -49,6 +49,11 @@ test('checkout displays WooCommerce field validation messages instead of generic
     assert.equal(checkout.apiErrorMessage({ data: { params: { email: 'Enter a valid email address.' } } }), 'Enter a valid email address.');
 });
 
+test('checkout adds static-page attribution to the Store API extension data', () => {
+    const attribution = { source_type: 'utm', utm_source: 'newsletter' };
+    assert.deepEqual(checkout.orderAttributionData({ StaticBridgeOrderAttribution: { data: () => attribution } }), attribution);
+});
+
 test('billing address supplies delivery address until another address is selected', () => {
     const fields = {
         billing_first_name: ' Ada ', billing_last_name: ' Lovelace ', billing_country: 'GB',
@@ -91,7 +96,7 @@ test('a separate shipping address is sent without changing billing details', () 
     });
 });
 
-async function checkoutScenario(failureMode, exerciseOptions) {
+async function checkoutScenario(failureMode, exerciseOptions, includeAttribution) {
     function node() {
         return {
             children: [], handlers: {}, hidden: false, disabled: false,
@@ -205,7 +210,10 @@ async function checkoutScenario(failureMode, exerciseOptions) {
     vm.runInNewContext(source, {
         document, localStorage, fetch, FormData: class { constructor() {} get(name) { return fields[name] || ''; } },
         CustomEvent: class { constructor(type) { this.type = type; } },
-        window: { StaticBridgeConfig: { apiBase: '/api/' }, addEventListener() {} },
+        window: {
+            StaticBridgeConfig: { apiBase: '/api/' }, addEventListener() {},
+            StaticBridgeOrderAttribution: includeAttribution ? { data: () => ({ source_type: 'utm', utm_source: 'newsletter' }) } : undefined
+        },
         setTimeout: callback => global.setTimeout(callback, 0), clearTimeout: global.clearTimeout,
         Intl, Array, Object, Number, String, JSON, Math
     });
@@ -252,6 +260,9 @@ async function checkoutScenario(failureMode, exerciseOptions) {
     const order = JSON.parse(calls.find(call => call.path === 'checkout').options.body);
     assert.equal(order.payment_method, 'staticbridge_remittance');
     assert.equal(order.expected_total, exerciseOptions ? '1000' : '1200');
+    if (includeAttribution) assert.deepEqual(order.extensions, {
+        'woocommerce/order-attribution': { source_type: 'utm', utm_source: 'newsletter' }
+    });
     if (exerciseOptions) {
         assert.equal(order.customer_note, 'Leave at reception');
         assert.deepEqual(JSON.parse(calls.find(call => call.path === 'cart/apply-coupon').options.body), { code: 'SAVE20' });
@@ -276,3 +287,4 @@ test('failed cart sync preserves the local cart', () => checkoutScenario('add'))
 test('total mismatch preserves the local cart and requests review', () => checkoutScenario('mismatch'));
 test('uncertain network result preserves the local cart and blocks duplicate submit', () => checkoutScenario('network'));
 test('order note and coupon update the confirmed checkout total', () => checkoutScenario(undefined, true));
+test('checkout submits static-page attribution through WooCommerce\'s Store API extension', () => checkoutScenario(undefined, false, true));

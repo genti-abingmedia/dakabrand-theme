@@ -714,6 +714,7 @@ function staticbridge_enqueue_assets(): void
     $bootstrap_js_path  = get_template_directory() . '/assets/vendor/bootstrap/bootstrap.bundle.min.js';
     $css_path = get_template_directory() . '/assets/css/main.css';
     $js_path  = get_template_directory() . '/assets/js/main.js';
+    $order_attribution_js_path = get_template_directory() . '/assets/js/order-attribution.js';
     $cart_js_path = get_template_directory() . '/assets/js/cart.js';
     $video_popup_css_path = get_template_directory() . '/assets/css/video-popup.css';
     $video_popup_js_path = get_template_directory() . '/assets/js/video-popup.js';
@@ -745,6 +746,14 @@ function staticbridge_enqueue_assets(): void
         get_template_directory_uri() . '/assets/js/main.js',
         array('staticbridge-bootstrap'),
         file_exists($js_path) ? (string) filemtime($js_path) : STATICBRIDGE_THEME_VERSION,
+        true
+    );
+
+    wp_enqueue_script(
+        'staticbridge-order-attribution',
+        get_template_directory_uri() . '/assets/js/order-attribution.js',
+        array(),
+        file_exists($order_attribution_js_path) ? (string) filemtime($order_attribution_js_path) : STATICBRIDGE_THEME_VERSION,
         true
     );
 
@@ -831,7 +840,7 @@ function staticbridge_enqueue_assets(): void
         wp_enqueue_script(
             'staticbridge-checkout',
             get_template_directory_uri() . '/assets/js/checkout.js',
-            array('staticbridge-cart'),
+            array('staticbridge-cart', 'staticbridge-order-attribution'),
             file_exists($checkout_js_path) ? (string) filemtime($checkout_js_path) : STATICBRIDGE_THEME_VERSION,
             true
         );

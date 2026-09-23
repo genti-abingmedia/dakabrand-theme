@@ -110,6 +110,12 @@
         return labels[method] || String(method || '').replace(/[-_]+/g, ' ').replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
     }
 
+    function orderAttributionData(global) {
+        var tracker = (global || (typeof window === 'undefined' ? {} : window)).StaticBridgeOrderAttribution;
+        if (!tracker || typeof tracker.data !== 'function') return null;
+        try { return tracker.data(); } catch (error) { return null; }
+    }
+
     function apiErrorMessage(payload) {
         if (!payload || typeof payload !== 'object') return '';
         var messages = [];
@@ -134,7 +140,7 @@
         module.exports = { variationPayload: variationPayload, cartLinePayload: cartLinePayload,
             formatMinor: formatMinor, hasSelectedRates: hasSelectedRates, cartMatchesLines: cartMatchesLines,
             customerAddress: customerAddress, enabledPaymentMethods: enabledPaymentMethods,
-            paymentMethodLabel: paymentMethodLabel, apiErrorMessage: apiErrorMessage };
+            paymentMethodLabel: paymentMethodLabel, orderAttributionData: orderAttributionData, apiErrorMessage: apiErrorMessage };
         return;
     }
 
@@ -853,6 +859,8 @@
         data.payment_method = selectedPaymentMethod();
         data.payment_data = [];
         data.expected_total = String(cart.totals.total_price);
+        var attribution = orderAttributionData();
+        if (attribution) data.extensions = { 'woocommerce/order-attribution': attribution };
         try {
             var result = await request('checkout', 'POST', data);
             if (!result.order_id || result.status === 'checkout-draft' ||
