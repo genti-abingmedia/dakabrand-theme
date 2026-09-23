@@ -9,6 +9,19 @@ define('STATICBRIDGE_RENDER_API_VERSION', '1.0');
 define('STATICBRIDGE_BOOTSTRAP_VERSION', '5.3.8');
 
 /**
+ * Keep first-party theme assets secure when an upstream HTML rewriter misses
+ * a srcset attribute. Local and staging hosts retain their original scheme.
+ */
+function staticbridge_force_https_theme_directory_uri(string $uri): string
+{
+    return 'dakabrand.uk' === wp_parse_url($uri, PHP_URL_HOST)
+        ? set_url_scheme($uri, 'https')
+        : $uri;
+}
+
+add_filter('template_directory_uri', 'staticbridge_force_https_theme_directory_uri');
+
+/**
  * The storefront UI is available in English and Albanian without requiring a
  * multilingual-content plugin. Content entered in WordPress remains shared.
  */

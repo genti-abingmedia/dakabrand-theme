@@ -20,6 +20,14 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("array('staticbridge-bootstrap')", functions)
         self.assertNotIn("cdn.jsdelivr.net", functions)
 
+    def test_production_theme_asset_urls_always_use_https(self) -> None:
+        functions = self.read("functions.php")
+
+        self.assertIn("function staticbridge_force_https_theme_directory_uri", functions)
+        self.assertIn("'dakabrand.uk' === wp_parse_url($uri, PHP_URL_HOST)", functions)
+        self.assertIn("set_url_scheme($uri, 'https')", functions)
+        self.assertIn("add_filter('template_directory_uri', 'staticbridge_force_https_theme_directory_uri')", functions)
+
     def test_theme_registers_all_navigation_locations(self) -> None:
         functions = self.read("functions.php")
 
