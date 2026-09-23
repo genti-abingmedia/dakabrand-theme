@@ -321,7 +321,7 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn('data-static-view="woman"', view)
         for asset in (
             "woman-hero-desktop.jpg",
-            "woman-hero-mobile.jpg",
+            "home-woman.jpg",
             "woman-editorial-primary.jpg",
             "woman-editorial-secondary.jpg",
         ):

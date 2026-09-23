@@ -27,7 +27,7 @@ $woman_collections = array(
 
     <section class="woman-hero man-hero" aria-labelledby="woman-hero-title">
         <picture class="man-hero__media">
-            <source media="(max-width: 767.98px)" srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/woman-hero-mobile.jpg'); ?>">
+            <source media="(max-width: 767.98px)" srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/home-woman.jpg'); ?>">
             <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/woman-hero-desktop.jpg'); ?>" width="2480" height="1062" alt="" fetchpriority="high">
         </picture>
         <div class="man-hero__content">
