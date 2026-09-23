@@ -435,6 +435,18 @@ def command_inventory(client: FtpsClient) -> None:
 @contextmanager
 def connected_client() -> Iterator[FtpsClient]:
     values = {**load_dotenv(ENV_PATH), **os.environ}
+    # The project stores its production FTP settings under the PROD_* names.
+    # Preserve explicit FTP_* values when supplied, while allowing the deploy
+    # helper to use the existing production configuration directly.
+    for ftp_key, production_key in (
+        ("FTP_SERVER", "PROD_SERVER"),
+        ("FTP_ACCOUNT_NAME", "PROD_ACCOUNT_NAME"),
+        ("FTP_PASSWORD", "PROD_PASSWORD"),
+        ("FTP_PORT", "PROD_PORT"),
+        ("FTP_TLS_SERVER_NAME", "PROD_TLS_SERVER_NAME"),
+    ):
+        if not values.get(ftp_key) and values.get(production_key):
+            values[ftp_key] = values[production_key]
     with FtpsClient(values) as client:
         yield client
 
