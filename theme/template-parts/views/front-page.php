@@ -12,7 +12,7 @@ $home_sections = array(
         'category'  => '/product-category/women/',
         'preorder'  => '/product-category/women/?stock_status=onbackorder%3Aonbackorder',
         'in_stock'  => '/product-category/women/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
-        'offer'     => '/product-category/women/big-offer-women',
+        'offer'     => '/shop/?categories=big-offer-women%3ABIG+OFFER+WOMEN&stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
     ),
     array(
         'key'       => 'man',
@@ -22,7 +22,7 @@ $home_sections = array(
         'category'  => '/product-category/man/',
         'preorder'  => '/product-category/man/?stock_status=onbackorder%3Aonbackorder',
         'in_stock'  => '/product-category/man/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
-        'offer'     => '/product-category/man/big-offer',
+        'offer'     => '/shop/?categories=big-offer%3ABIG+OFFER&stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
     ),
 );
 ?>

@@ -408,6 +408,18 @@ function staticbridge_catalog_category_url(string $path, string $category = ''):
 }
 
 /**
+ * Build a category archive URL limited to products available for preorder.
+ */
+function staticbridge_preorder_category_url(string $path, string $category = ''): string
+{
+    return add_query_arg(
+        'stock_status',
+        'onbackorder:onbackorder',
+        staticbridge_catalog_category_url($path, $category)
+    );
+}
+
+/**
  * The storefront gateway intentionally omits visible global navigation.
  * The explicit view check keeps generated front-page documents deterministic.
  */

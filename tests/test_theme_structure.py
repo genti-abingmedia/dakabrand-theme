@@ -43,6 +43,15 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn('return false;', render_api)
         self.assertIn("add_filter('show_admin_bar', '__return_false', 999)", self.read("functions.php"))
 
+    def test_preorder_menu_categories_keep_the_backorder_filter(self) -> None:
+        header = self.read("header.php")
+        functions = self.read("functions.php")
+
+        self.assertIn("function staticbridge_preorder_category_url", functions)
+        self.assertIn("'stock_status',", functions)
+        self.assertIn("'onbackorder:onbackorder'", functions)
+        self.assertEqual(header.count("staticbridge_preorder_category_url("), 8)
+
     def test_theme_has_static_english_and_albanian_ui(self) -> None:
         functions = self.read("functions.php")
         header = self.read("header.php")
@@ -111,6 +120,15 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("WEEK_IN_SECONDS", product)
         self.assertIn("product-detail__new", product)
         self.assertIn("product-detail__badges", stylesheet)
+
+    def test_product_gallery_thumbnails_have_a_desktop_height_cap(self) -> None:
+        stylesheet = self.read("assets/css/main.css")
+
+        self.assertIn(".product-gallery__thumbs", stylesheet)
+        self.assertIn("max-height: 36rem", stylesheet)
+        self.assertIn("overflow-y: auto", stylesheet)
+        self.assertIn(".product-gallery__thumbs:hover", stylesheet)
+        self.assertIn("scrollbar-color: transparent transparent", stylesheet)
 
     def test_cart_drawer_is_shared_and_product_data_supports_it(self) -> None:
         header = self.read("header.php")
@@ -211,6 +229,9 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("'landing'   => staticbridge_department_page_url('woman')", front_page)
         self.assertIn("'landing'   => staticbridge_department_page_url('man')", front_page)
         self.assertIn("href=\"<?php echo esc_url($section['landing']); ?>\"", front_page)
+        self.assertIn("'offer'     => '/shop/?categories=big-offer-women%3ABIG+OFFER+WOMEN&stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock'", front_page)
+        self.assertIn("'offer'     => '/shop/?categories=big-offer%3ABIG+OFFER&stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock'", front_page)
+        self.assertIn("href=\"<?php echo esc_url(home_url($section['offer'])); ?>\"", front_page)
         self.assertNotIn("WP_Query", front_page)
 
     def test_theme_uses_a_global_broken_image_fallback(self) -> None:
