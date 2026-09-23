@@ -40,6 +40,7 @@
                 permalink: String(item.permalink || ''),
                 image: String(item.image || ''),
                 unitPrice: Math.max(0, number(item.unitPrice)),
+                regularPrice: Math.max(0, number(item.regularPrice)),
                 currency: /^[A-Z]{3}$/.test(String(item.currency || '')) ? item.currency : 'GBP',
                 stockStatus: String(item.stockStatus || ''),
                 purchasable: item.purchasable === true,
@@ -54,6 +55,10 @@
 
     function cartTotal(items) {
         return items.reduce(function (total, item) { return total + item.unitPrice * item.quantity; }, 0);
+    }
+
+    function hasDiscount(item) {
+        return number(item.regularPrice) > number(item.unitPrice) && number(item.unitPrice) > 0;
     }
 
     function cartSummary(items) {
@@ -127,7 +132,7 @@
     }
 
     if (typeof module !== 'undefined' && module.exports) {
-        module.exports = { lineKey: lineKey, normalizeCart: normalizeCart, cartCount: cartCount, cartTotal: cartTotal, cartSummary: cartSummary,
+        module.exports = { lineKey: lineKey, normalizeCart: normalizeCart, cartCount: cartCount, cartTotal: cartTotal, cartSummary: cartSummary, hasDiscount: hasDiscount,
             findVariation: findVariation, requestedQuantity: requestedQuantity, stockDecision: stockDecision, validateStock: validateStock };
         return;
     }
@@ -238,7 +243,14 @@
         Object.keys(item.labels).forEach(function (key) {
             details.appendChild(element('span', 'cart-item__option', key + ': ' + item.labels[key]));
         });
-        details.appendChild(element('strong', 'cart-item__price', formatPrice(item.unitPrice, item.currency)));
+        var price = element('strong', 'cart-item__price');
+        if (hasDiscount(item)) {
+            price.append(
+                element('del', 'cart-item__regular-price', formatPrice(item.regularPrice, item.currency)),
+                element('ins', 'cart-item__sale-price', formatPrice(item.unitPrice, item.currency))
+            );
+        } else price.textContent = formatPrice(item.unitPrice, item.currency);
+        details.appendChild(price);
 
         var controls = element('div', 'cart-item__controls');
         var minus = element('button', '', '−');
@@ -442,6 +454,7 @@
             permalink: String(product.permalink || ''),
             image: String(product.image || ''),
             unitPrice: number(stockSource.price),
+            regularPrice: number(stockSource.regular_price),
             currency: String(product.currency || 'GBP'),
             stockStatus: String(stockSource.stock_status || ''),
             purchasable: stockSource.purchasable === true,
@@ -456,6 +469,7 @@
             if (previous) {
                 previous.quantity += item.quantity;
                 previous.unitPrice = item.unitPrice;
+                previous.regularPrice = item.regularPrice;
                 previous.stockStatus = item.stockStatus;
                 previous.purchasable = item.purchasable;
             } else items.push(item);

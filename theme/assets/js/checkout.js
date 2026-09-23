@@ -110,11 +110,31 @@
         return labels[method] || String(method || '').replace(/[-_]+/g, ' ').replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
     }
 
+    function apiErrorMessage(payload) {
+        if (!payload || typeof payload !== 'object') return '';
+        var messages = [];
+        var details = payload.data && payload.data.details;
+        if (details && typeof details === 'object') {
+            Object.keys(details).forEach(function (key) {
+                var detail = details[key];
+                if (detail && typeof detail.message === 'string' && detail.message.trim()) messages.push(detail.message.trim());
+            });
+        }
+        var params = payload.data && payload.data.params;
+        if (!messages.length && params && typeof params === 'object') {
+            Object.keys(params).forEach(function (key) {
+                if (typeof params[key] === 'string' && params[key].trim()) messages.push(params[key].trim());
+            });
+        }
+        messages = messages.filter(function (message, index) { return messages.indexOf(message) === index; });
+        return messages.length ? messages.join(' ') : String(payload.message || '').trim();
+    }
+
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = { variationPayload: variationPayload, cartLinePayload: cartLinePayload,
             formatMinor: formatMinor, hasSelectedRates: hasSelectedRates, cartMatchesLines: cartMatchesLines,
             customerAddress: customerAddress, enabledPaymentMethods: enabledPaymentMethods,
-            paymentMethodLabel: paymentMethodLabel };
+            paymentMethodLabel: paymentMethodLabel, apiErrorMessage: apiErrorMessage };
         return;
     }
 
@@ -282,7 +302,7 @@
         var nextToken = response.headers.get('Cart-Token');
         if (nextToken) token = nextToken;
         if (!response.ok) {
-            var error = new Error(result.message || 'The store could not complete this request.');
+            var error = new Error(apiErrorMessage(result) || 'The store could not complete this request.');
             error.status = response.status;
             error.data = result.data;
             throw error;

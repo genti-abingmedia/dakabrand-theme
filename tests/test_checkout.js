@@ -32,6 +32,23 @@ test('checkout totals use WooCommerce minor units and all shipping packages need
     assert.equal(checkout.paymentMethodLabel('custom_gateway'), 'Custom Gateway');
 });
 
+test('checkout displays WooCommerce field validation messages instead of generic parameter errors', () => {
+    assert.equal(checkout.apiErrorMessage({
+        code: 'rest_invalid_param', message: 'Invalid parameter(s): billing_address, shipping_address',
+        data: {
+            params: {
+                billing_address: 'The provided postcode / ZIP is not valid',
+                shipping_address: 'The provided postcode / ZIP is not valid'
+            },
+            details: {
+                billing_address: { code: 'invalid_postcode', message: 'The provided postcode / ZIP is not valid' },
+                shipping_address: { code: 'invalid_postcode', message: 'The provided postcode / ZIP is not valid' }
+            }
+        }
+    }), 'The provided postcode / ZIP is not valid');
+    assert.equal(checkout.apiErrorMessage({ data: { params: { email: 'Enter a valid email address.' } } }), 'Enter a valid email address.');
+});
+
 test('billing address supplies delivery address until another address is selected', () => {
     const fields = {
         billing_first_name: ' Ada ', billing_last_name: ' Lovelace ', billing_country: 'GB',
@@ -94,7 +111,7 @@ async function checkoutScenario(failureMode, exerciseOptions) {
     const form = node();
     const submit = node();
     const countryField = { ...node(), value: 'GB', getAttribute: () => JSON.stringify({
-        GB: { state: null, states: {} },
+        GB: { state: true, states: { 'GB-ENG': 'England', 'GB-NIR': 'Northern Ireland', 'GB-SCT': 'Scotland', 'GB-WLS': 'Wales' } },
         US: { state: true, states: { CA: 'California' } }
     }) };
     const stateInput = node();
@@ -193,6 +210,8 @@ async function checkoutScenario(failureMode, exerciseOptions) {
         Intl, Array, Object, Number, String, JSON, Math
     });
     assert.equal(stateRow.hidden, false);
+    assert.equal(stateSelect.required, true);
+    assert.equal(stateSelect.children[1].value, 'GB-ENG');
     countryField.value = 'US';
     countryField.handlers.change();
     assert.equal(stateSelect.required, true);

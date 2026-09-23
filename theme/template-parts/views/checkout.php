@@ -8,7 +8,9 @@ foreach (WC()->countries->get_shipping_countries() as $country_code => $country_
     $fields = WC()->countries->get_address_fields($country_code, 'billing_');
     $states = WC()->countries->get_states($country_code);
     $checkout_country_fields[$country_code] = array(
-        'state'    => !empty($fields['billing_state']) && empty($fields['billing_state']['hidden']) ? !empty($fields['billing_state']['required']) : null,
+        // Some delivery countries, including the UK, provide a curated region list
+        // even when WooCommerce does not make its default state field visible.
+        'state'    => !empty($states) ? true : (!empty($fields['billing_state']) && empty($fields['billing_state']['hidden']) ? !empty($fields['billing_state']['required']) : null),
         'states'   => is_array($states) ? $states : array(),
     );
 }

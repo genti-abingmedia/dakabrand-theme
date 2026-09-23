@@ -22,6 +22,13 @@ test('shared cart summary handles a single currency and mixed currencies', () =>
     assert.deepEqual(cart.cartSummary([simple, { ...usd, currency: 'GBP' }]), { count: 3, total: 189, currency: null });
 });
 
+test('retains and identifies a discounted unit price for drawer rendering', () => {
+    const discounted = cart.normalizeCart([{ ...simple, unitPrice: 80, regularPrice: 100 }])[0];
+    assert.equal(discounted.regularPrice, 100);
+    assert.equal(cart.hasDiscount(discounted), true);
+    assert.equal(cart.hasDiscount({ ...discounted, regularPrice: 80 }), false);
+});
+
 test('same variation and options merge, distinct options have distinct keys', () => {
     const red = { ...simple, productId: 20, variationId: 101, attributes: { attribute_pa_color: 'red' } };
     const blue = { ...red, attributes: { attribute_pa_color: 'blue' } };

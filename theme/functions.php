@@ -235,6 +235,12 @@ add_filter('woocommerce_continents', 'staticbridge_add_kosovo_to_europe');
 function staticbridge_delivery_cities(array $states): array
 {
     $cities = array(
+        'GB' => array(
+            'GB-ENG' => 'England',
+            'GB-NIR' => 'Northern Ireland',
+            'GB-SCT' => 'Scotland',
+            'GB-WLS' => 'Wales',
+        ),
         'XK' => array(
             'XK-20' => 'Artanë', 'XK-21' => 'Deçan', 'XK-22' => 'Dragash', 'XK-23' => 'Drenas', 'XK-24' => 'Fushë Kosovë', 'XK-25' => 'Ferizaj', 'XK-26' => 'Gjilan', 'XK-27' => 'Gjakovë', 'XK-28' => 'Graçanicë', 'XK-29' => 'Hani I Elezit', 'XK-30' => 'Istog', 'XK-31' => 'Junik', 'XK-32' => 'Kaçanik', 'XK-33' => 'Klinë', 'XK-34' => 'Kamenicë', 'XK-35' => 'Kllokot', 'XK-36' => 'Leposaviq', 'XK-37' => 'Lipjan', 'XK-38' => 'Malishevë', 'XK-39' => 'Mamushë', 'XK-40' => 'Mitrovica Veriore', 'XK-41' => 'Mitrovicë', 'XK-42' => 'Novobërdë', 'XK-43' => 'Obiliq', 'XK-44' => 'Podujevë', 'XK-45' => 'Pejë', 'XK-46' => 'Prishtinë', 'XK-47' => 'Partesh', 'XK-48' => 'Prizren', 'XK-49' => 'Ranillug', 'XK-50' => 'Rahovec', 'XK-51' => 'Shtërpcë', 'XK-52' => 'Skënderaj', 'XK-53' => 'Shtime', 'XK-54' => 'Suharekë', 'XK-55' => 'Viti', 'XK-56' => 'Vushtrri', 'XK-57' => 'Zubin Potok', 'XK-58' => 'Zveçan',
         ),

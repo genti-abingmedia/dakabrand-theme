@@ -33,6 +33,10 @@ function staticbridge_product_data(WC_Product $product): array
 {
     $variations = array();
     $options = array();
+    // The product and drawer are rendered from this payload rather than a
+    // WooCommerce cart session. Apply the same rule price used by the shop so
+    // an item added from either surface carries its discounted unit price.
+    $effective_price = staticbridge_discount_rule_price($product);
     $plain_price = static function ($amount): string {
         return html_entity_decode(wp_strip_all_tags(wc_price($amount)), ENT_QUOTES, get_bloginfo('charset'));
     };
@@ -67,12 +71,15 @@ function staticbridge_product_data(WC_Product $product): array
                 continue;
             }
 
+            $variation_effective_price = staticbridge_discount_rule_price($variation);
+            $variation_regular_price = $variation->get_regular_price();
+
             $variations[] = array(
                 'variation_id' => $variation->get_id(),
                 'attributes'   => $variation->get_variation_attributes(),
-                'price'        => $variation->get_price(),
-                'regular_price'=> $variation->get_regular_price(),
-                'sale_price'   => $variation->get_sale_price(),
+                'price'        => $variation_effective_price,
+                'regular_price'=> $variation_regular_price,
+                'sale_price'   => (float) $variation_effective_price < (float) $variation_regular_price ? $variation_effective_price : $variation->get_sale_price(),
                 'price_html'   => wp_kses_post($variation->get_price_html()),
                 'stock_status' => $variation->get_stock_status(),
                 'purchasable'  => $variation->is_purchasable(),
@@ -91,9 +98,9 @@ function staticbridge_product_data(WC_Product $product): array
         'slug'         => $product->get_slug(),
         'sku'          => $product->get_sku(),
         'type'         => $product->get_type(),
-        'price'        => $product->get_price(),
+        'price'        => $effective_price,
         'regular_price'=> $product->get_regular_price(),
-        'sale_price'   => $product->get_sale_price(),
+        'sale_price'   => (float) $effective_price < (float) $product->get_regular_price() ? $effective_price : $product->get_sale_price(),
         'stock_status' => $product->get_stock_status(),
         'purchasable'  => $product->is_purchasable(),
         'options'      => $options,

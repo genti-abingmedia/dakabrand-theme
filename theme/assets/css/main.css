@@ -932,6 +932,8 @@ body.has-product-lightbox { overflow: hidden; }
 .cart-item__title { color: var(--brand-black); font-size: .9rem; font-weight: 600; line-height: 1.35; text-decoration: none; }
 .cart-item__option { color: var(--brand-muted); font-size: .76rem; }
 .cart-item__price { font-size: .86rem; font-weight: 600; }
+.cart-item__price del { color: var(--brand-muted); font-weight: 400; margin-right: .35rem; }
+.cart-item__price ins { color: var(--brand-black); text-decoration: none; }
 .cart-item__controls { display: flex; align-items: center; margin-top: .35rem; overflow: hidden; border: 1px solid var(--brand-line); border-radius: var(--control-radius); }
 .cart-item__controls button { width: 2rem; height: 2rem; background: transparent; border: 0; }
 .cart-item__controls button:disabled { opacity: .35; }
