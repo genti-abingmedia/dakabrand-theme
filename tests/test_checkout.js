@@ -182,13 +182,13 @@ async function checkoutScenario(failureMode, exerciseOptions) {
             : path === 'cart/select-shipping-rate' ? cart(rates(true))
             : path === 'cart/apply-coupon' ? { ...cart(rates(true)), coupons: [{ code: 'SAVE20' }], totals: { ...totals, total_discount: '200', total_price: '1000' } }
             : { order_id: 123, order_number: 'DB123', status: 'processing', payment_result: { payment_status: 'success' } };
-        return { ok: true, headers: { get: name => name === 'Cart-Token' ? 'guest-token' : null }, json: async () => body };
+        return { ok: true, headers: { get: name => name === 'Cart-Token' ? 'guest-token' : name === 'Nonce' ? 'refreshed-store-api-nonce' : null }, json: async () => body };
     };
     const source = fs.readFileSync('theme/assets/js/checkout.js', 'utf8');
     vm.runInNewContext(source, {
         document, localStorage, fetch, FormData: class { constructor() {} get(name) { return fields[name] || ''; } },
         CustomEvent: class { constructor(type) { this.type = type; } },
-        window: { StaticBridgeConfig: { apiBase: '/api/' }, addEventListener() {} },
+        window: { StaticBridgeConfig: { apiBase: '/api/', storeApiNonce: 'store-api-nonce' }, addEventListener() {} },
         setTimeout: callback => global.setTimeout(callback, 0), clearTimeout: global.clearTimeout,
         Intl, Array, Object, Number, String, JSON, Math
     });
@@ -207,6 +207,7 @@ async function checkoutScenario(failureMode, exerciseOptions) {
         return;
     }
     assert.deepEqual(calls.map(call => call.path), ['cart', 'cart/add-item', 'cart/update-customer']);
+    assert.equal(calls[1].options.headers.Nonce, 'refreshed-store-api-nonce');
     assert.equal(calls[1].options.headers['Cart-Token'], 'guest-token');
     assert.equal(submit.disabled, true);
     assert.notEqual(storage.staticbridge_cart_v1, '[]');

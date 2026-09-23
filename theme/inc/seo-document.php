@@ -265,7 +265,7 @@ function staticbridge_render_document_scripts(): void
     $view = staticbridge_document_view();
     $catalog = 'product-archive' === $view || in_array($view, array('man', 'woman', 'product'), true) || is_post_type_archive('product') || is_tax('product_cat') || (function_exists('is_shop') && is_shop());
     $config = array(
-        'renderApiVersion' => STATICBRIDGE_RENDER_API_VERSION, 'apiBase' => (string) apply_filters('staticbridge_api_base', 'local' === wp_get_environment_type() ? '/wp-json/' : '/api/'),
+        'renderApiVersion' => STATICBRIDGE_RENDER_API_VERSION, 'apiBase' => (string) apply_filters('staticbridge_api_base', 'local' === wp_get_environment_type() ? '/wp-json/' : '/api/'), 'storeApiNonce' => wp_create_nonce('wc_store_api'),
         'cartStorageKey' => 'staticbridge_cart_v1', 'stockModeStorageKey' => 'staticbridge_stock_mode_v1',
         'cartUrl' => home_url('/cart/'), 'shopUrl' => home_url('/shop/'), 'whatsappNumber' => staticbridge_whatsapp_number(), 'locale' => staticbridge_requested_locale(), 'languageStorageKey' => 'staticbridge_language_v1',
         'languageCatalogues' => array('sq_AL' => staticbridge_language_messages('sq_AL')), 'messages' => staticbridge_frontend_messages(),

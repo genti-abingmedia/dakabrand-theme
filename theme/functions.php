@@ -856,6 +856,7 @@ function staticbridge_enqueue_assets(): void
         'renderApiVersion' => STATICBRIDGE_RENDER_API_VERSION,
         'apiBase'          => (string) apply_filters('staticbridge_api_base',
             'local' === wp_get_environment_type() ? '/wp-json/' : '/api/'),
+        'storeApiNonce'    => wp_create_nonce('wc_store_api'),
         'cartStorageKey'   => 'staticbridge_cart_v1',
         'stockModeStorageKey' => 'staticbridge_stock_mode_v1',
         'cartUrl'          => home_url('/cart/'),
