@@ -67,7 +67,7 @@ The same-origin proxy must expose `GET /api/wc/store/v1/products/{id}`,
 `GET /api/wc/store/v1/cart`, and `POST` for `cart/add-item`,
 `cart/update-customer`, `cart/select-shipping-rate`, `cart/apply-coupon`,
 `cart/remove-coupon`, and `checkout`. Preserve
-`Cart-Token` and `Nonce` request and response headers. Never cache cart or checkout
+`Cart-Token` request and response headers. Never cache cart or checkout
 responses. Keep the theme's `staticbridge_remittance` gateway available in
 WooCommerce. The theme defaults to `/api/`
 in production and `/wp-json/` in the local Docker environment. Override the

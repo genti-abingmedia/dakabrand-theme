@@ -142,7 +142,6 @@
     var paymentNote = root.querySelector('[data-checkout-payment-note]');
     var summary = root.querySelector('[data-checkout-page-summary]');
     var token = '';
-    var nonce = String(config.storeApiNonce || '');
     var cart = null;
     var syncedSignature = '';
     var addressSignature = '';
@@ -274,10 +273,6 @@
     async function request(path, method, body) {
         var headers = { Accept: 'application/json' };
         if (body !== undefined) headers['Content-Type'] = 'application/json';
-        // A Cart-Token authorizes guest Store API requests after the initial
-        // cart response. The proxy may not expose that response header, so
-        // always provide the same-origin Store API nonce as a fallback.
-        if (nonce) headers.Nonce = nonce;
         if (token) headers['Cart-Token'] = token;
         var response = await fetch((config.apiBase || '/api/').replace(/\/?$/, '/') + 'wc/store/v1/' + path, {
             method: method || 'GET', headers: headers, body: body === undefined ? undefined : JSON.stringify(body),
@@ -285,9 +280,7 @@
         });
         var result = await response.json().catch(function () { return {}; });
         var nextToken = response.headers.get('Cart-Token');
-        var nextNonce = response.headers.get('Nonce');
         if (nextToken) token = nextToken;
-        if (nextNonce) nonce = nextNonce;
         if (!response.ok) {
             var error = new Error(result.message || 'The store could not complete this request.');
             error.status = response.status;

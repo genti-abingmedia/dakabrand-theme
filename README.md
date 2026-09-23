@@ -42,7 +42,7 @@ validates an add or quantity increase. Checkout uses a fresh Cart-Token to add
 the saved lines, calculate shipping and totals, and place a guest order through
 the theme's Western Union / MoneyGram / Ria remittance gateway. The backend
 must proxy the Store API paths listed
-in `theme/README.md`, preserve Cart-Token and Nonce headers, and disable caching of cart
+in `theme/README.md`, preserve Cart-Token headers, and disable caching of cart
 and checkout responses. The local Docker site uses the same-origin
 `/wp-json/` Store API route for development.
 
