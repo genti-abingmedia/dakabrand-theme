@@ -337,9 +337,9 @@
         var imageUrl = validUrl(product.product_image, false);
         if (imageUrl) {
             var image = element('img');
-            var resizeBase = 'https://img.gliterin.net/resize.php?image=' + encodeURIComponent(imageUrl);
-            image.src = resizeBase + '&width=480&height=480';
-            image.srcset = resizeBase + '&width=300&height=300 300w, ' + resizeBase + '&width=480&height=480 480w';
+            image.src = window.StaticBridgeImages.resizeUrl(imageUrl, 480, 480);
+            image.srcset = window.StaticBridgeImages.resizeUrl(imageUrl, 300, 300) + ' 300w, ' +
+                window.StaticBridgeImages.resizeUrl(imageUrl, 480, 480) + ' 480w';
             image.sizes = '(max-width: 700px) 48vw, (max-width: 1200px) 30vw, 23vw';
             image.addEventListener('error', function () {
                 if (image.dataset.originalImageTried === 'true') {
@@ -378,7 +378,7 @@
             whatsapp.title = message('contactWhatsApp', 'Contact on WhatsApp');
             whatsapp.setAttribute('aria-label', format(message('contactWhatsAppAbout', 'Contact on WhatsApp about %s'), String(product.name || message('thisProduct', 'this product'))));
             var whatsappIcon = element('img');
-            whatsappIcon.src = 'https://static.gliterin.net/filter/whatsapp-logo.png';
+            whatsappIcon.src = window.StaticBridgeImages.resizeUrl('https://static.gliterin.net/filter/whatsapp-logo.png', 32, 32);
             whatsappIcon.alt = '';
             whatsappIcon.width = 32;
             whatsappIcon.height = 32;
@@ -420,7 +420,7 @@
         link.href = href;
         if (imageUrl) {
             var image = element('img');
-            image.src = imageUrl;
+            image.src = window.StaticBridgeImages.resizeUrl(imageUrl, 300, 300);
             image.alt = String(product.name || '');
             image.width = 300;
             image.height = 300;
@@ -479,7 +479,7 @@
         imageLink.setAttribute('aria-label', String(product.name || message('viewProduct', 'View product')));
         if (imageUrl) {
             var image = element('img');
-            image.src = imageUrl;
+            image.src = window.StaticBridgeImages.resizeUrl(imageUrl, 300, 300);
             image.alt = String(product.name || '');
             image.width = 300;
             image.height = 300;
@@ -507,7 +507,7 @@
             whatsapp.title = message('contactWhatsApp', 'Contact on WhatsApp');
             whatsapp.setAttribute('aria-label', format(message('contactWhatsAppAbout', 'Contact on WhatsApp about %s'), String(product.name || message('thisProduct', 'this product'))));
             var icon = element('img');
-            icon.src = 'https://static.gliterin.net/filter/whatsapp-logo.png';
+            icon.src = window.StaticBridgeImages.resizeUrl('https://static.gliterin.net/filter/whatsapp-logo.png', 32, 32);
             icon.alt = '';
             icon.width = 32;
             icon.height = 32;

@@ -151,7 +151,9 @@ function staticbridge_seo_document(): array
         'canonical' => staticbridge_seo_public_url((string) $canonical),
         'robots' => $indexable ? 'index,follow' : 'noindex,follow',
         'indexable' => $indexable,
-        'image' => staticbridge_seo_public_url($image),
+        'image' => staticbridge_resize_image_url(staticbridge_seo_public_url($image),
+            $image === get_template_directory_uri() . '/assets/images/dakabrand-logo.png' ? 172 : 1200,
+            $image === get_template_directory_uri() . '/assets/images/dakabrand-logo.png' ? 84 : 1200),
         'type' => $type,
         'breadcrumbs' => staticbridge_seo_breadcrumbs(),
     );
@@ -163,7 +165,7 @@ function staticbridge_seo_jsonld(array $seo): array
     $organization_id = $site_url . '#organization';
     $website_id = $site_url . '#website';
     $graph = array(
-        array('@type' => 'Organization', '@id' => $organization_id, 'name' => get_bloginfo('name'), 'url' => $site_url, 'logo' => staticbridge_document_asset_url('assets/images/dakabrand-logo.png')),
+        array('@type' => 'Organization', '@id' => $organization_id, 'name' => get_bloginfo('name'), 'url' => $site_url, 'logo' => staticbridge_resize_image_url(get_template_directory_uri() . '/assets/images/dakabrand-logo.png', 172, 84)),
         array('@type' => 'WebSite', '@id' => $website_id, 'url' => $site_url, 'name' => get_bloginfo('name'), 'publisher' => array('@id' => $organization_id)),
     );
 

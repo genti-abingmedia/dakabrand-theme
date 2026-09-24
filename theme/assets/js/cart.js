@@ -233,7 +233,7 @@
         if (href) title.href = href;
         if (imageUrl) {
             var image = element('img', 'cart-item__image');
-            image.src = imageUrl;
+            image.src = window.StaticBridgeImages.resizeUrl(imageUrl, 176, 210);
             image.alt = '';
             image.width = 88;
             image.height = 105;

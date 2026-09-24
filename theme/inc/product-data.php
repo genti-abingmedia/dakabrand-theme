@@ -91,7 +91,7 @@ function staticbridge_product_data(WC_Product $product): array
         'product_id'   => $product->get_id(),
         'name'         => $product->get_name(),
         'permalink'    => get_permalink($product->get_id()),
-        'image'        => wp_get_attachment_image_url($product->get_image_id(), 'woocommerce_thumbnail') ?: wc_placeholder_img_src(),
+        'image'        => wp_get_attachment_url($product->get_image_id()) ?: wc_placeholder_img_src(),
         'category'     => wp_strip_all_tags(wc_get_product_category_list($product->get_id(), ', ')),
         'price_text'   => $price_text,
         'currency'     => get_woocommerce_currency(),

@@ -27,8 +27,8 @@ $woman_collections = array(
 
     <section class="woman-hero man-hero" aria-labelledby="woman-hero-title">
         <picture class="man-hero__media">
-            <source media="(max-width: 767.98px)" srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/home-woman.jpg'); ?>">
-            <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/woman-hero-desktop.jpg'); ?>" width="2480" height="1062" alt="" fetchpriority="high">
+            <source media="(max-width: 767.98px)" srcset="<?php echo esc_url(staticbridge_resize_image_url(get_template_directory_uri() . '/assets/images/home-woman.jpg', 1163, 1236)); ?>">
+            <img src="<?php echo esc_url(staticbridge_resize_image_url(get_template_directory_uri() . '/assets/images/woman-hero-desktop.jpg', 1600, 685)); ?>" width="2480" height="1062" alt="" fetchpriority="high">
         </picture>
         <div class="man-hero__content">
             <p id="woman-hero-title"><?php esc_html_e('Woman', 'dakabrand'); ?></p>
@@ -46,12 +46,12 @@ $woman_collections = array(
         <?php if ('deals' === $collection_key) : ?>
             <section class="woman-editorials man-editorials" aria-label="<?php esc_attr_e('Featured women collections', 'dakabrand'); ?>">
                 <a class="woman-editorial man-editorial man-editorial--preorder" href="<?php echo esc_url(home_url('/product-category/women/?stock_status=onbackorder%3Aonbackorder')); ?>">
-                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/woman-editorial-primary.jpg'); ?>" width="1237" height="1190" alt="" loading="lazy">
+                    <img src="<?php echo esc_url(staticbridge_resize_image_url(get_template_directory_uri() . '/assets/images/woman-editorial-primary.jpg', 620, 596)); ?>" width="1237" height="1190" alt="" loading="lazy">
                     <span><?php esc_html_e('Preorder Only', 'dakabrand'); ?></span>
                     <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14M14 6l6 6-6 6"/></svg>
                 </a>
                 <a class="woman-editorial man-editorial" href="<?php echo esc_url(home_url('/product-category/women/')); ?>">
-                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/woman-editorial-secondary.jpg'); ?>" width="1237" height="1189" alt="" loading="lazy">
+                    <img src="<?php echo esc_url(staticbridge_resize_image_url(get_template_directory_uri() . '/assets/images/woman-editorial-secondary.jpg', 620, 596)); ?>" width="1237" height="1189" alt="" loading="lazy">
                     <span><?php esc_html_e('Season Essentials', 'dakabrand'); ?></span>
                     <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14M14 6l6 6-6 6"/></svg>
                 </a>

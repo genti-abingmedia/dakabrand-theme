@@ -334,7 +334,7 @@
 
     function itemImageUrl(item) {
         var image = Array.isArray(item.images) ? item.images[0] : null;
-        return image ? safeImageUrl(image.thumbnail || image.src || image.url) : '';
+        return image ? safeImageUrl(image.src || image.url || image.thumbnail) : '';
     }
 
     function renderItems(current) {
@@ -352,7 +352,7 @@
             });
             if (imageUrl) {
                 var image = element('img', 'checkout-order__item-image');
-                image.src = imageUrl;
+                image.src = window.StaticBridgeImages.resizeUrl(imageUrl, 112, 134);
                 image.alt = '';
                 image.width = 56;
                 image.height = 67;

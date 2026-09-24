@@ -4,6 +4,17 @@
     var config = window.StaticBridgeConfig || {};
     var messages = config.messages || {};
 
+    window.StaticBridgeImages = {
+        resizeUrl: function (url, width, height) {
+            if (!/^https?:\/\//i.test(String(url || '')) || !width) return url;
+            try {
+                if (new URL(url).hostname === 'img.gliterin.net') return url;
+            } catch (error) { return url; }
+            return 'https://img.gliterin.net/resize.php?image=' + encodeURIComponent(url) +
+                '&width=' + width + '&height=' + (height || width);
+        }
+    };
+
     function message(key, fallback) {
         return messages[key] || fallback;
     }
@@ -20,7 +31,30 @@
 
         document.addEventListener('error', function (event) {
             var image = event.target;
-            if (!image || image.tagName !== 'IMG' || (image.closest && image.closest(managedImages))) return;
+            if (!image || image.tagName !== 'IMG') return;
+            try {
+                var current = new URL(image.currentSrc || image.src);
+                if (current.hostname === 'img.gliterin.net' && current.pathname === '/resize.php') {
+                    var original = (image.dataset && image.dataset.originalImage) || current.searchParams.get('image');
+                    if (original && /^https?:\/\//i.test(original)) {
+                        if (image.dataset) image.dataset.originalImageTried = 'true';
+                        image.removeAttribute('srcset');
+                        if (image.parentNode && image.parentNode.tagName === 'PICTURE') {
+                            image.parentNode.querySelectorAll('source').forEach(function (source) {
+                                try {
+                                    var sourceUrl = new URL(source.srcset);
+                                    var sourceOriginal = sourceUrl.searchParams.get('image');
+                                    if (sourceOriginal) source.srcset = sourceOriginal;
+                                } catch (error) { /* Keep the source unchanged. */ }
+                            });
+                        }
+                        image.src = original;
+                        event.stopImmediatePropagation();
+                        return;
+                    }
+                }
+            } catch (error) { /* Use the normal broken image state. */ }
+            if (image.closest && image.closest(managedImages)) return;
             if (image.dataset && image.dataset.fallbackApplied === 'true') return;
 
             var container = image.closest ? image.closest(themedContainers) : null;

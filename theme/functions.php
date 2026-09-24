@@ -21,6 +21,53 @@ function staticbridge_force_https_theme_directory_uri(string $uri): string
 
 add_filter('template_directory_uri', 'staticbridge_force_https_theme_directory_uri');
 
+/** Build the same image resize URL used by the catalog cards. */
+function staticbridge_resize_image_url(string $url, int $width, int $height = 0): string
+{
+    $url = trim($url);
+    $scheme = wp_parse_url($url, PHP_URL_SCHEME);
+    if (!in_array($scheme, array('http', 'https'), true) || $width < 1) {
+        return $url;
+    }
+    if ('img.gliterin.net' === wp_parse_url($url, PHP_URL_HOST)) {
+        return $url;
+    }
+
+    $query = array('image' => $url, 'width' => $width, 'height' => $height > 0 ? $height : $width);
+    return 'https://img.gliterin.net/resize.php?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+}
+
+/** Keep the aspect ratio of full-size product photos when requesting a resize. */
+function staticbridge_resized_attachment_url(int $attachment_id, int $width): string
+{
+    $source = wp_get_attachment_image_src($attachment_id, 'full');
+    if (!$source) {
+        return '';
+    }
+    $height = !empty($source[1]) && !empty($source[2])
+        ? max(1, (int) round($width * $source[2] / $source[1]))
+        : $width;
+    return staticbridge_resize_image_url((string) wp_get_attachment_url($attachment_id), $width, $height);
+}
+
+/** Resize attachment images while retaining their original URL as a fallback. */
+function staticbridge_resize_attachment_image_attributes(array $attributes, WP_Post $attachment): array
+{
+    $original = wp_get_attachment_url($attachment->ID);
+    if (!$original || empty($attributes['src'])) {
+        return $attributes;
+    }
+    $width = max(1, (int) ($attributes['width'] ?? 480));
+    $height = max(1, (int) ($attributes['height'] ?? $width));
+    $attributes['src'] = staticbridge_resize_image_url($original, $width, $height);
+    $attributes['srcset'] = staticbridge_resize_image_url($original, $width, $height) . ' ' . $width . 'w, '
+        . staticbridge_resize_image_url($original, $width * 2, $height * 2) . ' ' . ($width * 2) . 'w';
+    $attributes['sizes'] = '(max-width: ' . $width . 'px) 100vw, ' . $width . 'px';
+    $attributes['data-original-image'] = $original;
+    return $attributes;
+}
+add_filter('wp_get_attachment_image_attributes', 'staticbridge_resize_attachment_image_attributes', 10, 2);
+
 /**
  * The storefront UI is available in English and Albanian without requiring a
  * multilingual-content plugin. Content entered in WordPress remains shared.

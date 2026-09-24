@@ -65,7 +65,7 @@ $share_title = rawurlencode($product->get_name());
           <?php if ($image_ids) : ?>
             <?php echo wp_get_attachment_image($image_ids[0], 'woocommerce_single', false, array('class' => 'product-gallery__main', 'data-gallery-main' => '', 'fetchpriority' => 'high', 'decoding' => 'sync', 'alt' => $product->get_name())); ?>
           <?php else : ?>
-            <img class="product-gallery__main is-image-error" data-gallery-main data-image-fallback="true" src="<?php echo esc_url(wc_placeholder_img_src()); ?>" alt="<?php echo esc_attr($product->get_name()); ?>">
+            <img class="product-gallery__main is-image-error" data-gallery-main data-image-fallback="true" src="<?php echo esc_url(staticbridge_resize_image_url(wc_placeholder_img_src(), 960, 960)); ?>" alt="<?php echo esc_attr($product->get_name()); ?>">
           <?php endif; ?>
           <?php if (count($image_ids) > 1) : ?>
             <button type="button" class="product-gallery__arrow product-gallery__arrow--prev" data-gallery-prev aria-label="<?php esc_attr_e('Previous image', 'dakabrand'); ?>"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 5-7 7 7 7"/></svg></button>
@@ -80,8 +80,8 @@ $share_title = rawurlencode($product->get_name());
           <div class="product-gallery__thumbs" aria-label="<?php esc_attr_e('Choose product image', 'dakabrand'); ?>">
             <?php foreach ($image_ids as $index => $image_id) : ?>
               <button type="button" class="product-gallery__thumb<?php echo 0 === $index ? ' is-active' : ''; ?>" data-gallery-thumb
-                data-image-src="<?php echo esc_url(wp_get_attachment_image_url($image_id, 'woocommerce_single')); ?>"
-                data-image-srcset="<?php echo esc_attr((string) wp_get_attachment_image_srcset($image_id, 'woocommerce_single')); ?>"
+                data-image-src="<?php echo esc_url(staticbridge_resized_attachment_url($image_id, 960)); ?>"
+                data-image-srcset="<?php echo esc_attr(staticbridge_resized_attachment_url($image_id, 960) . ' 960w, ' . staticbridge_resized_attachment_url($image_id, 1600) . ' 1600w'); ?>"
                 data-image-alt="<?php echo esc_attr(sprintf(__('%1$s — view %2$d', 'dakabrand'), $product->get_name(), $index + 1)); ?>"
                 aria-label="<?php echo esc_attr(sprintf(__('Show image %1$d of %2$d', 'dakabrand'), $index + 1, count($image_ids))); ?>"
                 aria-pressed="<?php echo 0 === $index ? 'true' : 'false'; ?>">
@@ -97,11 +97,11 @@ $share_title = rawurlencode($product->get_name());
               <button type="button" class="product-lightbox__arrow product-lightbox__arrow--prev" data-lightbox-prev aria-label="<?php esc_attr_e('Previous image', 'dakabrand'); ?>"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 5-7 7 7 7"/></svg></button>
               <button type="button" class="product-lightbox__arrow product-lightbox__arrow--next" data-lightbox-next aria-label="<?php esc_attr_e('Next image', 'dakabrand'); ?>"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 5 7 7-7 7"/></svg></button>
             <?php endif; ?>
-            <img class="product-lightbox__image" data-lightbox-main src="<?php echo esc_url(wp_get_attachment_image_url($image_ids[0], 'full')); ?>" alt="<?php echo esc_attr($product->get_name()); ?>">
+            <img class="product-lightbox__image" data-lightbox-main src="<?php echo esc_url(staticbridge_resized_attachment_url($image_ids[0], 1600)); ?>" alt="<?php echo esc_attr($product->get_name()); ?>">
             <?php if (count($image_ids) > 1) : ?>
               <div class="product-lightbox__thumbs" aria-label="<?php esc_attr_e('Choose product image', 'dakabrand'); ?>">
                 <?php foreach ($image_ids as $index => $image_id) : ?>
-                  <button type="button" class="product-lightbox__thumb<?php echo 0 === $index ? ' is-active' : ''; ?>" data-lightbox-thumb data-image-src="<?php echo esc_url(wp_get_attachment_image_url($image_id, 'full')); ?>" data-image-srcset="<?php echo esc_attr((string) wp_get_attachment_image_srcset($image_id, 'full')); ?>" data-image-alt="<?php echo esc_attr(sprintf(__('%1$s — view %2$d', 'dakabrand'), $product->get_name(), $index + 1)); ?>" aria-label="<?php echo esc_attr(sprintf(__('Show image %1$d of %2$d', 'dakabrand'), $index + 1, count($image_ids))); ?>" aria-pressed="<?php echo 0 === $index ? 'true' : 'false'; ?>"><?php echo wp_get_attachment_image($image_id, 'woocommerce_thumbnail', false, array('alt' => '', 'loading' => 'lazy')); ?></button>
+                  <button type="button" class="product-lightbox__thumb<?php echo 0 === $index ? ' is-active' : ''; ?>" data-lightbox-thumb data-image-src="<?php echo esc_url(staticbridge_resized_attachment_url($image_id, 1600)); ?>" data-image-alt="<?php echo esc_attr(sprintf(__('%1$s — view %2$d', 'dakabrand'), $product->get_name(), $index + 1)); ?>" aria-label="<?php echo esc_attr(sprintf(__('Show image %1$d of %2$d', 'dakabrand'), $index + 1, count($image_ids))); ?>" aria-pressed="<?php echo 0 === $index ? 'true' : 'false'; ?>"><?php echo wp_get_attachment_image($image_id, 'woocommerce_thumbnail', false, array('alt' => '', 'loading' => 'lazy')); ?></button>
                 <?php endforeach; ?>
               </div>
             <?php endif; ?>

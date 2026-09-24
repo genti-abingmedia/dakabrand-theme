@@ -37,7 +37,7 @@ $home_sections = array(
     <?php foreach ($home_sections as $section) : ?>
         <section id="home-<?php echo esc_attr($section['key']); ?>" class="home-gateway__panel home-gateway__panel--<?php echo esc_attr($section['key']); ?>" aria-labelledby="home-<?php echo esc_attr($section['key']); ?>-title" data-gateway-panel>
             <a class="home-gateway__image-link" href="<?php echo esc_url($section['landing']); ?>" aria-label="<?php echo esc_attr(sprintf(__('Shop %s', 'dakabrand'), $section['label'])); ?>" data-stock-mode="available">
-                <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/' . $section['image']); ?>" alt="" width="1163" height="1236" fetchpriority="high">
+                <img src="<?php echo esc_url(staticbridge_resize_image_url(get_template_directory_uri() . '/assets/images/' . $section['image'], 1163, 1236)); ?>" alt="" width="1163" height="1236" fetchpriority="high">
             </a>
             <h2 class="screen-reader-text" id="home-<?php echo esc_attr($section['key']); ?>-title"><?php echo esc_html($section['label']); ?></h2>
 
