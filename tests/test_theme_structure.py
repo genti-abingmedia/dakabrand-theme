@@ -214,6 +214,16 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("data.payment_method = selectedPaymentMethod()", script)
         self.assertIn("$this->id = 'staticbridge_remittance'", gateway)
 
+    def test_cash_on_delivery_is_limited_to_albanian_shipping_addresses(self) -> None:
+        gateway = self.read("inc/remittance-gateway.php")
+
+        self.assertIn("function staticbridge_limit_cash_on_delivery_to_albania", gateway)
+        self.assertIn("get_shipping_country()", gateway)
+        self.assertIn("get_shipping_address_1()", gateway)
+        self.assertIn("'' !== trim($shipping_address) && 'AL' !== strtoupper(trim($shipping_country))", gateway)
+        self.assertIn("unset($available_gateways['cod'])", gateway)
+        self.assertIn("woocommerce_available_payment_gateways", gateway)
+
     def test_shell_has_no_minimog_or_elementor_runtime_dependency(self) -> None:
         shell = "\n".join((self.read("header.php"), self.read("footer.php"), self.read("functions.php")))
 
