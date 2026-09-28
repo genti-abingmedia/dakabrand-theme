@@ -254,7 +254,7 @@ function staticbridge_render_document_assets(): void
 {
     $view = staticbridge_document_view();
     $catalog = 'product-archive' === $view || in_array($view, array('man', 'woman', 'product'), true) || is_post_type_archive('product') || is_tax('product_cat') || (function_exists('is_shop') && is_shop());
-    foreach (array('assets/vendor/bootstrap/bootstrap.min.css', 'assets/css/main.css', 'assets/css/video-popup.css') as $asset) {
+    foreach (array('assets/vendor/bootstrap/bootstrap.min.css', 'assets/css/main.css') as $asset) {
         printf("<link rel=\"stylesheet\" href=\"%s\">\n", esc_url(staticbridge_document_asset_url($asset)));
     }
     if ($catalog) {
@@ -279,9 +279,7 @@ function staticbridge_render_document_scripts(): void
     foreach (array('assets/vendor/bootstrap/bootstrap.bundle.min.js', 'assets/js/order-attribution.js', 'assets/js/main.js') as $asset) {
         printf("<script defer src=\"%s\"></script>\n", esc_url(staticbridge_document_asset_url($asset)));
     }
-    $video_config = array('videoUrl' => (string) apply_filters('staticbridge_video_popup_url', 'https://dakabrand.uk/wp-content/uploads/2026/09/dakabrand_backtoschool.mp4'), 'storageKey' => 'daka_back_to_school_popup', 'maxShowsPerDay' => 2, 'hoursBetweenShows' => 5, 'showDelay' => 1000, 'dialogLabel' => __('Daka Outlet Back to School', 'dakabrand'), 'closeLabel' => __('Close video popup', 'dakabrand'));
-    printf("<script>window.StaticBridgeVideoPopup=%s;</script>\n", wp_json_encode($video_config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT));
-    foreach (array('assets/js/video-popup.js', 'assets/js/cart.js') as $asset) {
+    foreach (array('assets/js/cart.js') as $asset) {
         printf("<script defer src=\"%s\"></script>\n", esc_url(staticbridge_document_asset_url($asset)));
     }
     if ($catalog) {
