@@ -1005,8 +1005,6 @@ body.has-product-lightbox { overflow: hidden; }
 .checkout-order__tools button + button { border-left: 1px solid var(--brand-line); }
 .checkout-order__tools button:hover, .checkout-order__tools button:focus-visible { background: var(--brand-soft); }
 .checkout-order__tools button svg { width: 1.35rem; height: 1.35rem; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.checkout-order__coupon { display: flex; justify-content: space-between; gap: 1rem; padding: .55rem 0; color: #168247; font-size: .82rem; }
-.checkout-order__coupon button { padding: 0; color: inherit; background: none; border: 0; cursor: pointer; text-decoration: underline; }
 .checkout-dialog { width: min(31.25rem,calc(100% - 2rem)); max-height: calc(100% - 2rem); padding: 0; overflow: visible; border: 0; border-radius: var(--media-radius); box-shadow: 0 1.5rem 4rem #0003; }
 .checkout-dialog::backdrop { background: #0009; }
 .checkout-dialog__content { display: grid; gap: 1.2rem; padding: 2rem; }

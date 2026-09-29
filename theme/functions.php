@@ -8,6 +8,21 @@ define('STATICBRIDGE_THEME_VERSION', '0.2.0');
 define('STATICBRIDGE_RENDER_API_VERSION', '1.0');
 define('STATICBRIDGE_BOOTSTRAP_VERSION', '5.3.8');
 
+/** Disable WooCommerce coupons and remove coupon administration controls. */
+add_filter('woocommerce_coupons_enabled', '__return_false');
+
+function staticbridge_hide_coupon_setting(array $settings, $current_section): array
+{
+    foreach ($settings as $index => $setting) {
+        if (isset($setting['id']) && 'woocommerce_enable_coupons' === $setting['id']) {
+            unset($settings[$index]);
+        }
+    }
+
+    return $settings;
+}
+add_filter('woocommerce_get_settings_general', 'staticbridge_hide_coupon_setting', 10, 2);
+
 /**
  * Keep first-party theme assets secure when an upstream HTML rewriter misses
  * a srcset attribute. Local and staging hosts retain their original scheme.

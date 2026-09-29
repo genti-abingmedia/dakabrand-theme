@@ -74,6 +74,8 @@ test('billing address supplies delivery address until another address is selecte
     assert.match(view, /data-checkout-form/);
     assert.match(view, /checkout-order--loading/);
     assert.match(view, /checkout-order__item--skeleton/);
+    assert.doesNotMatch(view, /data-checkout-open="coupon"/);
+    assert.doesNotMatch(view, /data-checkout-dialog="coupon"/);
     assert.match(view, /name="ship_to_different_address"/);
     assert.match(view, /data-shipping-fields hidden/);
     assert.match(view, /name="shipping_address_1"/);
@@ -137,13 +139,12 @@ async function checkoutScenario(failureMode, exerciseOptions, includeAttribution
     const dialogs = {};
     const openButtons = [];
     if (exerciseOptions) {
-        for (const name of ['note', 'shipping', 'coupon']) {
+        for (const name of ['note', 'shipping']) {
             const dialog = node();
             const dialogForm = node();
             const error = node();
             const controls = { form: dialogForm, '[data-dialog-error]': error };
             if (name === 'note') controls.textarea = { value: '' };
-            if (name === 'coupon') controls['[name="code"]'] = { value: '' };
             if (name === 'shipping') controls['[name="estimate_country"]'] = node();
             dialog.querySelector = selector => controls[selector];
             dialog.querySelectorAll = () => [];
@@ -202,7 +203,6 @@ async function checkoutScenario(failureMode, exerciseOptions, includeAttribution
             : path === 'cart/add-item' ? cart([])
             : path === 'cart/update-customer' ? cart(rates(false))
             : path === 'cart/select-shipping-rate' ? cart(rates(true))
-            : path === 'cart/apply-coupon' ? { ...cart(rates(true)), coupons: [{ code: 'SAVE20' }], totals: { ...totals, total_discount: '200', total_price: '1000' } }
             : { order_id: 123, order_number: 'DB123', status: 'processing', payment_result: { payment_status: 'success' } };
         return { ok: true, headers: { get: name => name === 'Cart-Token' ? 'guest-token' : null }, json: async () => body };
     };
@@ -249,23 +249,17 @@ async function checkoutScenario(failureMode, exerciseOptions, includeAttribution
         openButtons[0].handlers.click();
         dialogs.note.querySelector('textarea').value = 'Leave at reception';
         dialogs.note.querySelector('form').handlers.submit({ preventDefault() {} });
-        openButtons[2].handlers.click();
-        dialogs.coupon.querySelector('[name="code"]').value = 'SAVE20';
-        await dialogs.coupon.querySelector('form').handlers.submit({ preventDefault() {} });
-        assert.equal(dialogs.coupon.open, false);
-        assert.equal(nodes['[data-checkout-order-total]'].textContent, '£10.00');
         assert.equal(submit.disabled, false);
     }
     await form.handlers.submit({ preventDefault() {} });
     const order = JSON.parse(calls.find(call => call.path === 'checkout').options.body);
     assert.equal(order.payment_method, 'staticbridge_remittance');
-    assert.equal(order.expected_total, exerciseOptions ? '1000' : '1200');
+    assert.equal(order.expected_total, '1200');
     if (includeAttribution) assert.deepEqual(order.extensions, {
         'woocommerce/order-attribution': { source_type: 'utm', utm_source: 'newsletter' }
     });
     if (exerciseOptions) {
         assert.equal(order.customer_note, 'Leave at reception');
-        assert.deepEqual(JSON.parse(calls.find(call => call.path === 'cart/apply-coupon').options.body), { code: 'SAVE20' });
     }
     assert.equal(order.shipping_address.first_name, 'Test');
     assert.equal(order.shipping_address.last_name, 'Test');
@@ -286,5 +280,5 @@ test('guest checkout syncs cart, selects shipping, and clears storage only after
 test('failed cart sync preserves the local cart', () => checkoutScenario('add'));
 test('total mismatch preserves the local cart and requests review', () => checkoutScenario('mismatch'));
 test('uncertain network result preserves the local cart and blocks duplicate submit', () => checkoutScenario('network'));
-test('order note and coupon update the confirmed checkout total', () => checkoutScenario(undefined, true));
+test('order note is included with the confirmed checkout total', () => checkoutScenario(undefined, true));
 test('checkout submits static-page attribution through WooCommerce\'s Store API extension', () => checkoutScenario(undefined, false, true));

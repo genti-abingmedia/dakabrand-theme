@@ -182,8 +182,6 @@
     var uncertainOrder = false;
     var customerNote = '';
     var estimateAddress = false;
-    var couponBusy = false;
-    var appliedCouponCodes = [];
     var paymentMethods = [];
     var selectedPaymentId = '';
     var snackbarShownAt = 0;
@@ -286,7 +284,7 @@
 
     function readyToOrder() {
         return Boolean(token && cart && !submitting && !uncertainOrder && !syncing && !pendingSync &&
-            !refreshingAddress && !selectingRate && !couponBusy &&
+            !refreshingAddress && !selectingRate &&
             !addressTimer && addressComplete() && addressSignature === JSON.stringify(addressData()) &&
             syncedSignature === lineSignature(readLines()) && hasSelectedRates(cart) &&
             Boolean(selectedPaymentMethod()) && cart.items && cart.items.length);
@@ -494,7 +492,6 @@
 
     function renderCart(current) {
         cart = current;
-        appliedCouponCodes = (current.coupons || []).map(function (coupon) { return coupon.code; });
         renderItems(current);
         subtotalNode.textContent = formatMinor(current.totals.total_items, current.totals);
         shippingTotalNode.textContent = selectedShippingLabel(current) || '—';
@@ -510,14 +507,6 @@
                 element('strong', '', (entry[2] ? '−' : '') + formatMinor(entry[1], current.totals)));
             adjustmentsNode.appendChild(row);
         });
-        appliedCouponCodes.forEach(function (code) {
-            var row = element('div', 'checkout-order__coupon');
-            var button = element('button', '', 'Remove');
-            button.type = 'button';
-            button.addEventListener('click', function () { removeCoupon(code); });
-            row.append(element('span', '', 'Coupon: ' + code), button);
-            adjustmentsNode.appendChild(row);
-        });
         totalNode.textContent = formatMinor(current.totals.total_price, current.totals);
         renderShipping(current);
         renderPaymentMethods(current);
@@ -525,7 +514,7 @@
     }
 
     async function syncCart() {
-        if (syncing || refreshingAddress || selectingRate || couponBusy) {
+        if (syncing || refreshingAddress || selectingRate) {
             pendingSync = true;
             updateSubmit();
             return;
@@ -556,21 +545,12 @@
                     throw new Error(lines[i].name + ': ' + error.message);
                 }
             }
-            var couponMessage = '';
-            for (var j = 0; j < appliedCouponCodes.length; j += 1) {
-                try {
-                    current = await request('cart/apply-coupon', 'POST', { code: appliedCouponCodes[j] });
-                } catch (error) {
-                    if (!error.status || error.status >= 500) throw error;
-                    couponMessage = 'A coupon no longer applies to this cart and was removed.';
-                }
-            }
             if (!cartMatchesLines(current, lines)) throw new Error('The store cart did not match your saved items. Review your cart and try again.');
             if (generation !== syncGeneration) return;
             if (lineSignature(readLines()) !== lineSignature(lines)) return syncCart();
             syncedSignature = lineSignature(lines);
             renderCart(current);
-            showStatus(couponMessage, false);
+            showStatus('', false);
             scheduleAddress();
         } catch (error) {
             if (generation !== syncGeneration) return;
@@ -615,7 +595,7 @@
         var data = addressData();
         var signature = JSON.stringify(data);
         if (signature === addressSignature || signature === refreshingAddressSignature) return;
-        if (refreshingAddress || selectingRate || couponBusy) return scheduleAddress();
+        if (refreshingAddress || selectingRate) return scheduleAddress();
         refreshingAddress = true;
         refreshingAddressSignature = signature;
         updateSubmit();
@@ -641,7 +621,7 @@
     }
 
     async function selectRate(packageId, rateId) {
-        if (!token || refreshingAddress || selectingRate || couponBusy) return;
+        if (!token || refreshingAddress || selectingRate) return;
         selectingRate = true;
         updateSubmit();
         try {
@@ -655,25 +635,6 @@
         } finally {
             selectingRate = false;
             if (cart) renderShipping(cart);
-            updateSubmit();
-            if (pendingSync) {
-                pendingSync = false;
-                syncCart();
-            }
-        }
-    }
-
-    async function removeCoupon(code) {
-        if (!token || couponBusy || submitting || syncing || refreshingAddress || selectingRate) return;
-        couponBusy = true;
-        updateSubmit();
-        try {
-            renderCart(await request('cart/remove-coupon', 'POST', { code: code }));
-            showStatus('Coupon removed.', false);
-        } catch (error) {
-            showStatus(error.message || 'Could not remove the coupon.', true);
-        } finally {
-            couponBusy = false;
             updateSubmit();
             if (pendingSync) {
                 pendingSync = false;
@@ -717,39 +678,12 @@
             noteDialog.close();
             showStatus(customerNote ? 'Order note saved.' : 'Order note cleared.', false);
         });
-        var couponDialog = root.querySelector('[data-checkout-dialog="coupon"]');
-        couponDialog.querySelector('form').addEventListener('submit', async function (event) {
-            event.preventDefault();
-            if (!token || !cart || syncing || refreshingAddress || selectingRate || couponBusy || submitting) {
-                dialogError(couponDialog, 'Wait for your cart to finish updating, then try again.');
-                return;
-            }
-            var code = couponDialog.querySelector('[name="code"]').value.trim();
-            if (!code) return;
-            couponBusy = true;
-            dialogError(couponDialog, '');
-            updateSubmit();
-            try {
-                renderCart(await request('cart/apply-coupon', 'POST', { code: code }));
-                couponDialog.close();
-                showStatus('Coupon applied.', false);
-            } catch (error) {
-                dialogError(couponDialog, error.message || 'Could not apply this coupon.');
-            } finally {
-                couponBusy = false;
-                updateSubmit();
-                if (pendingSync) {
-                    pendingSync = false;
-                    syncCart();
-                }
-            }
-        });
         var estimateDialog = root.querySelector('[data-checkout-dialog="shipping"]');
         var estimateCountry = estimateDialog.querySelector('[name="estimate_country"]');
         estimateCountry.addEventListener('change', function () { updateEstimateCountry(estimateDialog); });
         estimateDialog.querySelector('form').addEventListener('submit', async function (event) {
             event.preventDefault();
-            if (!token || !cart || syncing || refreshingAddress || selectingRate || couponBusy || submitting) {
+            if (!token || !cart || syncing || refreshingAddress || selectingRate || submitting) {
                 dialogError(estimateDialog, 'Wait for your cart to finish updating, then try again.');
                 return;
             }
