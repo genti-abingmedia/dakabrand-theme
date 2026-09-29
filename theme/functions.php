@@ -4,9 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('STATICBRIDGE_THEME_VERSION', '0.2.0');
 define('STATICBRIDGE_RENDER_API_VERSION', '1.0');
-define('STATICBRIDGE_BOOTSTRAP_VERSION', '5.3.8');
 
 /** Disable WooCommerce coupons and remove coupon administration controls. */
 add_filter('woocommerce_coupons_enabled', '__return_false');
@@ -797,32 +795,25 @@ add_action('wp_enqueue_scripts', 'staticbridge_disable_classic_checkout_script',
 
 function staticbridge_enqueue_assets(): void
 {
-    $bootstrap_css_path = get_template_directory() . '/assets/vendor/bootstrap/bootstrap.min.css';
-    $bootstrap_js_path  = get_template_directory() . '/assets/vendor/bootstrap/bootstrap.bundle.min.js';
-    $css_path = get_template_directory() . '/assets/css/main.css';
-    $js_path  = get_template_directory() . '/assets/js/main.js';
-    $order_attribution_js_path = get_template_directory() . '/assets/js/order-attribution.js';
-    $cart_js_path = get_template_directory() . '/assets/js/cart.js';
-
     wp_enqueue_style(
         'staticbridge-bootstrap',
         get_template_directory_uri() . '/assets/vendor/bootstrap/bootstrap.min.css',
         array(),
-        file_exists($bootstrap_css_path) ? STATICBRIDGE_BOOTSTRAP_VERSION : null
+        null
     );
 
     wp_enqueue_style(
         'staticbridge-main',
         get_template_directory_uri() . '/assets/css/main.css',
         array('staticbridge-bootstrap'),
-        file_exists($css_path) ? (string) filemtime($css_path) : STATICBRIDGE_THEME_VERSION
+        null
     );
 
     wp_enqueue_script(
         'staticbridge-bootstrap',
         get_template_directory_uri() . '/assets/vendor/bootstrap/bootstrap.bundle.min.js',
         array(),
-        file_exists($bootstrap_js_path) ? STATICBRIDGE_BOOTSTRAP_VERSION : null,
+        null,
         true
     );
 
@@ -830,7 +821,7 @@ function staticbridge_enqueue_assets(): void
         'staticbridge-main',
         get_template_directory_uri() . '/assets/js/main.js',
         array('staticbridge-bootstrap'),
-        file_exists($js_path) ? (string) filemtime($js_path) : STATICBRIDGE_THEME_VERSION,
+        null,
         true
     );
 
@@ -838,7 +829,7 @@ function staticbridge_enqueue_assets(): void
         'staticbridge-order-attribution',
         get_template_directory_uri() . '/assets/js/order-attribution.js',
         array(),
-        file_exists($order_attribution_js_path) ? (string) filemtime($order_attribution_js_path) : STATICBRIDGE_THEME_VERSION,
+        null,
         true
     );
 
@@ -846,7 +837,7 @@ function staticbridge_enqueue_assets(): void
         'staticbridge-cart',
         get_template_directory_uri() . '/assets/js/cart.js',
         array('staticbridge-main'),
-        file_exists($cart_js_path) ? (string) filemtime($cart_js_path) : STATICBRIDGE_THEME_VERSION,
+        null,
         true
     );
 
@@ -861,20 +852,17 @@ function staticbridge_enqueue_assets(): void
         || (function_exists('is_product') && is_product());
 
     if ($has_catalog_grids) {
-        $catalog_css_path = get_template_directory() . '/assets/css/catalog.css';
-        $catalog_js_path = get_template_directory() . '/assets/js/catalog.js';
-
         wp_enqueue_style(
             'staticbridge-catalog',
             get_template_directory_uri() . '/assets/css/catalog.css',
             array('staticbridge-main'),
-            file_exists($catalog_css_path) ? (string) filemtime($catalog_css_path) : STATICBRIDGE_THEME_VERSION
+            null
         );
         wp_enqueue_script(
             'staticbridge-catalog',
             get_template_directory_uri() . '/assets/js/catalog.js',
             array('staticbridge-main'),
-            file_exists($catalog_js_path) ? (string) filemtime($catalog_js_path) : STATICBRIDGE_THEME_VERSION,
+            null,
             true
         );
     }
@@ -882,34 +870,31 @@ function staticbridge_enqueue_assets(): void
     $is_product = 'product' === get_query_var('staticbridge_view')
         || (function_exists('is_product') && is_product());
     if ($is_product) {
-        $product_js_path = get_template_directory() . '/assets/js/product.js';
         wp_enqueue_script(
             'staticbridge-product',
             get_template_directory_uri() . '/assets/js/product.js',
             array('staticbridge-cart'),
-            file_exists($product_js_path) ? (string) filemtime($product_js_path) : STATICBRIDGE_THEME_VERSION,
+            null,
             true
         );
     }
 
     if ('checkout' === $view || staticbridge_is_checkout_request()) {
-        $checkout_js_path = get_template_directory() . '/assets/js/checkout.js';
         wp_enqueue_script(
             'staticbridge-checkout',
             get_template_directory_uri() . '/assets/js/checkout.js',
             array('staticbridge-cart', 'staticbridge-order-attribution'),
-            file_exists($checkout_js_path) ? (string) filemtime($checkout_js_path) : STATICBRIDGE_THEME_VERSION,
+            null,
             true
         );
     }
 
     if ('contact' === $view || is_page('contact-us')) {
-        $contact_js_path = get_template_directory() . '/assets/js/contact.js';
         wp_enqueue_script(
             'staticbridge-contact',
             get_template_directory_uri() . '/assets/js/contact.js',
             array(),
-            file_exists($contact_js_path) ? (string) filemtime($contact_js_path) : STATICBRIDGE_THEME_VERSION,
+            null,
             true
         );
 

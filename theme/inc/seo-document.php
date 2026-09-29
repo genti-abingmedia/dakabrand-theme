@@ -241,8 +241,7 @@ function staticbridge_render_seo_head(array $seo): void
 
 function staticbridge_document_asset_url(string $asset): string
 {
-    $path = get_template_directory() . '/' . ltrim($asset, '/');
-    return add_query_arg('ver', file_exists($path) ? (string) filemtime($path) : STATICBRIDGE_THEME_VERSION, get_template_directory_uri() . '/' . ltrim($asset, '/'));
+    return get_template_directory_uri() . '/' . ltrim($asset, '/');
 }
 
 function staticbridge_document_view(): string

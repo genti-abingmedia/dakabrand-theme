@@ -16,7 +16,6 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertTrue((THEME / "assets/vendor/bootstrap/bootstrap.min.css").is_file())
         self.assertTrue((THEME / "assets/vendor/bootstrap/bootstrap.bundle.min.js").is_file())
         self.assertTrue((THEME / "assets/vendor/bootstrap/LICENSE").is_file())
-        self.assertIn("STATICBRIDGE_BOOTSTRAP_VERSION', '5.3.8'", functions)
         self.assertIn("array('staticbridge-bootstrap')", functions)
         self.assertNotIn("cdn.jsdelivr.net", functions)
 
@@ -101,6 +100,14 @@ class ThemeStructureTests(unittest.TestCase):
             self.assertIn(contract, seo)
         self.assertIn("staticbridge_render_seo_head", render_api)
         self.assertIn("staticbridge_render_document_scripts", render_api)
+
+    def test_theme_assets_are_served_without_version_query_strings(self) -> None:
+        functions = self.read("functions.php")
+        seo = self.read("inc/seo-document.php")
+
+        self.assertNotIn("filemtime(", functions)
+        self.assertNotIn("add_query_arg('ver'", seo)
+        self.assertIn("return get_template_directory_uri() . '/' . ltrim($asset, '/');", seo)
 
     def test_catalog_has_server_rendered_product_discovery(self) -> None:
         archive = self.read("template-parts/views/product-archive.php")
