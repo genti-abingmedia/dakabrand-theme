@@ -44,7 +44,8 @@
     }
 
     if (typeof module !== 'undefined' && module.exports) {
-        module.exports = { discountPercentage: discountPercentage, deliveryRange: deliveryRange, whatsappUrl: whatsappUrl };
+        module.exports = { discountPercentage: discountPercentage, deliveryRange: deliveryRange, whatsappUrl: whatsappUrl,
+            cartQuantity: cartQuantity, stockIndicator: stockIndicator };
         return;
     }
 
@@ -52,6 +53,51 @@
         var script = detail.querySelector('[data-staticbridge-product]');
         if (!script) return null;
         try { return JSON.parse(script.textContent); } catch (error) { return null; }
+    }
+
+    function cartItems() {
+        var key = config.cartStorageKey || 'staticbridge_cart_v1';
+        var cart;
+        try { cart = JSON.parse(localStorage.getItem(key) || '[]'); } catch (error) { return []; }
+        return Array.isArray(cart) ? cart : (cart && Array.isArray(cart.items) ? cart.items : []);
+    }
+
+    function cartQuantity(productId, variationId, items) {
+        return (items || []).reduce(function (total, item) {
+            var sameProduct = Number(item && item.productId) === Number(productId);
+            var sameVariation = Number(item && item.variationId || 0) === Number(variationId || 0);
+            var quantity = Math.floor(Number(item && item.quantity));
+            return sameProduct && sameVariation && Number.isFinite(quantity) && quantity > 0 ? total + quantity : total;
+        }, 0);
+    }
+
+    function stockIndicator(item, productId, variationId, items) {
+        if (!item || item.stock_quantity === null || typeof item.stock_quantity === 'undefined') return null;
+        var quantity = Math.floor(Number(item && item.stock_quantity));
+        if (item.stock_status !== 'instock' || !Number.isFinite(quantity) || quantity < 0) return null;
+        var remaining = Math.max(0, quantity - cartQuantity(productId, variationId, items));
+        return {
+            remaining: remaining,
+            level: remaining <= 2 ? 'danger' : remaining <= 5 ? 'warning' : 'success',
+            progress: Math.min(100, remaining * 10)
+        };
+    }
+
+    function updateStockIndicator(detail, item, variationId) {
+        var indicator = detail.querySelector('[data-product-stock-indicator]');
+        var product = productData(detail);
+        var state = product && stockIndicator(item, product.product_id, variationId, cartItems());
+        var label;
+        var bar;
+        if (!indicator) return;
+        indicator.hidden = !state;
+        if (!state) return;
+        label = indicator.querySelector('[data-product-stock-label]');
+        bar = indicator.querySelector('[data-product-stock-bar]');
+        if (label) label.textContent = format(message('stockRemaining', 'Only %s left in stock.'), state.remaining);
+        if (bar) bar.style.width = state.progress + '%';
+        indicator.classList.remove('is-danger', 'is-warning', 'is-success');
+        indicator.classList.add('is-' + state.level);
     }
 
     function updatePurchaseDetails(detail, item, available) {
@@ -260,6 +306,7 @@
             button.textContent = !complete ? chooseLabel : !variation ? message('unavailable', 'Unavailable') : available ? message('addToCart', 'Add to cart') : message('outOfStock', 'Out of stock');
             if (buyNow) buyNow.disabled = !available;
             updatePurchaseDetails(detail, variation, available);
+            updateStockIndicator(detail, variation, variation && variation.variation_id);
 
             choices.forEach(function (choice) {
                 var key = choice.dataset.optionGroup;
@@ -281,6 +328,7 @@
         }
 
         fields.forEach(function (field) { field.addEventListener('change', update); });
+        if (document.addEventListener) document.addEventListener('staticbridge:cart-updated', update);
         update();
     }
 
@@ -292,6 +340,10 @@
             var available = product.purchasable === true &&
                 (product.stock_status === 'instock' || product.stock_status === 'onbackorder');
             updatePurchaseDetails(detail, product, available);
+            updateStockIndicator(detail, product, null);
+            if (document.addEventListener) document.addEventListener('staticbridge:cart-updated', function () {
+                updateStockIndicator(detail, product, null);
+            });
         }
         if (delivery && window.setInterval) {
             window.setInterval(function () {

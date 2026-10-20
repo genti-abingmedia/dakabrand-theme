@@ -193,6 +193,20 @@ test('sale badge uses the active displayed price and ignores invalid sales', () 
     assert.equal(details.discountPercentage('300', '300', ''), 0);
 });
 
+test('stock indicator subtracts the matching cart line and uses stock thresholds', () => {
+    const item = { stock_status: 'instock', stock_quantity: 7 };
+    const cart = [
+        { productId: 10, variationId: 12, quantity: 2 },
+        { productId: 10, variationId: 13, quantity: 4 },
+        { productId: 11, variationId: 12, quantity: 3 }
+    ];
+    assert.deepEqual(details.stockIndicator(item, 10, 12, cart), { remaining: 5, level: 'warning', progress: 50 });
+    assert.equal(details.stockIndicator({ stock_status: 'instock', stock_quantity: 2 }, 10, 12, cart).level, 'danger');
+    assert.equal(details.stockIndicator({ stock_status: 'instock', stock_quantity: 9 }, 10, 12, cart).level, 'success');
+    assert.equal(details.stockIndicator({ stock_status: 'onbackorder', stock_quantity: 9 }, 10, 12, cart), null);
+    assert.equal(details.stockIndicator({ stock_status: 'instock', stock_quantity: null }, 10, 12, cart), null);
+});
+
 test('delivery dates roll over months and include preorder delay', () => {
     const today = new Date(2026, 8, 16);
     assert.equal(details.deliveryRange(today, false), '23 Sep 2026 – 30 Sep 2026');

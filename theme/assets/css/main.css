@@ -780,6 +780,13 @@ body.has-product-lightbox { overflow: hidden; }
 .product-detail__summary .product-price del { margin-right: .45rem; color: var(--brand-muted); font-size: .82em; font-weight: 400; }
 .product-detail__summary .product-price ins { color: var(--brand-red); text-decoration: none; }
 .product-detail [data-product-options]:not(:empty) { margin: 1.5rem 0 1.25rem; }
+.product-stock-indicator { display: grid; gap: .45rem; margin-top: 1.25rem; }
+.product-stock-indicator__label { color: var(--stock-indicator-color); font-size: .76rem; font-weight: 700; }
+.product-stock-indicator__track { display: block; height: .38rem; overflow: hidden; background: #e8e8e8; border-radius: 999px; }
+.product-stock-indicator__bar { display: block; height: 100%; background: var(--stock-indicator-color); border-radius: inherit; transition: width 180ms ease; }
+.product-stock-indicator.is-danger { --stock-indicator-color: #bd302b; }
+.product-stock-indicator.is-warning { --stock-indicator-color: #b87519; }
+.product-stock-indicator.is-success { --stock-indicator-color: #28734d; }
 .product-option { display: grid; gap: .4rem; min-width: 0; padding: 0; margin: .75rem 0; border: 0; font-size: .72rem; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
 /* Bootstrap assigns a large desktop font to bare legends, so reset it here. */
 .product-option legend { float: left; width: 100%; padding: 0; margin: 0; border: 0; font-size: .65rem; line-height: 1.2; }

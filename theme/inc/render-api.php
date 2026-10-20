@@ -80,6 +80,7 @@ function staticbridge_render_document_start(): void
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <?php staticbridge_render_seo_head($seo); ?>
         <?php staticbridge_render_document_assets(); ?>
+        <?php staticbridge_render_onesignal_head(); ?>
         <?php if ($show_admin_toolbar) { wp_head(); } ?>
     </head>
     <body <?php body_class(); ?>>

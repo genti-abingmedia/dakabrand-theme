@@ -83,53 +83,61 @@ if ($breadcrumb_terms) {
     </div>
 
     <div class="catalog-toolbar" data-catalog-toolbar hidden>
-        <div class="catalog-toolbar__summary">
-            <button class="catalog-filter-toggle" type="button" data-catalog-open-filters aria-controls="catalog-filters" aria-expanded="false">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M6 12h12M9 18h6"/></svg>
-                <?php esc_html_e('Filters', 'dakabrand'); ?>
-            </button>
-            <div class="catalog-filters__header">
-                <h2><?php esc_html_e('Filter', 'dakabrand'); ?></h2>
+        <div class="catalog-toolbar__left">
+            <div class="catalog-toolbar__summary">
+                <button class="catalog-filter-toggle" type="button" data-catalog-open-filters aria-controls="catalog-filters" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M6 12h12M9 18h6"/></svg>
+                    <?php esc_html_e('Filters', 'dakabrand'); ?>
+                </button>
+                <div class="catalog-filters__header">
+                    <h2><?php esc_html_e('Filter', 'dakabrand'); ?></h2>
+                </div>
             </div>
-        </div>
-        <div class="catalog-toolbar__views" aria-label="<?php esc_attr_e('Catalog display options', 'dakabrand'); ?>">
-            <button class="catalog-view-button" type="button" data-catalog-toggle-filters aria-pressed="true" title="<?php esc_attr_e('Hide filters', 'dakabrand'); ?>">
-                <span class="screen-reader-text" data-catalog-toggle-filters-label><?php esc_html_e('Hide filters', 'dakabrand'); ?></span>
-                <span class="catalog-filter-icon" aria-hidden="true"></span>
-            </button>
-            <div class="catalog-view-buttons" role="group" aria-label="<?php esc_attr_e('Product layout', 'dakabrand'); ?>">
-                <button class="catalog-view-button" type="button" data-catalog-view="large" aria-pressed="false" title="<?php esc_attr_e('3 columns, 15 products per page', 'dakabrand'); ?>">
-                    <span class="screen-reader-text"><?php esc_html_e('3 columns, 15 products per page', 'dakabrand'); ?></span>
-                    <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2" width="3" height="12"/><rect x="6" y="2" width="3" height="12"/><rect x="11" y="2" width="3" height="12"/></svg>
+            <div class="catalog-toolbar__views" aria-label="<?php esc_attr_e('Catalog display options', 'dakabrand'); ?>">
+                <button class="catalog-view-button" type="button" data-catalog-toggle-filters aria-pressed="true" title="<?php esc_attr_e('Hide filters', 'dakabrand'); ?>">
+                    <span class="screen-reader-text" data-catalog-toggle-filters-label><?php esc_html_e('Hide filters', 'dakabrand'); ?></span>
+                    <span class="catalog-filter-icon" aria-hidden="true"></span>
                 </button>
-                <button class="catalog-view-button" type="button" data-catalog-view="small" aria-pressed="true" title="<?php esc_attr_e('4 columns, 20 products per page', 'dakabrand'); ?>">
-                    <span class="screen-reader-text"><?php esc_html_e('4 columns, 20 products per page', 'dakabrand'); ?></span>
-                    <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="0" y="2" width="2" height="12"/><rect x="4" y="2" width="2" height="12"/><rect x="8" y="2" width="2" height="12"/><rect x="12" y="2" width="2" height="12"/></svg>
-                </button>
-                <button class="catalog-view-button" type="button" data-catalog-view="dense" aria-pressed="false" title="<?php esc_attr_e('5 columns, 25 products per page', 'dakabrand'); ?>">
-                    <span class="screen-reader-text"><?php esc_html_e('5 columns, 25 products per page', 'dakabrand'); ?></span>
-                    <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2" width="2" height="12"/><rect x="4" y="2" width="2" height="12"/><rect x="7" y="2" width="2" height="12"/><rect x="10" y="2" width="2" height="12"/><rect x="13" y="2" width="2" height="12"/></svg>
-                </button>
-                <button class="catalog-view-button" type="button" data-catalog-view="list" aria-pressed="false" title="<?php esc_attr_e('List view', 'dakabrand'); ?>">
-                    <span class="screen-reader-text"><?php esc_html_e('List view', 'dakabrand'); ?></span>
-                    <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2" width="14" height="2"/><rect x="1" y="7" width="14" height="2"/><rect x="1" y="12" width="14" height="2"/></svg>
-                </button>
+                <div class="catalog-view-buttons" role="group" aria-label="<?php esc_attr_e('Product layout', 'dakabrand'); ?>">
+                    <button class="catalog-view-button" type="button" data-catalog-view="large" aria-pressed="false" title="<?php esc_attr_e('3 columns, 15 products per page', 'dakabrand'); ?>">
+                        <span class="screen-reader-text"><?php esc_html_e('3 columns, 15 products per page', 'dakabrand'); ?></span>
+                        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2" width="3" height="12"/><rect x="6" y="2" width="3" height="12"/><rect x="11" y="2" width="3" height="12"/></svg>
+                    </button>
+                    <button class="catalog-view-button" type="button" data-catalog-view="small" aria-pressed="true" title="<?php esc_attr_e('4 columns, 20 products per page', 'dakabrand'); ?>">
+                        <span class="screen-reader-text"><?php esc_html_e('4 columns, 20 products per page', 'dakabrand'); ?></span>
+                        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="0" y="2" width="2" height="12"/><rect x="4" y="2" width="2" height="12"/><rect x="8" y="2" width="2" height="12"/><rect x="12" y="2" width="2" height="12"/></svg>
+                    </button>
+                    <button class="catalog-view-button" type="button" data-catalog-view="dense" aria-pressed="false" title="<?php esc_attr_e('5 columns, 25 products per page', 'dakabrand'); ?>">
+                        <span class="screen-reader-text"><?php esc_html_e('5 columns, 25 products per page', 'dakabrand'); ?></span>
+                        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2" width="2" height="12"/><rect x="4" y="2" width="2" height="12"/><rect x="7" y="2" width="2" height="12"/><rect x="10" y="2" width="2" height="12"/><rect x="13" y="2" width="2" height="12"/></svg>
+                    </button>
+                    <button class="catalog-view-button" type="button" data-catalog-view="list" aria-pressed="false" title="<?php esc_attr_e('List view', 'dakabrand'); ?>">
+                        <span class="screen-reader-text"><?php esc_html_e('List view', 'dakabrand'); ?></span>
+                        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2" width="14" height="2"/><rect x="1" y="7" width="14" height="2"/><rect x="1" y="12" width="14" height="2"/></svg>
+                    </button>
+                </div>
             </div>
+            <div class="catalog-active" data-catalog-active hidden></div>
         </div>
-        <div class="catalog-active" data-catalog-active hidden></div>
-        <div class="catalog-sort" data-catalog-sort>
-            <button class="catalog-sort__trigger" type="button" data-catalog-sort-trigger aria-haspopup="listbox" aria-expanded="false" aria-controls="catalog-sort-options">
-                <span class="catalog-sort__label" data-catalog-sort-label><?php esc_html_e('Sort by', 'dakabrand'); ?></span>
-                <span class="catalog-sort__value" data-catalog-sort-value><?php esc_html_e('Latest', 'dakabrand'); ?></span>
-                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
-            </button>
-            <div class="catalog-sort__menu" id="catalog-sort-options" data-catalog-sort-menu role="listbox" aria-label="<?php esc_attr_e('Sort products', 'dakabrand'); ?>" hidden>
-                <button type="button" role="option" data-catalog-sort-option data-value="" aria-selected="true"><?php esc_html_e('Latest', 'dakabrand'); ?></button>
-                <button type="button" role="option" data-catalog-sort-option data-value="price-asc" aria-selected="false"><?php esc_html_e('Price: low to high', 'dakabrand'); ?></button>
-                <button type="button" role="option" data-catalog-sort-option data-value="price-desc" aria-selected="false"><?php esc_html_e('Price: high to low', 'dakabrand'); ?></button>
+        <form class="catalog-toolbar__search" data-catalog-search-form role="search" method="get">
+            <label class="screen-reader-text" for="catalog-search-keyword"><?php esc_html_e('Search this category', 'dakabrand'); ?></label>
+            <input id="catalog-search-keyword" type="search" name="keyword" data-catalog-search placeholder="<?php esc_attr_e('Search this category', 'dakabrand'); ?>" autocomplete="off">
+        </form>
+        <div class="catalog-toolbar__right">
+            <div class="catalog-sort" data-catalog-sort>
+                <button class="catalog-sort__trigger" type="button" data-catalog-sort-trigger aria-haspopup="listbox" aria-expanded="false" aria-controls="catalog-sort-options">
+                    <span class="catalog-sort__label" data-catalog-sort-label><?php esc_html_e('Sort by', 'dakabrand'); ?></span>
+                    <span class="catalog-sort__value" data-catalog-sort-value><?php esc_html_e('Latest', 'dakabrand'); ?></span>
+                    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+                </button>
+                <div class="catalog-sort__menu" id="catalog-sort-options" data-catalog-sort-menu role="listbox" aria-label="<?php esc_attr_e('Sort products', 'dakabrand'); ?>" hidden>
+                    <button type="button" role="option" data-catalog-sort-option data-value="" aria-selected="true"><?php esc_html_e('Latest', 'dakabrand'); ?></button>
+                    <button type="button" role="option" data-catalog-sort-option data-value="price-asc" aria-selected="false"><?php esc_html_e('Price: low to high', 'dakabrand'); ?></button>
+                    <button type="button" role="option" data-catalog-sort-option data-value="price-desc" aria-selected="false"><?php esc_html_e('Price: high to low', 'dakabrand'); ?></button>
+                </div>
             </div>
+            <p class="catalog-count" data-catalog-count aria-live="polite"></p>
         </div>
-        <p class="catalog-count" data-catalog-count aria-live="polite"></p>
     </div>
 
     <div class="catalog-layout">

@@ -44,6 +44,8 @@ function staticbridge_product_data(WC_Product $product): array
     $maximum_price = $product->is_type('variable') ? $plain_price($product->get_variation_price('max', true)) : $minimum_price;
     $price_text = $minimum_price === $maximum_price ? $minimum_price : $minimum_price . ' – ' . $maximum_price;
 
+    $stock_quantity = $product->managing_stock() ? $product->get_stock_quantity() : null;
+
     if ($product->is_type('variable')) {
         foreach ($product->get_variation_attributes() as $attribute_name => $values) {
             $choices = array();
@@ -82,6 +84,7 @@ function staticbridge_product_data(WC_Product $product): array
                 'sale_price'   => (float) $variation_effective_price < (float) $variation_regular_price ? $variation_effective_price : $variation->get_sale_price(),
                 'price_html'   => wp_kses_post($variation->get_price_html()),
                 'stock_status' => $variation->get_stock_status(),
+                'stock_quantity' => $variation->managing_stock() ? $variation->get_stock_quantity() : null,
                 'purchasable'  => $variation->is_purchasable(),
             );
         }
@@ -102,6 +105,7 @@ function staticbridge_product_data(WC_Product $product): array
         'regular_price'=> $product->get_regular_price(),
         'sale_price'   => (float) $effective_price < (float) $product->get_regular_price() ? $effective_price : $product->get_sale_price(),
         'stock_status' => $product->get_stock_status(),
+        'stock_quantity' => $stock_quantity,
         'purchasable'  => $product->is_purchasable(),
         'options'      => $options,
         'variations'   => $variations,

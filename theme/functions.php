@@ -161,6 +161,7 @@ function staticbridge_frontend_messages(): array
         'productUnavailable'    => __('This item is currently unavailable.', 'dakabrand'),
         'quantityUnavailable'   => __('The requested quantity is not available.', 'dakabrand'),
         'quantityUnavailableWithStock' => __('Only %s left in stock.', 'dakabrand'),
+        'stockRemaining'        => __('Only %s left in stock.', 'dakabrand'),
         'validQuantity'         => __('Choose a valid quantity.', 'dakabrand'),
         'productDetailsMissing' => __('Product details are unavailable.', 'dakabrand'),
         'stockCheckFailed'      => __('Could not check live stock. Please try again.', 'dakabrand'),
@@ -247,6 +248,7 @@ function staticbridge_theme_gettext_fallback(string $translation, string $text, 
 add_filter('gettext', 'staticbridge_theme_gettext_fallback', 10, 3);
 
 require_once get_template_directory() . '/inc/seo-document.php';
+require_once get_template_directory() . '/inc/onesignal.php';
 require_once get_template_directory() . '/inc/render-api.php';
 require_once get_template_directory() . '/inc/product-data.php';
 require_once get_template_directory() . '/inc/remittance-gateway.php';

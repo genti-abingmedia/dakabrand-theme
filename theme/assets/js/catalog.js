@@ -30,6 +30,8 @@
     var nodes = root ? {
         heading: root.querySelector('[data-catalog-heading]'),
         toolbar: root.querySelector('[data-catalog-toolbar]'),
+        searchForm: root.querySelector('[data-catalog-search-form]'),
+        search: root.querySelector('[data-catalog-search]'),
         count: root.querySelector('[data-catalog-count]'),
         sort: root.querySelector('[data-catalog-sort]'),
         sortTrigger: root.querySelector('[data-catalog-sort-trigger]'),
@@ -78,6 +80,17 @@
             decoded = next;
         }
         return decoded;
+    }
+
+    function titleCaseFilterLabel(value) {
+        return decodeHtmlEntities(value).toLowerCase().replace(/(^|[\s\-/])([^\s\-/])/g, function (match, separator, character) {
+            return separator + character.toUpperCase();
+        });
+    }
+
+    function filterOptionLabel(facet, option) {
+        if (facet.slug === 'categories' && String(option.slug) === 'big-offer-women') return 'Big Offer (W)';
+        return titleCaseFilterLabel(option.label);
     }
 
     function showNoImage(link, image) {
@@ -577,6 +590,24 @@
         return options;
     }
 
+    function childOptions(option) {
+        if (!option || !option.children) return [];
+        return Array.isArray(option.children)
+            ? option.children
+            : (Array.isArray(option.children.options) ? option.children.options : []);
+    }
+
+    function flattenOptions(options) {
+        return (options || []).reduce(function (all, option) {
+            all.push(option);
+            return all.concat(flattenOptions(childOptions(option)));
+        }, []);
+    }
+
+    function hasSelectedOption(option) {
+        return Boolean(option && option.is_selected) || childOptions(option).some(hasSelectedOption);
+    }
+
     function makePriceFacet(facet, container, data, rules) {
         var prices = (data.products || []).map(function (product) {
             return productPrice(product, rules, Boolean(data.include_out_of_stock));
@@ -618,33 +649,72 @@
         container.appendChild(options);
     }
 
+    function updateOptionFacet(facet, container, allOptions) {
+        var selected = allOptions.filter(function (item) {
+            return Array.from(container.querySelectorAll('input:checked')).some(function (checked) { return checked.value === String(item.slug); });
+        });
+        var value = selected.map(function (item) { return item.slug + ':' + decodeHtmlEntities(item.label); }).join(',');
+        if (facet.slug === 'stock_status' && window.StaticBridgeStockMode) {
+            window.StaticBridgeStockMode.saveStatus(value);
+        }
+        updateParam(facet.slug, value, true);
+    }
+
+    function makeOptionControl(facet, option, container, allOptions) {
+        var optionLabel = filterOptionLabel(facet, option);
+        var label = element('label', 'catalog-facet__option');
+        var input = element('input');
+        input.type = facet.select === 'single' ? 'radio' : 'checkbox';
+        input.name = facet.slug;
+        input.value = String(option.slug);
+        input.checked = Boolean(option.is_selected);
+        label.append(input, element('span', '', optionLabel));
+        if (facet.show_item_count) label.appendChild(element('span', 'catalog-facet__count', number(option.count).toLocaleString('en-GB')));
+        input.addEventListener('change', function () { updateOptionFacet(facet, container, allOptions); });
+        return label;
+    }
+
+    function makeCategoryTree(facet, option, container, allOptions, path) {
+        var children = childOptions(option);
+        var branch = element('div', 'catalog-category-tree__branch');
+        var row = element('div', 'catalog-category-tree__row');
+        row.appendChild(makeOptionControl(facet, option, container, allOptions));
+        if (children.length) {
+            var childId = 'catalog-category-children-' + path;
+            var toggle = element('button', 'catalog-category-tree__toggle', '›');
+            var nested = element('div', 'catalog-category-tree__children');
+            var expanded = children.some(hasSelectedOption);
+            toggle.type = 'button';
+            toggle.setAttribute('aria-expanded', String(expanded));
+            toggle.setAttribute('aria-controls', childId);
+            toggle.setAttribute('aria-label', (expanded ? 'Hide' : 'Show') + ' subcategories for ' + decodeHtmlEntities(option.label));
+            nested.id = childId;
+            nested.setAttribute('role', 'group');
+            nested.hidden = !expanded;
+            sortedOptions({ options: children }).forEach(function (child, index) {
+                nested.appendChild(makeCategoryTree(facet, child, container, allOptions, path + '-' + index));
+            });
+            toggle.addEventListener('click', function () {
+                var expanded = toggle.getAttribute('aria-expanded') === 'true';
+                toggle.setAttribute('aria-expanded', String(!expanded));
+                toggle.setAttribute('aria-label', (expanded ? 'Show' : 'Hide') + ' subcategories for ' + decodeHtmlEntities(option.label));
+                nested.hidden = expanded;
+            });
+            row.appendChild(toggle);
+            branch.appendChild(row);
+            branch.appendChild(nested);
+        } else branch.appendChild(row);
+        return branch;
+    }
+
     function makeOptionFacet(facet, container) {
         var options = element('div', 'catalog-facet__options');
-        sortedOptions(facet).forEach(function (option, index) {
-            var optionLabel = decodeHtmlEntities(option.label);
-            var label = element('label', 'catalog-facet__option');
-            var input = element('input');
-            input.type = facet.select === 'single' ? 'radio' : 'checkbox';
-            input.name = facet.slug;
-            input.value = String(option.slug);
-            input.checked = Boolean(option.is_selected);
-            label.append(input, element('span', '', optionLabel));
-            if (facet.show_item_count) label.appendChild(element('span', 'catalog-facet__count', number(option.count).toLocaleString('en-GB')));
-            input.addEventListener('change', function () {
-                var selected;
-                if (facet.select === 'single') selected = [option];
-                else {
-                    selected = sortedOptions(facet).filter(function (item) {
-                        return Array.from(options.querySelectorAll('input:checked')).some(function (checked) { return checked.value === String(item.slug); });
-                    });
-                }
-                var value = selected.map(function (item) { return item.slug + ':' + decodeHtmlEntities(item.label); }).join(',');
-                if (facet.slug === 'stock_status' && window.StaticBridgeStockMode) {
-                    window.StaticBridgeStockMode.saveStatus(value);
-                }
-                updateParam(facet.slug, value, true);
-            });
-            options.appendChild(label);
+        var topLevel = sortedOptions(facet);
+        var allOptions = flattenOptions(topLevel);
+        topLevel.forEach(function (option, index) {
+            options.appendChild(facet.slug === 'categories'
+                ? makeCategoryTree(facet, option, options, allOptions, String(index))
+                : makeOptionControl(facet, option, options, allOptions));
         });
         container.appendChild(options);
     }
@@ -655,7 +725,7 @@
             var details = element('details', 'catalog-facet' + (facet.display === 'box' ? ' catalog-facet--box' : ''));
             details.dataset.facetSlug = facet.slug;
             details.open = openFacets.has(facet.slug);
-            details.appendChild(element('summary', '', decodeHtmlEntities(facet.label)));
+            details.appendChild(element('summary', '', titleCaseFilterLabel(facet.label)));
             details.addEventListener('toggle', function () {
                 if (details.open) openFacets.add(facet.slug);
                 else openFacets.delete(facet.slug);
@@ -678,6 +748,7 @@
     function renderActive(data) {
         var params = new URLSearchParams(window.location.search);
         var visible = (data.filter || []).filter(function (facet) { return facet.show_in_filter; });
+        var hasMultipleActive = false;
         nodes.active.forEach(function (active) {
             active.replaceChildren();
             var activeCount = 0;
@@ -693,7 +764,9 @@
                 if (!value) return;
                 var tokens = facet.display === 'range' ? [value] : selectedTokens(value);
                 tokens.forEach(function (token) {
-                    var text = facet.display === 'range' ? token.replace(',', '–') : decodeHtmlEntities(token.split(':').slice(1).join(':') || token);
+                    var label = token.split(':').slice(1).join(':') || token;
+                    var slug = token.split(':')[0];
+                    var text = facet.display === 'range' ? token.replace(',', '–') : filterOptionLabel(facet, { slug: slug, label: label });
                     var button = element('button', '', text + '  ×');
                     button.type = 'button';
                     button.addEventListener('click', function () {
@@ -715,7 +788,9 @@
                 active.appendChild(clear);
             }
             active.hidden = activeCount === 0;
+            hasMultipleActive = hasMultipleActive || activeCount > 1;
         });
+        nodes.toolbar.classList.toggle('catalog-toolbar--has-multiple-active', hasMultipleActive);
     }
 
     function clearFacets() {
@@ -778,6 +853,7 @@
         nodes.heading.textContent = keyword
             ? format(message('resultsFor', 'Results for “%s”'), keyword)
             : defaultHeading;
+        if (nodes.search) nodes.search.value = keyword || '';
 
         nodes.toolbar.hidden = false;
 
@@ -992,6 +1068,12 @@
     rails.forEach(loadRail);
     if (!root) return;
 
+    if (nodes.searchForm && nodes.search) {
+        nodes.searchForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            updateParam('keyword', nodes.search.value.trim(), true);
+        });
+    }
     nodes.sortTrigger.addEventListener('click', function () { setSortMenu(nodes.sortMenu.hidden); });
     nodes.sortOptions.forEach(function (option) {
         option.addEventListener('click', function () {

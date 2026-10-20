@@ -89,6 +89,20 @@ from the repository root. Browser storage must be available for cart changes.
 
 ## Shared shell extensions
 
+OneSignal web push is initialized in the shared document head using Web SDK v16.
+The app and legacy Safari IDs, prompt copy, and one-page/one-second delay live in
+`inc/onesignal.php`. Use the **Custom Code** web integration in OneSignal with
+the exact public storefront origin as its Site URL.
+
+Deploy `assets/onesignal/OneSignalSDKWorker.js` with the theme and keep its URL
+stable. It must be publicly served as JavaScript over HTTPS on the storefront
+origin at `/wp-content/themes/dakabrand/assets/onesignal/OneSignalSDKWorker.js`
+(adjust for a different theme installation path). Static storefront hosting must
+also serve this path, even if other theme assets are hosted on a separate CDN.
+Regenerate published HTML after deploying this integration. Verify a subscription
+and test notification on the configured production origin; localhost needs a
+separate OneSignal test app.
+
 Bootstrap 5.3.8 is bundled locally and loaded before the theme stylesheet and
 script. Configure the `primary`, `footer_information`, and `footer_services`
 menu locations in WordPress; the legacy `footer` location remains a fallback.

@@ -26,6 +26,8 @@ $discount = !$is_variable && $regular_price > $discounted_price && $discounted_p
     : 0;
 $preorder = !$is_variable && 'onbackorder' === $product->get_stock_status();
 $has_stock = $product->is_purchasable() && $product->is_in_stock();
+$stock_quantity = $product->managing_stock() ? $product->get_stock_quantity() : null;
+$show_stock_indicator = !$is_variable && 'instock' === $product->get_stock_status() && null !== $stock_quantity;
 if ($is_variable) {
     $purchasable_variations = array_values($payload['variations']);
     foreach ($purchasable_variations as $variation) {
@@ -122,6 +124,10 @@ $share_title = rawurlencode($product->get_name());
         <span class="product-detail__preorder" data-product-preorder <?php if (!$preorder) : ?>hidden<?php endif; ?>><?php esc_html_e('15 Days Preorder', 'dakabrand'); ?></span>
         <?php if (!$preorder && !$is_sold_out) : ?>
           <div data-product-options></div>
+          <div class="product-stock-indicator is-<?php echo esc_attr($stock_quantity <= 2 ? 'danger' : ($stock_quantity <= 5 ? 'warning' : 'success')); ?>" data-product-stock-indicator<?php if (!$show_stock_indicator) : ?> hidden<?php endif; ?> role="status" aria-live="polite">
+            <span class="product-stock-indicator__label" data-product-stock-label><?php echo esc_html(sprintf(__('Only %s left in stock.', 'dakabrand'), number_format_i18n(max(0, (int) $stock_quantity)))); ?></span>
+            <span class="product-stock-indicator__track" aria-hidden="true"><span class="product-stock-indicator__bar" data-product-stock-bar style="width: <?php echo esc_attr((string) min(100, max(0, (int) $stock_quantity) * 10)); ?>%"></span></span>
+          </div>
           <div class="product-purchase">
             <div class="product-quantity" data-product-quantity-control>
               <span id="product-quantity-label"><?php esc_html_e('Quantity', 'dakabrand'); ?></span>
