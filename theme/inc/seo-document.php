@@ -241,7 +241,11 @@ function staticbridge_render_seo_head(array $seo): void
 
 function staticbridge_document_asset_url(string $asset): string
 {
-    return get_template_directory_uri() . '/' . ltrim($asset, '/');
+    $url = get_template_directory_uri() . '/' . ltrim($asset, '/');
+    if ('assets/js/catalog.js' === $asset) {
+        $url = add_query_arg('ver', md5_file(get_template_directory() . '/' . $asset), $url);
+    }
+    return $url;
 }
 
 function staticbridge_document_view(): string

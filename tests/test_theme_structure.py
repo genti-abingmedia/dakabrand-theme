@@ -101,13 +101,15 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("staticbridge_render_seo_head", render_api)
         self.assertIn("staticbridge_render_document_scripts", render_api)
 
-    def test_theme_assets_are_served_without_version_query_strings(self) -> None:
+    def test_catalog_asset_uses_content_version_to_bypass_stale_cdn_cache(self) -> None:
         functions = self.read("functions.php")
         seo = self.read("inc/seo-document.php")
 
         self.assertNotIn("filemtime(", functions)
-        self.assertNotIn("add_query_arg('ver'", seo)
-        self.assertIn("return get_template_directory_uri() . '/' . ltrim($asset, '/');", seo)
+        self.assertIn("if ('assets/js/catalog.js' === $asset)", seo)
+        self.assertIn("add_query_arg('ver', md5_file(get_template_directory() . '/' . $asset), $url)", seo)
+        self.assertIn("md5_file(get_template_directory() . '/assets/js/catalog.js')", functions)
+        self.assertIn("return $url;", seo)
 
     def test_catalog_has_server_rendered_product_discovery(self) -> None:
         archive = self.read("template-parts/views/product-archive.php")

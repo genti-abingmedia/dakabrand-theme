@@ -864,7 +864,7 @@ function staticbridge_enqueue_assets(): void
             'staticbridge-catalog',
             get_template_directory_uri() . '/assets/js/catalog.js',
             array('staticbridge-main'),
-            null,
+            md5_file(get_template_directory() . '/assets/js/catalog.js'),
             true
         );
     }
