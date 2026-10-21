@@ -143,7 +143,9 @@
         params.delete('catalog_view');
         params.delete('catalog_filters');
         params.delete('price'); // The catalog applies price ranges after loading the products.
-        if (!['price-asc', 'price-desc'].includes(params.get('orderby'))) params.delete('orderby');
+        // Search defaults to relevance in the filter API. Request newest first
+        // explicitly so Latest applies across the full result set and pages.
+        if (!['price-asc', 'price-desc'].includes(params.get('orderby'))) params.set('orderby', 'date_created-desc');
         params.set('page', String(page));
         params.set('limit', String(limit));
         url.search = params.toString();
