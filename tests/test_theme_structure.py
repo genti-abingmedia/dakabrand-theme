@@ -106,7 +106,8 @@ class ThemeStructureTests(unittest.TestCase):
         seo = self.read("inc/seo-document.php")
 
         self.assertNotIn("filemtime(", functions)
-        self.assertIn("if ('assets/js/catalog.js' === $asset)", seo)
+        for asset in ('assets/js/catalog.js', 'assets/css/main.css', 'assets/css/halloween.css', 'assets/js/halloween.js'):
+            self.assertIn("'" + asset + "'", seo)
         self.assertIn("add_query_arg('ver', md5_file(get_template_directory() . '/' . $asset), $url)", seo)
         self.assertIn("md5_file(get_template_directory() . '/assets/js/catalog.js')", functions)
         self.assertIn("return $url;", seo)
@@ -248,8 +249,8 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("staticbridge_is_immersive_front_page", functions)
         self.assertIn("set_query_var('staticbridge_view', $view)", render_api)
         self.assertIn('class="home-gateway"', front_page)
-        self.assertIn("home-man.jpg", front_page)
-        self.assertIn("home-woman.jpg", front_page)
+        self.assertIn("https://dakabrand.uk/wp-content/uploads/2026/10/brandhome1.jpg", front_page)
+        self.assertIn("https://dakabrand.uk/wp-content/uploads/2026/10/brandhome2.jpg", front_page)
         self.assertLess(front_page.index("'key'       => 'woman'"), front_page.index("'key'       => 'man'"))
         self.assertLess(front_page.index('href="#home-woman"'), front_page.index('href="#home-man"'))
         self.assertIn('href="#home-woman" aria-current="true"', front_page)
@@ -307,8 +308,6 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("status_header(200)", functions)
         self.assertIn('data-static-view="man"', view)
         for asset in (
-            "man-hero-desktop.jpg",
-            "man-hero-mobile.jpg",
             "man-editorial-primary.jpg",
             "man-editorial-secondary.jpg",
         ):
@@ -339,8 +338,6 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertIn("add_filter('template_include', 'staticbridge_woman_template', 99)", functions)
         self.assertIn('data-static-view="woman"', view)
         for asset in (
-            "woman-hero-desktop.jpg",
-            "home-woman.jpg",
             "woman-editorial-primary.jpg",
             "woman-editorial-secondary.jpg",
         ):

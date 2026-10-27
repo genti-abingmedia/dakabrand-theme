@@ -25,15 +25,16 @@ $man_collections = array(
 <main id="main" class="man-landing" data-static-view="man">
     <h1 class="screen-reader-text"><?php esc_html_e('Man', 'dakabrand'); ?></h1>
 
-    <section class="man-hero" aria-labelledby="man-hero-title">
+    <section class="man-hero halloween-hero man-halloween-hero" aria-label="<?php esc_attr_e('Man', 'dakabrand'); ?>">
         <picture class="man-hero__media">
-            <source media="(max-width: 767.98px)" srcset="<?php echo esc_url(staticbridge_resize_image_url(get_template_directory_uri() . '/assets/images/man-hero-mobile.jpg', 768, 816)); ?>">
-            <img src="<?php echo esc_url(staticbridge_resize_image_url(get_template_directory_uri() . '/assets/images/man-hero-desktop.jpg', 1600, 685)); ?>" width="2480" height="1062" alt="" fetchpriority="high">
+            <source media="(max-width: 767.98px)" srcset="<?php echo esc_url(staticbridge_resize_image_url('https://dakabrand.uk/wp-content/uploads/2026/10/Rectangle-24-1.jpg', 1291, 1828)); ?>" width="1291" height="1828">
+            <img src="<?php echo esc_url(staticbridge_resize_image_url('https://dakabrand.uk/wp-content/uploads/2026/10/Rectangle-40-1.jpg', 1600, 685)); ?>" width="2480" height="1062" alt="" fetchpriority="high">
         </picture>
-        <div class="man-hero__content">
-            <p id="man-hero-title"><?php esc_html_e('Man', 'dakabrand'); ?></p>
-            <a href="<?php echo esc_url(home_url('/product-category/man/')); ?>"><?php esc_html_e('Shop new collection', 'dakabrand'); ?></a>
+        <div class="halloween-hero__copy">
+            <h2 class="halloween-hero__title"><span><?php esc_html_e('Happy', 'dakabrand'); ?></span><span><?php esc_html_e('Halloween', 'dakabrand'); ?></span></h2>
+            <p><?php esc_html_e('Explore Our Halloween Drops', 'dakabrand'); ?></p>
         </div>
+        <a class="halloween-hero__cta" href="<?php echo esc_url(home_url('/product-category/man/')); ?>"><?php esc_html_e('Shop New Collection', 'dakabrand'); ?></a>
     </section>
 
     <nav class="man-category-nav site-shell" aria-label="<?php esc_attr_e('Shop men by category', 'dakabrand'); ?>">

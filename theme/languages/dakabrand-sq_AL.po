@@ -304,6 +304,18 @@ msgstr "Kthime dhe ndërrime"
 msgid "See our refund policy for details."
 msgstr "Shihni politikën e kthimit për hollësi."
 
+msgid "Happy"
+msgstr "Gëzuar"
+
+msgid "Dismiss Pennywise"
+msgstr "Mbyll Pennywise"
+
+msgid "Halloween"
+msgstr "Halloween"
+
+msgid "Explore Our Halloween Drops"
+msgstr "Zbulo risitë e Halloween-it"
+
 msgid "Customer support"
 msgstr "Mbështetja e klientit"
 

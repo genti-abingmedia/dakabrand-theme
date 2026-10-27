@@ -7,7 +7,7 @@ $home_sections = array(
     array(
         'key'       => 'woman',
         'label'     => __('Woman', 'dakabrand'),
-        'image'     => 'home-woman.jpg',
+        'image'     => 'https://dakabrand.uk/wp-content/uploads/2026/10/brandhome2.jpg',
         'landing'   => staticbridge_department_page_url('woman'),
         'category'  => '/product-category/women/',
         'preorder'  => '/product-category/women/?stock_status=onbackorder%3Aonbackorder',
@@ -17,7 +17,7 @@ $home_sections = array(
     array(
         'key'       => 'man',
         'label'     => __('Man', 'dakabrand'),
-        'image'     => 'home-man.jpg',
+        'image'     => 'https://dakabrand.uk/wp-content/uploads/2026/10/brandhome1.jpg',
         'landing'   => staticbridge_department_page_url('man'),
         'category'  => '/product-category/man/',
         'preorder'  => '/product-category/man/?stock_status=onbackorder%3Aonbackorder',
@@ -37,7 +37,7 @@ $home_sections = array(
     <?php foreach ($home_sections as $section) : ?>
         <section id="home-<?php echo esc_attr($section['key']); ?>" class="home-gateway__panel home-gateway__panel--<?php echo esc_attr($section['key']); ?>" aria-labelledby="home-<?php echo esc_attr($section['key']); ?>-title" data-gateway-panel>
             <a class="home-gateway__image-link" href="<?php echo esc_url($section['landing']); ?>" aria-label="<?php echo esc_attr(sprintf(__('Shop %s', 'dakabrand'), $section['label'])); ?>" data-stock-mode="available">
-                <img src="<?php echo esc_url(staticbridge_resize_image_url(get_template_directory_uri() . '/assets/images/' . $section['image'], 1163, 1236)); ?>" alt="" width="1163" height="1236" fetchpriority="high">
+                <img src="<?php echo esc_url(staticbridge_resize_image_url($section['image'], 1163, 1236)); ?>" alt="" width="1163" height="1236" fetchpriority="high">
             </a>
             <h2 class="screen-reader-text" id="home-<?php echo esc_attr($section['key']); ?>-title"><?php echo esc_html($section['label']); ?></h2>
 

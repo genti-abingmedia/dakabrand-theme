@@ -242,7 +242,7 @@ function staticbridge_render_seo_head(array $seo): void
 function staticbridge_document_asset_url(string $asset): string
 {
     $url = get_template_directory_uri() . '/' . ltrim($asset, '/');
-    if ('assets/js/catalog.js' === $asset) {
+    if (in_array($asset, array('assets/js/catalog.js', 'assets/css/main.css', 'assets/css/halloween.css', 'assets/js/halloween.js'), true)) {
         $url = add_query_arg('ver', md5_file(get_template_directory() . '/' . $asset), $url);
     }
     return $url;
@@ -263,6 +263,7 @@ function staticbridge_render_document_assets(): void
     if ($catalog) {
         printf("<link rel=\"stylesheet\" href=\"%s\">\n", esc_url(staticbridge_document_asset_url('assets/css/catalog.css')));
     }
+    printf("<link rel=\"stylesheet\" href=\"%s\">\n", esc_url(staticbridge_document_asset_url('assets/css/halloween.css')));
 }
 
 function staticbridge_render_document_scripts(): void
@@ -285,6 +286,7 @@ function staticbridge_render_document_scripts(): void
     foreach (array('assets/js/cart.js') as $asset) {
         printf("<script defer src=\"%s\"></script>\n", esc_url(staticbridge_document_asset_url($asset)));
     }
+    printf("<script defer src=\"%s\"></script>\n", esc_url(staticbridge_document_asset_url('assets/js/halloween.js')));
     if ($catalog) {
         printf("<script defer src=\"%s\"></script>\n", esc_url(staticbridge_document_asset_url('assets/js/catalog.js')));
     }

@@ -131,7 +131,8 @@ foreach (WC()->countries->get_shipping_countries() as $country_code => $country_
     </dialog>
     <section class="checkout-confirmation" data-checkout-confirmation hidden role="status" aria-live="polite">
         <div class="checkout-confirmation__mark" aria-hidden="true">
-            <svg viewBox="0 0 64 64" focusable="false"><circle cx="32" cy="32" r="30"/><path d="m19 33 8 8 18-19"/></svg>
+            <?php get_template_part('template-parts/components/halloween-pumpkin'); ?>
+            <div class="halloween-smoke checkout-confirmation__smoke" data-halloween-smoke inert><span></span><span></span></div>
         </div>
         <p class="checkout-confirmation__eyebrow"><?php esc_html_e('Order confirmed', 'dakabrand'); ?></p>
         <h2><?php esc_html_e('Thank you for your order!', 'dakabrand'); ?></h2>

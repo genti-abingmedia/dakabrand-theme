@@ -1,0 +1,202 @@
+/* Temporary Halloween 2026 layer. Loaded after main.css and catalog.css. */
+body.halloween-theme {
+    color-scheme: dark;
+    --halloween-bg: #100d12;
+    --halloween-surface: #1b161e;
+    --halloween-raised: #261e2a;
+    --halloween-text: #f5eee7;
+    --halloween-muted: #bdb0bf;
+    --halloween-line: #493b4c;
+    --halloween-accent: #ffab66;
+    --halloween-accent-hover: #ffc58f;
+    --halloween-ink: #211006;
+    --halloween-error: #ff9ca8;
+    --brand-muted: var(--halloween-muted);
+    --brand-line: var(--halloween-line);
+    --brand-soft: var(--halloween-raised);
+    color: var(--halloween-text);
+    background: var(--halloween-bg);
+}
+.halloween-theme :is(button, input, select, textarea) { color: inherit; accent-color: var(--halloween-accent); }
+.halloween-theme :is(a, button, input, select, textarea, summary):focus-visible { outline: 2px solid var(--halloween-accent); outline-offset: 3px; }
+.halloween-theme ::selection { color: var(--halloween-ink); background: var(--halloween-accent); }
+.halloween-theme :is(.site-header, .site-footer, .offcanvas, .site-navigation__menu .sub-menu, .fashion-mega-menu, .site-search__form, .catalog-filters, .catalog-filters__footer, .catalog-sort__menu, .product-dialog, .checkout-dialog, .checkout-confirmation, .contact-page__map-label) {
+    color: var(--halloween-text);
+    background: var(--halloween-surface);
+    border-color: var(--halloween-line);
+}
+.halloween-theme .announcement-bar { background: #54231a; color: #ffddbc; }
+.halloween-theme .announcement-bar__track a { color: #ffddbc; }
+.halloween-theme .site-promo { color: var(--halloween-muted); }
+.halloween-theme .site-branding :is(.custom-logo, .site-brand img) { filter: brightness(0) invert(1); }
+.halloween-theme :is(.fashion-navigation a, .fashion-mega-menu__groups a, .site-navigation__menu a, .site-navigation__menu .sub-menu a, .mobile-navigation__menu a, .mobile-navigation__menu .sub-menu a, .header-action, .man-category-nav a, .site-footer__legal a, .information-page__content, .information-page__content :is(h2, h3, h4), .contact-page__details :is(address, p)) { color: var(--halloween-text); }
+.halloween-theme .fashion-navigation__department { color: var(--halloween-muted) !important; }
+.halloween-theme :is(.fashion-navigation__department.is-current, .fashion-navigation__department:hover, .fashion-navigation__department:focus-visible) { color: var(--halloween-accent) !important; }
+.halloween-theme :is(.fashion-navigation__department::after, .fashion-navigation__links > a::after) { background: var(--halloween-accent); }
+.halloween-theme :is(.header-action:hover, .header-action:focus-visible, .site-navigation__menu .sub-menu a:hover, .site-navigation__menu .sub-menu a:focus-visible) { color: var(--halloween-accent); background: var(--halloween-raised); }
+.halloween-theme :is(.fashion-mega-menu__groups a:hover, .fashion-mega-menu__groups a:focus-visible, .site-search[open] > summary) { color: var(--halloween-accent); }
+.halloween-theme :is(.language-switcher--gateway, .home-gateway__mobile-switcher) { color: var(--halloween-text); background: rgba(27,22,30,.94); border: 1px solid var(--halloween-line); }
+.halloween-theme .home-gateway__mobile-switcher a { color: var(--halloween-muted); }
+.halloween-theme .home-gateway__mobile-switcher a[aria-current="true"] { color: var(--halloween-ink); background: var(--halloween-accent); }
+.halloween-theme :is(.language-switcher button, .site-search__form button) { color: var(--halloween-text); }
+.halloween-theme :is(.language-switcher [aria-current="true"], .language-switcher button:hover) { color: var(--halloween-accent); }
+.halloween-theme .cart-count { color: var(--halloween-ink); background: var(--halloween-accent); }
+.halloween-theme .btn-close { filter: invert(1) grayscale(1); }
+
+/* Department accents stay local; photography is never inverted or tinted. */
+.halloween-theme .woman-landing { --halloween-accent: #d8b4fe; --halloween-accent-hover: #e9d5ff; --halloween-ink: #230a35; }
+.halloween-theme .man-landing:not(.woman-landing) { --halloween-accent: #edb18d; --halloween-accent-hover: #ffd0ae; }
+.halloween-theme :is(.man-category-nav a, .man-collection__cta) { border-color: var(--halloween-line); }
+.halloween-theme :is(.man-category-nav a:hover, .man-category-nav a:focus-visible, .man-collection__cta) { color: var(--halloween-ink); background: var(--halloween-accent); border-color: var(--halloween-accent); }
+.halloween-theme :is(.man-collection__cta:hover, .man-collection__cta:focus-visible) { color: var(--halloween-ink); background: var(--halloween-accent-hover); }
+.halloween-theme :is(.man-product-grid .product-card h2, .product-breadcrumb [aria-current], .product-detail__rating, .product-detail__sku span, .product-detail__accordion summary, .product-detail__accordion-content h3, .product-attributes dt, .cart-item__title, .cart-item__price ins, .cart-page__continue, .checkout-form__different, .checkout-order > a, .checkout-confirmation__total--grand) { color: var(--halloween-text); }
+.halloween-theme :is(.product-detail__accordion-content, .information-page__content, .catalog-facet__option) { color: #d0c4d1; }
+.halloween-theme :is(.product-detail__summary .product-price ins, .catalog-heading__eyebrow, .catalog-card__price, .catalog-card__price strong, .catalog-category-tree__row:has(input:checked) .catalog-facet__option) { color: var(--halloween-accent); }
+.halloween-theme .storefront-product-card__details { color: var(--halloween-text); }
+.halloween-theme .storefront-product-card__price strong { color: var(--halloween-accent); }
+.halloween-theme :is(.storefront-product-card__badge, .storefront-product-card__stock) { color: var(--halloween-ink); background: var(--halloween-accent); }
+.halloween-theme :is(.catalog-heading h1, .catalog-breadcrumb, .catalog-view-button:hover, .catalog-view-button[aria-pressed="true"], .catalog-pagination a, .catalog-pagination span, .catalog-category-tree__toggle, .catalog-sort__menu button) { color: var(--halloween-text); }
+.halloween-theme .catalog-view-button { color: var(--halloween-muted); }
+.halloween-theme .catalog-toolbar { background: var(--halloween-bg); }
+.halloween-theme .catalog-facet { padding: 1rem; }
+.halloween-theme :is(.catalog-sort, .catalog-filter-toggle) { color: var(--halloween-text); background: var(--halloween-surface); border-color: var(--halloween-line); }
+.halloween-theme .catalog-filter-toggle::before { background: var(--halloween-accent); }
+.halloween-theme :is(.catalog-card, .catalog-loading__card, .product-detail__payment, .cart-page__summary, .cart-page__empty, .checkout-page__empty, .checkout-payment-method, .product-dialog__close, .checkout-dialog__close) { color: var(--halloween-text); background: var(--halloween-surface); border-color: var(--halloween-line); }
+.halloween-theme :is(.catalog-skeleton, .checkout-skeleton) { background: #302735; animation: none; }
+.halloween-theme :is(.catalog-sort__trigger, .catalog-active button, .catalog-filters__footer button, .product-option__choice, .product-option select, .contact-form__field :is(input, textarea), .checkout-form__grid :is(input, select), .checkout-dialog :is(input, select, textarea), .product-dialog :is(input, textarea), .catalog-toolbar__search input, .site-search__form input) {
+    color: var(--halloween-text);
+    background: var(--halloween-bg);
+    border-color: var(--halloween-line);
+}
+.halloween-theme .contact-form--wpforms .wpforms-field :is(input, textarea) { color: var(--halloween-text); background: var(--halloween-bg); border-color: var(--halloween-line); }
+.halloween-theme :is(input, textarea)::placeholder { color: var(--halloween-muted); opacity: 1; }
+.halloween-theme :is(.product-quantity input, .cart-item__quantity input, .newsletter-form input, .newsletter-form button, .footer-column__toggle) { color: var(--halloween-text); }
+.halloween-theme .product-quantity input { background: transparent; }
+.halloween-theme :is(.product-quantity, .cart-item__controls, .cart-drawer__checkout + button, .fashion-navigation__departments, .checkout-payment-method, .checkout-order__shipping, .newsletter-form__field) { border-color: var(--halloween-line); }
+.halloween-theme .cart-drawer__checkout + button { color: var(--halloween-text); background: transparent; }
+.halloween-theme .product-stock-indicator.is-danger { --stock-indicator-color: #ff9ca8; }
+.halloween-theme .product-stock-indicator.is-warning { --stock-indicator-color: #ffc277; }
+.halloween-theme .product-stock-indicator.is-success { --stock-indicator-color: #9cddb7; }
+.halloween-theme .product-stock-indicator__track { background: var(--halloween-raised); }
+.halloween-theme :is(.product-option__choice:hover, .product-option__choice:focus-visible, .product-option select:hover, .product-gallery__thumb.is-active, .catalog-sort.is-open .catalog-sort__trigger, .catalog-sort__trigger:hover, .catalog-active button:hover, .checkout-form__grid input:focus, .checkout-form__grid select:focus) { border-color: var(--halloween-accent); }
+.halloween-theme :is(.product-option__choice.is-selected, .catalog-facet--box .catalog-facet__option:has(input:checked), .catalog-pagination [aria-current="page"], .catalog-pagination a:hover, .catalog-sort__menu button:hover, .catalog-sort__menu button:focus-visible, .catalog-category-tree__toggle[aria-expanded="true"]) { color: var(--halloween-ink); background: var(--halloween-accent); border-color: var(--halloween-accent); }
+.halloween-theme .product-option__choice--swatch.is-selected { background: var(--halloween-bg); }
+.halloween-theme .product-option__choice:disabled { color: #958a99; background: #211b24; border-color: #403445; }
+.halloween-theme :is(.catalog-category-tree__row:has(input:checked), .catalog-category-tree__row:hover, .catalog-category-tree__toggle:hover, .checkout-shipping-rate:hover, .checkout-shipping-rate:has(input:checked)) { background: var(--halloween-raised); border-color: var(--halloween-accent); }
+.halloween-theme :is(.catalog-facet__count, .man-product-grid .product-card__category, .man-fallback-product .product-card__link p) { color: var(--halloween-muted); }
+.halloween-theme :is(.product-detail .add-to-cart-button, .product-detail__buy-now, .contact-form button[type="submit"], .cart-drawer__checkout, .cart-drawer__empty a, .cart-page__checkout, .cart-page__empty a, .checkout-form__submit, .checkout-dialog__action, .checkout-page__empty a, .checkout-confirmation__cta, .catalog-status button, .catalog-filters__footer button:last-child) { color: var(--halloween-ink); background: var(--halloween-accent); border-color: var(--halloween-accent); }
+.halloween-theme :is(.product-detail .add-to-cart-button:hover, .product-detail__buy-now:hover, .contact-form button[type="submit"]:hover, .cart-drawer__checkout:hover, .cart-page__checkout:hover, .cart-page__empty a:hover, .checkout-form__submit:hover, .checkout-dialog__action:hover, .checkout-page__empty a:hover, .checkout-confirmation__cta:hover) { color: var(--halloween-ink); background: var(--halloween-accent-hover); }
+.halloween-theme :is(.cart-page__continue:hover, .cart-page__continue:focus-visible, .product-detail__contact-fallback, .product-detail__contact-fallback:hover) { color: var(--halloween-text); background: var(--halloween-raised); }
+.halloween-theme :is(.catalog-card__badge, .catalog-card__stock, .product-detail__discount, .product-detail__new) { color: var(--halloween-ink); background: var(--halloween-accent); }
+.halloween-theme :is(.product-detail__preorder, .product-detail__sold-out) { color: #ffe6e8; background: #7c2637; }
+.halloween-theme :is(.contact-form__status.is-error, .cart-add-status.is-error, .newsletter-form__status.is-error, .checkout-dialog .checkout-dialog__error, .contact-form__field label span, .checkout-form__grid label span) { color: var(--halloween-error); }
+.halloween-theme :is(.cart-drawer__status, .cart-page__status) { color: #b7ecc9; background: #183026; }
+.halloween-theme :is(.cart-drawer__status.is-error, .cart-page__status.is-error) { color: var(--halloween-error); background: #3d1e2a; }
+.halloween-theme :is(.contact-form__status, .product-dialog__status, .checkout-confirmation__total--discount) { color: #b7ecc9; }
+.halloween-theme .checkout-confirmation__mark { position: relative; color: var(--halloween-accent); background: #301c17; isolation: isolate; }
+.halloween-theme .checkout-confirmation__mark .halloween-pumpkin { position: relative; z-index: 1; width: 4.6rem; height: 4.6rem; stroke: none; }
+.halloween-theme .checkout-confirmation__number { color: var(--halloween-text); }
+.halloween-theme .checkout-confirmation__receipt { border-color: var(--halloween-line); }
+.halloween-theme .checkout-confirmation__smoke { position: absolute; top: 65%; left: 50%; width: min(16rem,70vw); height: 4.5rem; opacity: .14; transform: translateX(-50%); pointer-events: none; }
+.halloween-theme .checkout-confirmation__smoke span { position: absolute; inset: 0; background: #ffb36e; -webkit-mask: url('../images/halloween-smoke.webp') center / 100% 100% no-repeat; mask: url('../images/halloween-smoke.webp') center / 100% 100% no-repeat; animation: halloween-smoke-drift 22s ease-in-out infinite; }
+.halloween-theme .checkout-confirmation__smoke span:nth-child(2) { animation-duration: 28s; animation-delay: -14s; }
+.halloween-theme .checkout-confirmation[hidden] .checkout-confirmation__smoke span { animation-play-state: paused; }
+.halloween-theme .checkout-snackbar { color: var(--halloween-text); background: var(--halloween-raised); }
+.halloween-theme .checkout-snackbar.is-error { color: var(--halloween-error); background: #3d1e2a; }
+.halloween-theme :is(.product-gallery__arrow, .product-gallery__expand, .product-gallery__counter) { color: #181019; }
+.halloween-theme .product-gallery__stage.has-image-error,
+.halloween-theme .product-gallery__stage.has-image-error::after { background: var(--halloween-surface); }
+.halloween-theme .product-gallery__stage.has-image-error::after { color: var(--halloween-muted); }
+.halloween-theme img[src*="woocommerce-placeholder"] { filter: brightness(.24); }
+.halloween-theme :is(.product-detail__payment .payment-mark, .checkout-payment-method__western-union) { color-scheme: light; }
+.halloween-theme :is(.site-footer__legal a:hover, .site-footer__legal a:focus-visible, .footer-menu a:hover, .footer-menu a:focus-visible, .footer-social__links a:hover, .footer-social__links a:focus-visible, .product-breadcrumb a:hover, .product-detail__policy-link:hover, .product-dialog__networks a:hover, .product-dialog__networks a:focus-visible) { color: var(--halloween-accent); }
+
+/* Same five destinations and hit areas; the pumpkin remains decorative. */
+.halloween-theme .mobile-tabs { color: var(--halloween-text); background: rgba(27,22,30,.97); border-color: var(--halloween-line); box-shadow: 0 12px 36px #0008; }
+.halloween-theme .mobile-tabs > a { color: var(--halloween-muted); }
+.halloween-theme .mobile-tabs > :is(a:hover, a:focus-visible, a.is-active) { color: var(--halloween-accent); }
+.halloween-theme .mobile-tabs__primary { color: var(--halloween-text) !important; }
+.halloween-theme .mobile-tabs__primary-icon { color: var(--halloween-accent); background: #301c17; border-color: var(--halloween-surface); }
+.halloween-theme .mobile-tabs__primary:is(:hover, :focus-visible, .is-active) .mobile-tabs__primary-icon { background: #57301c; }
+.halloween-theme .mobile-tabs .halloween-pumpkin { width: 2.1rem; height: 2.1rem; stroke-width: 0; }
+.halloween-pumpkin__body { fill: #f99844; }
+.halloween-pumpkin__stem { fill: #d8b273; }
+.halloween-pumpkin__rib { fill: none; stroke: #b65024; stroke-width: 1.25; }
+.halloween-pumpkin__face { fill: #301309; }
+
+/* Two bounded compositor surfaces. The whole corner never exceeds 14% opacity. */
+.halloween-smoke { pointer-events: none; }
+.halloween-smoke__corner {
+    position: fixed;
+    bottom: 0;
+    z-index: 1000;
+    width: min(420px, 44vw);
+    height: 180px;
+    overflow: hidden;
+    contain: strict;
+    opacity: .14;
+    pointer-events: none;
+}
+.halloween-smoke__corner--left { left: 0; --smoke-tint: #cfa2ef; }
+.halloween-smoke__corner--right { right: 0; --smoke-tint: #ffb36e; }
+.halloween-smoke__corner span {
+    position: absolute;
+    inset: 0;
+    background: var(--smoke-tint);
+    -webkit-mask: url('../images/halloween-smoke.webp') center / 100% 100% no-repeat;
+    mask: url('../images/halloween-smoke.webp') center / 100% 100% no-repeat;
+    animation: halloween-smoke-drift 22s ease-in-out infinite;
+}
+.halloween-smoke__corner span:nth-child(2) { animation-duration: 28s; animation-delay: -14s; }
+.halloween-smoke__corner--right span { animation-direction: reverse; animation-duration: 18s; }
+.halloween-smoke__corner--right span:nth-child(2) { animation-duration: 26s; animation-delay: -11s; }
+@keyframes halloween-smoke-drift {
+    0%, 100% { opacity: .2; transform: translate3d(-8%,18%,0) scale(.95); }
+    50% { opacity: 1; transform: translate3d(8%,-8%,0) scale(1.08); }
+}
+.halloween-theme:has(dialog[open], .offcanvas.show, .offcanvas.showing, .offcanvas.hiding, .modal.show, .catalog-filters.is-open, .product-lightbox:not([hidden]), .site-search[open]) .halloween-smoke { visibility: hidden; }
+.halloween-smoke[data-paused] { visibility: hidden; }
+.halloween-smoke[data-paused] span,
+.halloween-theme:has(dialog[open], .offcanvas.show, .offcanvas.showing, .offcanvas.hiding, .modal.show, .catalog-filters.is-open, .product-lightbox:not([hidden]), .site-search[open]) .halloween-smoke span { animation-play-state: paused; }
+@media (max-width: 991.98px) {
+    .halloween-smoke__corner { width: min(200px,44vw); height: 110px; bottom: calc(var(--mobile-toolbar-height) + 1.1rem + env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .halloween-smoke { display: none; }
+    .halloween-smoke span { animation: none; }
+}
+
+/* A small visitor; hidden between visits and never over transactional screens. */
+.halloween-visitor-stage { position: fixed; inset: 0; z-index: 1010; overflow: hidden; pointer-events: none; }
+.halloween-theme .halloween-visitor {
+    position: absolute;
+    z-index: 1010;
+    width: 140px;
+    height: 175px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 350ms ease-out, opacity 350ms ease-out;
+    touch-action: manipulation;
+}
+.halloween-visitor img { width: 100%; height: 100%; object-fit: contain; }
+.halloween-visitor[data-edge="left"] { top: var(--peek-position); left: -24px; transform: translate3d(-130%,0,0) rotate(90deg); }
+.halloween-visitor[data-edge="right"] { top: var(--peek-position); right: -24px; transform: translate3d(130%,0,0) rotate(-90deg); }
+.halloween-visitor[data-edge="top"] { top: -24px; left: var(--peek-position); transform: translate3d(0,-130%,0) rotate(180deg); }
+.halloween-visitor[data-edge="bottom"] { bottom: -24px; left: var(--peek-position); transform: translate3d(0,130%,0); }
+.halloween-theme .halloween-visitor.is-peeking { opacity: 1; pointer-events: auto; }
+.halloween-visitor.is-peeking[data-edge="left"] { transform: translate3d(0,0,0) rotate(90deg); }
+.halloween-visitor.is-peeking[data-edge="right"] { transform: translate3d(0,0,0) rotate(-90deg); }
+.halloween-visitor.is-peeking[data-edge="top"] { transform: translate3d(0,0,0) rotate(180deg); }
+.halloween-visitor.is-peeking[data-edge="bottom"] { transform: translate3d(0,0,0); }
+.halloween-theme:has(dialog[open], .offcanvas.show, .offcanvas.showing, .offcanvas.hiding, .modal.show, .catalog-filters.is-open, .product-lightbox:not([hidden]), .site-search[open]) .halloween-visitor { visibility: hidden; pointer-events: none; }
+@media (max-width: 991.98px) {
+    .halloween-theme .halloween-visitor { width: 100px; height: 125px; }
+    .halloween-visitor[data-edge="bottom"] { bottom: calc(var(--mobile-toolbar-height) + 1.2rem + env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .halloween-theme :is(.halloween-visitor-stage, .halloween-visitor) { display: none; transition: none; }
+}

@@ -83,7 +83,7 @@ function staticbridge_render_document_start(): void
         <?php staticbridge_render_onesignal_head(); ?>
         <?php if ($show_admin_toolbar) { wp_head(); } ?>
     </head>
-    <body <?php body_class(); ?>>
+    <body <?php body_class('halloween-theme'); ?>>
     <?php if ($show_admin_toolbar) { wp_body_open(); } ?>
     <?php staticbridge_render_tag_manager_body(); ?>
     <?php get_template_part('header'); ?>
@@ -95,6 +95,10 @@ function staticbridge_render_document_end(): void
     $show_admin_toolbar = staticbridge_should_show_admin_toolbar();
     ?>
     <?php get_template_part('footer'); ?>
+    <?php if (!in_array(staticbridge_document_view(), array('cart', 'checkout'), true) && !staticbridge_is_cart_request() && !staticbridge_is_checkout_request()) : ?>
+        <?php get_template_part('template-parts/components/halloween-smoke'); ?>
+        <?php get_template_part('template-parts/components/halloween-visitor'); ?>
+    <?php endif; ?>
     <?php staticbridge_render_document_scripts(); ?>
     <?php if ($show_admin_toolbar) { wp_footer(); } ?>
     </body>
