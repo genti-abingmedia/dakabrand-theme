@@ -44,6 +44,26 @@ body.halloween-theme {
 .halloween-theme .btn-close { filter: invert(1) grayscale(1); }
 
 /* Department accents stay local; photography is never inverted or tinted. */
+.halloween-theme .home-gateway__title {
+    position: absolute;
+    top: clamp(4.5rem,9svh,7rem);
+    left: 0;
+    right: 0;
+    z-index: 1;
+    margin: 0;
+    padding-inline: 1rem;
+    color: var(--gateway-accent);
+    font-family: "Pirata One", Georgia, serif;
+    font-size: clamp(3.5rem,6vw,6.5rem);
+    font-weight: 400;
+    line-height: 1;
+    text-align: center;
+    text-shadow: 0 2px 16px #0009;
+    pointer-events: none;
+}
+@media (max-width: 767.98px) {
+    .halloween-theme .home-gateway__title { top: clamp(5.25rem,12svh,7rem); font-size: clamp(3.5rem,15vw,5.5rem); }
+}
 .halloween-theme .woman-landing { --halloween-accent: #d8b4fe; --halloween-accent-hover: #e9d5ff; --halloween-ink: #230a35; }
 .halloween-theme .man-landing:not(.woman-landing) { --halloween-accent: #edb18d; --halloween-accent-hover: #ffd0ae; }
 .halloween-theme :is(.man-category-nav a, .man-collection__cta) { border-color: var(--halloween-line); }
@@ -104,6 +124,14 @@ body.halloween-theme {
 .halloween-theme .checkout-snackbar { color: var(--halloween-text); background: var(--halloween-raised); }
 .halloween-theme .checkout-snackbar.is-error { color: var(--halloween-error); background: #3d1e2a; }
 .halloween-theme :is(.product-gallery__arrow, .product-gallery__expand, .product-gallery__counter) { color: #181019; }
+/* Soften white photo canvases without modifying the original product assets. */
+.halloween-theme :is(.catalog-card__media, .storefront-product-card__media, .product-gallery__stage, .product-gallery__thumb) { background: #e0e0e0; }
+.halloween-theme :is(.catalog-card__image-link, .storefront-product-card__image-link, .product-card__link, .product-gallery__thumb) img,
+.halloween-theme :is(.product-gallery__main, .product-lightbox__image, img.cart-item__image, img.checkout-order__item-image) { filter: brightness(.88); }
+.halloween-theme :is(.catalog-card__whatsapp, .storefront-product-card__whatsapp) img { filter: brightness(.72) saturate(.85); }
+.halloween-theme :is(.catalog-card__whatsapp, .storefront-product-card__whatsapp):is(:hover, :focus-visible) img { filter: brightness(.85) saturate(.9); }
+.halloween-theme .product-detail__whatsapp { color: #fff; background: #17683c; }
+.halloween-theme .product-detail__whatsapp:is(:hover, :focus-visible) { color: #fff; background: #1d7c47; }
 .halloween-theme .product-gallery__stage.has-image-error,
 .halloween-theme .product-gallery__stage.has-image-error::after { background: var(--halloween-surface); }
 .halloween-theme .product-gallery__stage.has-image-error::after { color: var(--halloween-muted); }

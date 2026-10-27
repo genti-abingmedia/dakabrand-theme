@@ -37,8 +37,10 @@ The custom document renderer adds `halloween-theme` to the storefront body and
 loads `assets/css/halloween.css` after the base/catalog styles. The stylesheet
 and `assets/js/halloween.js` use content hashes for cache versioning. The dark
 palette uses dedicated seasonal tokens; original black/red variables are not
-inverted. Existing campaign images, layouts, translations, payment marks, and
-product photos retain their colors.
+inverted. Campaign images and payment marks retain their colors. Product photos
+use 88% CSS brightness to soften white backgrounds; original image files remain
+unchanged. WooCommerce placeholders retain their separate 24% brightness rule.
+WhatsApp card icons are dimmed, with dark green product-page buttons.
 
 The center mobile Shop link contains a decorative inline pumpkin SVG, with the
 same label and URL. The other four navigation links and cart counter remain.

@@ -39,7 +39,7 @@ $home_sections = array(
             <a class="home-gateway__image-link" href="<?php echo esc_url($section['landing']); ?>" aria-label="<?php echo esc_attr(sprintf(__('Shop %s', 'dakabrand'), $section['label'])); ?>" data-stock-mode="available">
                 <img src="<?php echo esc_url(staticbridge_resize_image_url($section['image'], 1163, 1236)); ?>" alt="" width="1163" height="1236" fetchpriority="high">
             </a>
-            <h2 class="screen-reader-text" id="home-<?php echo esc_attr($section['key']); ?>-title"><?php echo esc_html($section['label']); ?></h2>
+            <h2 class="home-gateway__title" id="home-<?php echo esc_attr($section['key']); ?>-title"><?php echo esc_html($section['label']); ?></h2>
 
             <nav class="home-gateway__actions" aria-label="<?php echo esc_attr(sprintf(__('%s collections', 'dakabrand'), $section['label'])); ?>">
                 <a class="home-gateway__button home-gateway__button--dark" href="<?php echo esc_url(home_url($section['preorder'])); ?>" data-stock-mode="preorder"><?php esc_html_e('Preorder Only', 'dakabrand'); ?></a>
