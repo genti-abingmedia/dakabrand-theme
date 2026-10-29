@@ -14,7 +14,6 @@
     var nextTimer, hideTimer, exitTimer, entranceTimer;
     var failed = false;
     var returnFocus;
-    var viewportWidth = window.innerWidth;
     var overlays = 'dialog[open], .offcanvas.show, .offcanvas.showing, .offcanvas.hiding, .modal.show, .catalog-filters.is-open, .product-lightbox:not([hidden]), .site-search[open]';
 
     function randomDelay(minimum, maximum) {
@@ -88,13 +87,6 @@
     if (image.complete && !image.naturalWidth) failed = true;
     window.addEventListener('pagehide', function () { clearTimers(); visitor.hidden = true; });
     window.addEventListener('pageshow', function (event) { if (event.persisted) dismiss(true); });
-    window.addEventListener('resize', function () {
-        // Mobile browser chrome and keyboards resize the height during normal use.
-        // Only a width change needs to reset the visitor's edge placement.
-        if (window.innerWidth === viewportWidth) return;
-        viewportWidth = window.innerWidth;
-        dismiss(true);
-    });
 
     if (window.MutationObserver) {
         var observer = new MutationObserver(function () {
