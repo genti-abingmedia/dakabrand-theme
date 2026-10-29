@@ -28,12 +28,13 @@ function element() {
     };
 }
 
-function run(galleries, detail, section, storage = {}) {
+function run(galleries, detail, section, storage = {}, browser = {}) {
     const localStorage = {
         getItem(key) { return storage[key] || null; },
         setItem(key, value) { storage[key] = value; }
     };
     const document = {
+        body: element(),
         querySelectorAll(selector) { return selector === '[data-product-gallery]' ? galleries : []; },
         querySelector(selector) {
             if (selector === '.product-detail') return detail;
@@ -44,7 +45,7 @@ function run(galleries, detail, section, storage = {}) {
     };
     vm.runInNewContext(source, {
         document, localStorage,
-        window: { setTimeout(callback) { callback(); }, matchMedia() { return { matches: false }; } }
+        window: { setTimeout(callback) { callback(); }, matchMedia() { return { matches: false }; }, ...browser }
     });
     return storage;
 }
@@ -96,6 +97,68 @@ test('single-image gallery leaves its static image unchanged', () => {
     run([g.gallery], null, null);
     assert.equal(Object.keys(g.stage.handlers).length, 0);
     assert.equal(g.main.src, undefined);
+});
+
+function imageLoader(requests) {
+    return class {
+        set src(value) {
+            this.url = value;
+            requests.push(this);
+        }
+        decode() { this.decoded = true; return Promise.resolve(); }
+    };
+}
+
+test('gallery preloads and decodes responsive images before navigation, without repeat requests', () => {
+    const g = gallery(4);
+    const requests = [];
+    g.main.sizes = '(max-width: 960px) 100vw, 960px';
+    run([g.gallery], null, null, {}, { Image: imageLoader(requests) });
+    assert.deepEqual(requests.map(image => image.url), [
+        '/image-1.jpg', '/image-3.jpg', '/image-0.jpg', '/image-2.jpg'
+    ]);
+    requests.forEach(image => {
+        assert.equal(image.sizes, g.main.sizes);
+        assert.equal(image.srcset, image.url.replace('.jpg', '-large.jpg 2x'));
+        assert.equal(image.fetchPriority, 'low');
+        assert.equal(image.decoded, true);
+    });
+    g.next.handlers.click();
+    g.prev.handlers.click();
+    g.thumbs[3].handlers.click();
+    assert.equal(requests.length, 4);
+    assert.equal(g.main.src, '/image-3.jpg');
+});
+
+test('fullscreen preloads full-size images on opening and reuses them on reopening', () => {
+    const g = gallery(3);
+    const requests = [];
+    const lightbox = element();
+    const opener = element();
+    const main = element();
+    const close = element();
+    const thumbs = g.thumbs.map((thumb, index) => {
+        const item = element();
+        item.dataset = { imageSrc: `/full-${index}.jpg`, imageAlt: `Full ${index}` };
+        return item;
+    });
+    lightbox.hidden = true;
+    lightbox.querySelector = selector => ({ '[data-lightbox-main]': main, '[data-lightbox-close]': close })[selector];
+    lightbox.querySelectorAll = () => thumbs;
+    const query = g.gallery.querySelector;
+    g.gallery.querySelector = selector => ({ '[data-product-lightbox]': lightbox, '[data-gallery-open]': opener })[selector] || query(selector);
+    g.gallery.addEventListener = () => {};
+    g.gallery.dataset = { galleryIndex: '1' };
+    run([g.gallery], null, null, {}, { Image: imageLoader(requests) });
+    assert.equal(requests.filter(image => image.url.startsWith('/full-')).length, 0);
+    opener.handlers.click();
+    assert.equal(main.src, '/full-1.jpg');
+    assert.deepEqual(requests.filter(image => image.url.startsWith('/full-')).map(image => image.url), [
+        '/full-2.jpg', '/full-0.jpg', '/full-1.jpg'
+    ]);
+    close.handlers.click();
+    opener.handlers.click();
+    assert.equal(requests.length, 6);
 });
 
 test('gallery replaces failed images with the DAKA fallback state', () => {

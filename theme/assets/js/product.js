@@ -119,6 +119,35 @@
         if (detail.dataset) detail.dataset.deliveryPreorder = isPreorder ? 'true' : 'false';
     }
 
+    var galleryPreloads = Object.create(null);
+
+    function preloadGalleryImages(thumbs, main, index) {
+        if (typeof window.Image !== 'function' || thumbs.length < 2) return;
+        // Warm the likely next/previous views first, then the rest of the gallery.
+        var order = [index + 1, index - 1];
+        thumbs.forEach(function (thumb, position) { order.push(position); });
+        order.forEach(function (position) {
+            var thumb = thumbs[(position + thumbs.length) % thumbs.length];
+            var src = thumb.dataset.imageSrc;
+            var srcset = thumb.dataset.imageSrcset || '';
+            var sizes = main.sizes || '';
+            var key = JSON.stringify([src, srcset, sizes]);
+            var image;
+            if (!src || galleryPreloads[key]) return;
+            image = new window.Image();
+            galleryPreloads[key] = image;
+            image.fetchPriority = 'low';
+            image.decoding = 'async';
+            // Match the visible image's responsive candidate to avoid a second download.
+            if (sizes) image.sizes = sizes;
+            if (srcset) image.srcset = srcset;
+            image.src = src;
+            if (typeof image.decode === 'function') {
+                image.decode().catch(function () { /* The visible image handles load errors. */ });
+            }
+        });
+    }
+
     function enhanceGallery(gallery) {
         var stage = gallery.querySelector('.product-gallery__stage');
         var main = gallery.querySelector('[data-gallery-main]');
@@ -149,14 +178,16 @@
 
         if (!stage || !main || thumbs.length < 2) return;
 
+        preloadGalleryImages(thumbs, main, index);
+
         function show(next) {
             var thumb;
             index = (next + thumbs.length) % thumbs.length;
             thumb = thumbs[index];
             setImageState(main, false);
-            main.src = thumb.dataset.imageSrc;
             if (thumb.dataset.imageSrcset) main.srcset = thumb.dataset.imageSrcset;
             else main.removeAttribute('srcset');
+            main.src = thumb.dataset.imageSrc;
             main.alt = thumb.dataset.imageAlt;
             thumbs.forEach(function (item, position) {
                 item.classList.toggle('is-active', position === index);
@@ -225,9 +256,9 @@
             index = (nextIndex + thumbs.length) % thumbs.length;
             thumb = thumbs[index];
             setImageState(false);
-            main.src = thumb.dataset.imageSrc;
             if (thumb.dataset.imageSrcset) main.srcset = thumb.dataset.imageSrcset;
             else main.removeAttribute('srcset');
+            main.src = thumb.dataset.imageSrc;
             main.alt = thumb.dataset.imageAlt;
             thumbs.forEach(function (item, position) {
                 item.classList.toggle('is-active', position === index);
@@ -242,6 +273,7 @@
             lightbox.hidden = false;
             document.body.classList.add('has-product-lightbox');
             show(index);
+            preloadGalleryImages(thumbs, main, index);
             close.focus();
         }
 
