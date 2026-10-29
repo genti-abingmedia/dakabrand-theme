@@ -100,6 +100,9 @@ Escape dismisses it, with a 350ms retreat. It never takes focus automatically.
 Desktop randomly uses all four edges; mobile uses left/right/top to keep the
 bottom navigation clear. A clipped stage prevents off-screen poses from adding
 horizontal scrolling. No audio or flashing is used.
+Scrolling, unrelated taps and height-only viewport changes (mobile browser
+chrome or keyboards) preserve the five-second visit. Width changes reset the
+placement for the next visit.
 
 There is no visitor markup on cart or checkout (including the confirmation).
 Open overlays dismiss it; focused form fields postpone it. Hidden tabs, reduced

@@ -45,7 +45,7 @@ function setup({ reducedMotion = false, width = 1440, edgeRandom = 0, visitorPre
     }
     return { document, visitor, classes, attributes, style, media, imageEvents, visitorEvents, timers, smokeAttributes,
         tick, emit(name, event = {}) { (documentEvents[name] || []).forEach(callback => callback(event)); },
-        changeOverlay(open) { document.overlay = open; overlayObserver(); }, windowEvents };
+        changeOverlay(open) { document.overlay = open; overlayObserver(); }, windowEvents, window };
 }
 
 test('visitor waits, peeks for five seconds, and leaves a quiet interval between appearances', () => {
@@ -77,6 +77,43 @@ test('click and Escape dismiss the visitor and return keyboard focus', () => {
         assert.equal(restored, true); assert.equal(h.visitor.inert, true);
         h.tick(350); assert.equal(h.visitor.hidden, true);
     }
+});
+
+test('mobile scrolling, unrelated taps, and height-only resizes preserve the five-second visit', () => {
+    const h = setup({ width: 375 });
+    h.tick(2040);
+    h.emit('scroll');
+    h.emit('pointerdown', { target: h.document.activeElement });
+    h.emit('click', { target: h.document.activeElement });
+    h.window.innerHeight = 600;
+    h.windowEvents.resize();
+    h.window.innerHeight = 720;
+    h.windowEvents.resize();
+    assert.equal(h.visitor.hidden, false);
+    assert(h.classes.has('is-peeking'));
+    h.tick(4959);
+    assert(h.classes.has('is-peeking'));
+    h.tick(1);
+    assert(!h.classes.has('is-peeking'));
+    h.tick(350);
+    assert.equal(h.visitor.hidden, true);
+});
+
+test('mobile tap dismisses the visitor; a width change resets its placement', () => {
+    const tapped = setup({ width: 375 });
+    tapped.tick(2040);
+    tapped.visitorEvents.click();
+    assert(!tapped.classes.has('is-peeking'));
+    tapped.tick(350);
+    assert.equal(tapped.visitor.hidden, true);
+
+    const rotated = setup({ width: 375 });
+    rotated.tick(2040);
+    rotated.window.innerWidth = 812;
+    rotated.windowEvents.resize();
+    assert.equal(rotated.visitor.hidden, true);
+    rotated.tick(30040);
+    assert(rotated.classes.has('is-peeking'));
 });
 
 test('opening an overlay immediately hides the visitor; typing postpones a visit', () => {
