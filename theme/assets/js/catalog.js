@@ -6,6 +6,9 @@
     if (!root && !rails.length) return;
 
     var config = window.StaticBridgeConfig || {};
+    // Missing config must keep staged products hidden on older generated pages.
+    var hiddenCategorySlugs = Array.isArray(config.hiddenProductCategorySlugs)
+        ? config.hiddenProductCategorySlugs : ['black-friday'];
     var messages = config.messages || {};
     var API = 'https://filter.gliterin.net/public/filter';
     // The filter must query the storefront the visitor has actually opened.
@@ -54,6 +57,30 @@
 
     function message(key, fallback) {
         return messages[key] || fallback;
+    }
+
+    function isStorefrontProduct(product) {
+        return !((product.taxonomies || {}).categories || []).some(function (category) {
+            return hiddenCategorySlugs.includes(String(category.slug));
+        });
+    }
+
+    function visibleCategoryOptions(options) {
+        return (options || []).filter(function (option) {
+            return !hiddenCategorySlugs.includes(String(option.slug));
+        }).map(function (option) {
+            return Object.assign({}, option, { children: visibleCategoryOptions(option.children) });
+        });
+    }
+
+    function storefrontCatalog(data) {
+        return Object.assign({}, data, {
+            products: data.products.filter(isStorefrontProduct),
+            filter: (data.filter || []).map(function (facet) {
+                return facet.slug === 'categories'
+                    ? Object.assign({}, facet, { options: visibleCategoryOptions(facet.options) }) : facet;
+            })
+        });
     }
 
     function format(template) {
@@ -566,7 +593,8 @@
                 var data = payload && payload.result;
                 if (!data || !Array.isArray(data.products)) throw new Error('Invalid catalog response');
                 var rules = Array.isArray(data.discount_rules) ? data.discount_rules : [];
-                var cards = data.products.filter(function (product) { return Number(product.id) !== excluded; })
+                var cards = data.products.filter(isStorefrontProduct)
+                    .filter(function (product) { return Number(product.id) !== excluded; })
                     .slice(0, limit).map(function (product, index) {
                         return grid.dataset.storefrontProductCards !== undefined
                             ? makeStorefrontCard(product, rules, Boolean(data.include_out_of_stock), index, data.whatsapp_number)
@@ -937,7 +965,7 @@
                 if (!data || !Array.isArray(data.products) || !Array.isArray(data.filter) || !Number.isFinite(Number(data.count))) {
                     throw new Error('Invalid catalog response');
                 }
-                return data;
+                return storefrontCatalog(data);
             });
     }
 

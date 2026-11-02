@@ -43,6 +43,34 @@ Frontend developers may change markup and design freely, but should preserve:
 - The `<script type="application/json" data-staticbridge-product>` payload.
 - Calls to `wp_head()`, `wp_body_open()`, and `wp_footer()`.
 
+## Black Friday staging
+
+Products assigned to the category slug `black-friday` (or its children) are
+hidden by default, even when also assigned to another category. Keep editing
+them normally in WooCommerce admin. WordPress listings exclude them, dynamic
+shop/search/category/Man/Woman/related grids filter them out, their theme product
+pages render a 404, and WooCommerce rejects purchasing them (including variations
+and previously saved cart lines).
+
+To launch, change this line in `theme/config.php`:
+
+```php
+define('DAKABRAND_SHOW_BLACK_FRIDAY_PRODUCTS', true);
+```
+
+Set it back to `false` to hide them again. A `wp-config.php` definition of the
+same boolean constant takes precedence. After either change, deploy the theme,
+regenerate **all** static HTML (including product pages and shared config), and
+purge the storefront/CDN and external filter caches. Regenerate after creating
+child categories too, so their slugs reach generated documents.
+
+The external filter service is outside this repository. Filtering its responses
+in the theme hides cards and the category facet, but its totals and other facet
+counts can still include staged products, and grids can have fewer cards.
+For accurate public counts and full pages, its backend must apply the same
+category exclusion before pagination. This setting controls theme visibility;
+it does not make published WooCommerce data private from external APIs or feeds.
+
 ## Browser cart
 
 The cart drawer is shared by every view, and `/cart/` is a theme-native

@@ -108,6 +108,15 @@ function staticbridge_render_document_end(): void
 
 function staticbridge_render_document(string $view, array $context = array()): void
 {
+    // Static generators call this entry point without WordPress template routing.
+    if ('product' === $view) {
+        $render_product = wc_get_product(get_queried_object_id());
+        if ($render_product instanceof WC_Product && staticbridge_is_hidden_product($render_product)) {
+            $GLOBALS['wp_query']->set_404();
+            status_header(404);
+            $view = '404';
+        }
+    }
     if ('page' === $view) {
         $campaign_view = staticbridge_campaign_page_view();
         if (null !== $campaign_view) {

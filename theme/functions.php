@@ -247,6 +247,8 @@ function staticbridge_theme_gettext_fallback(string $translation, string $text, 
 }
 add_filter('gettext', 'staticbridge_theme_gettext_fallback', 10, 3);
 
+require_once get_template_directory() . '/config.php';
+require_once get_template_directory() . '/inc/product-visibility.php';
 require_once get_template_directory() . '/inc/seo-document.php';
 require_once get_template_directory() . '/inc/onesignal.php';
 require_once get_template_directory() . '/inc/render-api.php';
@@ -916,6 +918,7 @@ function staticbridge_enqueue_assets(): void
         'apiBase'          => (string) apply_filters('staticbridge_api_base',
             'local' === wp_get_environment_type() ? '/wp-json/' : '/api/'),
         'cartStorageKey'   => 'staticbridge_cart_v1',
+        'hiddenProductCategorySlugs' => staticbridge_hidden_product_category_slugs(),
         'stockModeStorageKey' => 'staticbridge_stock_mode_v1',
         'cartUrl'          => home_url('/cart/'),
         'shopUrl'          => home_url('/shop/'),

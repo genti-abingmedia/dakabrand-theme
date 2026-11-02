@@ -5,9 +5,9 @@ const vm = require('node:vm');
 
 const source = fs.readFileSync('theme/assets/js/catalog.js', 'utf8');
 
-function fixture(href) {
+function fixture(href, config) {
     const requests = [];
-    const window = { location: new URL(href) };
+    const window = { location: new URL(href), StaticBridgeConfig: config };
     const root = { querySelector() { return null; }, querySelectorAll() { return []; } };
     const document = {
         querySelector() { return root; },
@@ -15,7 +15,7 @@ function fixture(href) {
     };
     // Expose the request functions without starting the DOM rendering lifecycle.
     const setup = source.slice(0, source.indexOf('    enhanceExistingCardImages();')) +
-        'window.catalog = { sourceUrl, fetchCatalogPage }; })();';
+        'window.catalog = { sourceUrl, fetchCatalogPage, storefrontCatalog, isStorefrontProduct }; })();';
     vm.runInNewContext(setup, {
         window, document, URL, URLSearchParams,
         fetch(url, options) {
@@ -27,6 +27,46 @@ function fixture(href) {
     });
     return { window, requests, ...window.catalog };
 }
+
+test('staged products stay hidden even with other categories and on old generated pages', () => {
+    const page = fixture('https://dakabrand.uk/shop/');
+    const staged = { id: 1, taxonomies: { categories: [{ slug: 'women' }, { slug: 'black-friday' }] } };
+    const visible = { id: 2, taxonomies: { categories: [{ slug: 'women' }] } };
+    assert.equal(page.isStorefrontProduct(staged), false);
+    assert.equal(page.isStorefrontProduct(visible), true);
+    assert.equal(page.isStorefrontProduct({ id: 3 }), true);
+    const result = page.storefrontCatalog({ products: [staged, visible], count: 2, filter: [] });
+    assert.deepEqual(Array.from(result.products, product => product.id), [2]);
+    // The external service owns pagination/totals; never replace total with page length.
+    assert.equal(result.count, 2);
+});
+
+test('configured staged descendants and nested category facets stay hidden without mutating responses', () => {
+    const page = fixture('https://dakabrand.uk/shop/', {
+        hiddenProductCategorySlugs: ['black-friday', 'bf-shoes']
+    });
+    const data = {
+        products: [{ id: 1, taxonomies: { categories: [{ slug: 'bf-shoes' }] } }],
+        filter: [{ slug: 'categories', options: [{ slug: 'women', children: [
+            { slug: 'black-friday', children: [{ slug: 'bf-shoes' }] }, { slug: 'shirts' }
+        ] }] }]
+    };
+    const result = page.storefrontCatalog(data);
+    assert.equal(result.products.length, 0);
+    assert.deepEqual(Array.from(result.filter[0].options[0].children, option => option.slug), ['shirts']);
+    assert.equal(data.filter[0].options[0].children.length, 2);
+});
+
+test('launch config restores staged products and category choices', () => {
+    const page = fixture('https://dakabrand.uk/shop/', { hiddenProductCategorySlugs: [] });
+    const data = {
+        products: [{ id: 1, taxonomies: { categories: [{ slug: 'black-friday' }] } }],
+        filter: [{ slug: 'categories', options: [{ slug: 'black-friday' }] }]
+    };
+    const result = page.storefrontCatalog(data);
+    assert.equal(result.products.length, 1);
+    assert.equal(result.filter[0].options.length, 1);
+});
 
 test('Latest requests creation date descending while preserving search and filters on later pages', async () => {
     const page = fixture('https://dakabrand.uk/shop/?keyword=shoes&stock_status=instock%3Ainstock&brands=prada&catalog_view=list&catalog_filters=hidden&price=100-300&page=2');
