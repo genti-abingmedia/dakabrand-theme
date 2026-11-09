@@ -43,26 +43,31 @@ Frontend developers may change markup and design freely, but should preserve:
 - The `<script type="application/json" data-staticbridge-product>` payload.
 - Calls to `wp_head()`, `wp_body_open()`, and `wp_footer()`.
 
-## Black Friday staging
+## Black Friday campaign and visibility
 
-Products assigned to the category slug `black-friday` (or its children) are
-hidden by default, even when also assigned to another category. Keep editing
-them normally in WooCommerce admin. WordPress listings exclude them, dynamic
-shop/search/category/Man/Woman/related grids filter them out, their theme product
-pages render a 404, and WooCommerce rejects purchasing them (including variations
-and previously saved cart lines).
+The storefront uses the monochrome `assets/css/black-friday.css` campaign layer.
+The homepage links to `/product-category/black-friday/`, `/woman/`, and `/man/`;
+Black Friday is also linked from desktop/mobile navigation and department pages.
+Halloween assets remain archived in the theme but are not loaded or rendered.
 
-To launch, change this line in `theme/config.php`:
+Products in the category slug `black-friday` (and its children) are visible by
+default. The existing launch switch in `theme/config.php` is enabled:
 
 ```php
 define('DAKABRAND_SHOW_BLACK_FRIDAY_PRODUCTS', true);
 ```
 
-Set it back to `false` to hide them again. A `wp-config.php` definition of the
-same boolean constant takes precedence. After either change, deploy the theme,
+Set it to `false` to stage products again. A `wp-config.php` definition of the
+same boolean constant takes precedence. When disabled, listings and dynamic
+shop/search/category/Man/Woman/related grids exclude those products, their theme
+product pages return a 404, and WooCommerce rejects purchasing them, including
+variations and previously saved cart lines. Campaign links remain in place;
+remove them before using staging mode for a future campaign.
+
+After changing the setting or publishing this campaign, deploy the theme,
 regenerate **all** static HTML (including product pages and shared config), and
-purge the storefront/CDN and external filter caches. Regenerate after creating
-child categories too, so their slugs reach generated documents.
+purge storefront/CDN and external filter caches. Regenerate after creating child
+categories too, so their slugs reach generated documents.
 
 The external filter service is outside this repository. Filtering its responses
 in the theme hides cards and the category facet, but its totals and other facet
@@ -148,10 +153,10 @@ If WPForms is unavailable, the legacy newsletter endpoint filter remains a
 fallback. It accepts a JSON object with an `email` property and may return a
 user-facing `message` in a successful JSON response.
 
-The `front-page` view is an immersive MAN/WOMAN gateway. It intentionally omits
-the header and footer, retains the mobile app toolbar, and keeps `wp_head()`,
-`wp_body_open()`, and `wp_footer()` so plugins and generated documents continue
-to work correctly.
+The `front-page` view is a single full-width photographic Black Friday hero
+with generated desktop and mobile backgrounds selected through a responsive
+`picture`, a title, subtitle, and direct category and department buttons. It intentionally omits the header and footer and retains a
+five-item mobile toolbar for Home, Women, Shop, Man, and Cart on every page. The rendering contract is unchanged.
 
 The `/man/` route uses `page-man.php` and the `man` render view. A guarded
 theme-level route also serves it on static/proxy installs that do not have a

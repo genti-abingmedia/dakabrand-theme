@@ -3,49 +3,21 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-$home_sections = array(
-    array(
-        'key'       => 'woman',
-        'label'     => __('Woman', 'dakabrand'),
-        'image'     => 'https://dakabrand.uk/wp-content/uploads/2026/10/brandhome2.jpg',
-        'landing'   => staticbridge_department_page_url('woman'),
-        'category'  => '/product-category/women/',
-        'preorder'  => '/product-category/women/?stock_status=onbackorder%3Aonbackorder',
-        'in_stock'  => '/product-category/women/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
-        'offer'     => '/shop/?categories=big-offer-women%3ABIG+OFFER+WOMEN&stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
-    ),
-    array(
-        'key'       => 'man',
-        'label'     => __('Man', 'dakabrand'),
-        'image'     => 'https://dakabrand.uk/wp-content/uploads/2026/10/brandhome1.jpg',
-        'landing'   => staticbridge_department_page_url('man'),
-        'category'  => '/product-category/man/',
-        'preorder'  => '/product-category/man/?stock_status=onbackorder%3Aonbackorder',
-        'in_stock'  => '/product-category/man/?stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
-        'offer'     => '/shop/?categories=big-offer%3ABIG+OFFER&stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock',
-    ),
-);
 ?>
-<main id="main" class="home-gateway" data-static-view="front-page">
-    <h1 class="screen-reader-text"><?php echo esc_html(get_bloginfo('name')); ?></h1>
+<main id="main" class="black-friday-home" data-static-view="front-page">
     <?php echo staticbridge_language_switcher('language-switcher--gateway'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-    <nav class="home-gateway__mobile-switcher" aria-label="<?php esc_attr_e('Choose a collection', 'dakabrand'); ?>" data-gateway-switcher>
-        <a href="#home-woman" aria-current="true"><?php esc_html_e('Woman', 'dakabrand'); ?></a>
-        <a href="#home-man"><?php esc_html_e('Man', 'dakabrand'); ?></a>
-    </nav>
-
-    <?php foreach ($home_sections as $section) : ?>
-        <section id="home-<?php echo esc_attr($section['key']); ?>" class="home-gateway__panel home-gateway__panel--<?php echo esc_attr($section['key']); ?>" aria-labelledby="home-<?php echo esc_attr($section['key']); ?>-title" data-gateway-panel>
-            <a class="home-gateway__image-link" href="<?php echo esc_url($section['landing']); ?>" aria-label="<?php echo esc_attr(sprintf(__('Shop %s', 'dakabrand'), $section['label'])); ?>" data-stock-mode="available">
-                <img src="<?php echo esc_url(staticbridge_resize_image_url($section['image'], 1163, 1236)); ?>" alt="" width="1163" height="1236" fetchpriority="high">
-            </a>
-            <h2 class="home-gateway__title" id="home-<?php echo esc_attr($section['key']); ?>-title"><?php echo esc_html($section['label']); ?></h2>
-
-            <nav class="home-gateway__actions" aria-label="<?php echo esc_attr(sprintf(__('%s collections', 'dakabrand'), $section['label'])); ?>">
-                <a class="home-gateway__button home-gateway__button--dark" href="<?php echo esc_url(home_url($section['preorder'])); ?>" data-stock-mode="preorder"><?php esc_html_e('Preorder Only', 'dakabrand'); ?></a>
-                <a class="home-gateway__button" href="<?php echo esc_url(home_url($section['in_stock'])); ?>" data-stock-mode="available"><?php esc_html_e('Shop New Collection', 'dakabrand'); ?></a>
-                <a class="home-gateway__button home-gateway__button--offer" href="<?php echo esc_url(home_url($section['offer'])); ?>" data-stock-mode="available"><?php esc_html_e('Big Offer', 'dakabrand'); ?></a>
-            </nav>
-        </section>
-    <?php endforeach; ?>
+    <picture class="black-friday-home__background">
+        <source media="(max-width: 991.98px)" srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/black-friday-clothing-mobile.png'); ?>" width="941" height="1672">
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/black-friday-clothing-desktop.png'); ?>" alt="" width="1672" height="941" fetchpriority="high">
+    </picture>
+    <div class="black-friday-home__content">
+        <p class="black-friday-home__brand"><?php echo esc_html(get_bloginfo('name')); ?></p>
+        <h1><?php esc_html_e('Black Friday', 'dakabrand'); ?></h1>
+        <p class="black-friday-home__intro"><?php esc_html_e('Discover the Black Friday collection.', 'dakabrand'); ?></p>
+        <nav class="black-friday-home__actions" aria-label="<?php esc_attr_e('Choose a collection', 'dakabrand'); ?>">
+            <a class="black-friday-button black-friday-button--primary" href="<?php echo esc_url(home_url('/product-category/black-friday/')); ?>"><?php esc_html_e('Shop Black Friday', 'dakabrand'); ?></a>
+            <a class="black-friday-button" href="<?php echo esc_url(staticbridge_department_page_url('man')); ?>"><?php esc_html_e('Man', 'dakabrand'); ?></a>
+            <a class="black-friday-button" href="<?php echo esc_url(staticbridge_department_page_url('woman')); ?>"><?php esc_html_e('Woman', 'dakabrand'); ?></a>
+        </nav>
+    </div>
 </main>

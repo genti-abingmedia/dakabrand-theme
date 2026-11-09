@@ -327,3 +327,13 @@ msgstr "Regjistrohuni për lajme rreth produkteve të reja dhe ofertave."
 
 msgid "Please note that orders paid via “Western union / Moneygram / Ria” will be processed upon payment confirmation. If you have any questions or need assistance, please contact our customer support at Whatsapp: +355683885286"
 msgstr "Ju lutemi vini re se porositë e paguara përmes “Western Union / MoneyGram / Ria” do të përpunohen pas konfirmimit të pagesës. Nëse keni pyetje ose nevojë për ndihmë, kontaktoni shërbimin tonë të klientit në WhatsApp: +355683885286"
+
+
+msgid "Black Friday"
+msgstr "Black Friday"
+
+msgid "Shop Black Friday"
+msgstr "Bli për Black Friday"
+
+msgid "Discover the Black Friday collection."
+msgstr "Zbulo koleksionin e Black Friday."

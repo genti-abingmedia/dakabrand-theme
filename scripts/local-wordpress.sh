@@ -73,7 +73,13 @@ smoke_test() {
 
     local failed=0
     local path status
-    for path in / /man/ /woman/ /shop/ /cart/ /checkout/; do
+    for path in / /man/ /woman/ /shop/ /cart/ /checkout/ \
+        /product-category/women/ /product-category/women/clothing/ \
+        /product-category/women/accessories/ /product-category/women/clothing/bikini/ \
+        /product-category/women/new-collection-women/ /product-category/man/ \
+        /product-category/man/clothing-man/ /product-category/man/accessories-man/ \
+        /product-category/man/new-collection-man/ /product-category/black-friday/ \
+        '/product-category/women/clothing/?categories=dresses%3ADresses&stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock'; do
         status="$(curl --location --silent --output /dev/null --write-out '%{http_code}' "$LOCAL_URL$path")"
         if [[ "$status" == "200" ]]; then
             printf 'PASS  %s  %s\n' "$status" "$path"

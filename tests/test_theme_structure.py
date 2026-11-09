@@ -106,7 +106,7 @@ class ThemeStructureTests(unittest.TestCase):
         seo = self.read("inc/seo-document.php")
 
         self.assertNotIn("filemtime(", functions)
-        for asset in ('assets/js/catalog.js', 'assets/css/main.css', 'assets/css/halloween.css', 'assets/js/halloween.js'):
+        for asset in ('assets/js/catalog.js', 'assets/css/main.css', 'assets/css/black-friday.css'):
             self.assertIn("'" + asset + "'", seo)
         self.assertIn("add_query_arg('ver', md5_file(get_template_directory() . '/' . $asset), $url)", seo)
         self.assertIn("md5_file(get_template_directory() . '/assets/js/catalog.js')", functions)
@@ -241,26 +241,38 @@ class ThemeStructureTests(unittest.TestCase):
         self.assertNotIn("elementor", shell.lower())
         self.assertNotIn("font-awesome", shell.lower())
 
-    def test_front_page_is_an_immersive_gateway(self) -> None:
+    def test_front_page_is_a_black_friday_campaign(self) -> None:
         functions = self.read("functions.php")
         render_api = self.read("inc/render-api.php")
         front_page = self.read("template-parts/views/front-page.php")
 
         self.assertIn("staticbridge_is_immersive_front_page", functions)
         self.assertIn("set_query_var('staticbridge_view', $view)", render_api)
-        self.assertIn('class="home-gateway"', front_page)
-        self.assertIn("https://dakabrand.uk/wp-content/uploads/2026/10/brandhome1.jpg", front_page)
-        self.assertIn("https://dakabrand.uk/wp-content/uploads/2026/10/brandhome2.jpg", front_page)
-        self.assertLess(front_page.index("'key'       => 'woman'"), front_page.index("'key'       => 'man'"))
-        self.assertLess(front_page.index('href="#home-woman"'), front_page.index('href="#home-man"'))
-        self.assertIn('href="#home-woman" aria-current="true"', front_page)
-        self.assertIn("'landing'   => staticbridge_department_page_url('woman')", front_page)
-        self.assertIn("'landing'   => staticbridge_department_page_url('man')", front_page)
-        self.assertIn("href=\"<?php echo esc_url($section['landing']); ?>\"", front_page)
-        self.assertIn("'offer'     => '/shop/?categories=big-offer-women%3ABIG+OFFER+WOMEN&stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock'", front_page)
-        self.assertIn("'offer'     => '/shop/?categories=big-offer%3ABIG+OFFER&stock_status=instock%3Ainstock%2Coutofstock%3Aoutofstock'", front_page)
-        self.assertIn("href=\"<?php echo esc_url(home_url($section['offer'])); ?>\"", front_page)
+        self.assertIn('class="black-friday-home"', front_page)
+        self.assertIn("black-friday-clothing-desktop.png", front_page)
+        self.assertIn("black-friday-clothing-mobile.png", front_page)
+        self.assertNotIn("black-friday-home__photos", front_page)
+        self.assertIn("staticbridge_department_page_url('woman')", front_page)
+        self.assertIn("staticbridge_department_page_url('man')", front_page)
+        self.assertIn("/product-category/black-friday/", front_page)
+        self.assertIn("Shop Black Friday", front_page)
+        self.assertNotIn("data-gateway-switcher", front_page)
+        self.assertNotIn('href="#home-', front_page)
         self.assertNotIn("WP_Query", front_page)
+
+    def test_black_friday_replaces_active_halloween_assets(self) -> None:
+        render_api = self.read("inc/render-api.php")
+        assets = self.read("inc/seo-document.php")
+        checkout = self.read("template-parts/views/checkout.php")
+        self.assertIn("body_class('black-friday-theme')", render_api)
+        self.assertIn("assets/css/black-friday.css", assets)
+        self.assertNotIn("halloween", render_api + assets + checkout)
+        self.assertIn("define('DAKABRAND_SHOW_BLACK_FRIDAY_PRODUCTS', true)", self.read("config.php"))
+        for view in ("man", "woman"):
+            source = self.read(f"template-parts/views/{view}.php")
+            self.assertIn("/product-category/black-friday/", source)
+            self.assertIn("Shop Black Friday", source)
+            self.assertNotIn("halloween", source.lower())
 
     def test_theme_uses_a_global_broken_image_fallback(self) -> None:
         script = self.read("assets/js/main.js")
@@ -286,10 +298,11 @@ class ThemeStructureTests(unittest.TestCase):
             self.assertIn(f'data-mobile-tab="{tab}"', footer)
         self.assertIn("data-cart-link", footer)
         self.assertIn("data-cart-count", footer)
-        self.assertIn("data-gateway-switcher", front_page)
-        self.assertIn("data-gateway-panel", front_page)
+        self.assertNotIn("mobile-tabs--home", footer)
+        toolbar = footer[footer.index('<nav class="mobile-tabs'):footer.index('</nav>', footer.index('<nav class="mobile-tabs'))]
+        self.assertNotIn("staticbridge_is_immersive_front_page", toolbar)
         self.assertIn("enhanceMobileTabs", script)
-        self.assertIn("enhanceGatewaySwitcher", script)
+        self.assertNotIn("enhanceGatewaySwitcher", script)
 
     def test_man_page_uses_theme_native_assets_and_api_grids(self) -> None:
         route = self.read("page-man.php")

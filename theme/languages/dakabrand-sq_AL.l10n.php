@@ -7,6 +7,9 @@ return array(
     'language' => 'sq_AL',
     'plural-forms' => 'nplurals=2; plural=n != 1;',
     'messages' => array(
+        'Black Friday' => 'Black Friday',
+        'Shop Black Friday' => 'Bli për Black Friday',
+        'Discover the Black Friday collection.' => 'Zbulo koleksionin e Black Friday.',
         'Skip to content' => 'Kalo te përmbajtja',
         'Choose language' => 'Zgjidh gjuhën',
         'DakaBrand apps' => 'Aplikacionet DakaBrand',

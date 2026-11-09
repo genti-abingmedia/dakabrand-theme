@@ -77,7 +77,8 @@ scripts/local-wordpress.sh     local setup, lifecycle, WP-CLI, and smoke tests
 
 Docker is the only prerequisite. The first setup downloads WordPress,
 MariaDB, WP-CLI, and WooCommerce, then activates this repository's theme and
-creates a small, idempotent demo catalog:
+creates a small, idempotent demo catalog with the nested category archive roots
+used by the storefront navigation:
 
 ```bash
 scripts/local-wordpress.sh setup
@@ -171,8 +172,9 @@ Assign these menu locations in WordPress:
 The responsive shell contains the app announcement, sticky header, five-item
 mobile app toolbar, service benefits, newsletter, link groups, and social links.
 The front page is an intentional exception to the header and footer only: it
-renders a full-viewport, swipeable MAN/WOMAN shopping gateway while retaining
-the mobile toolbar for fast access to Home, Women, Shop, Man, and Cart.
+renders a monochrome Black Friday campaign with direct Black Friday, Woman,
+and Man buttons. Its mobile toolbar contains Home, Women, Shop, Man, and Cart on every page. Black Friday category products are enabled by
+default in `theme/config.php`.
 
 The `/man/` page uses a dedicated theme-native campaign view with locally owned
 hero/editorial assets, category shortcuts, and dynamic WooCommerce sections for

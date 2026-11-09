@@ -48,6 +48,7 @@
 .catalog--filters-hidden .catalog-layout { grid-template-columns: minmax(0, 1fr); }
 .catalog--filters-hidden .catalog-filters { display: none; }
 .catalog-filters { min-width: 0; }
+.catalog-filters__body { min-width: 0; }
 .catalog-filters__header { display: flex; align-items: center; justify-content: space-between; }
 .catalog-filters__header h2 { margin: 0; font-size: .94rem; font-weight: 700; text-transform: uppercase; }
 .catalog-filters__drawer-header { display: none; }
@@ -152,15 +153,26 @@ body.catalog-drawer-open { overflow: hidden; }
     .catalog-toolbar__left > .catalog-active { display: none; }
     .catalog-active--drawer:not([hidden]) { display: flex; }
     .catalog-filter-toggle { display: inline-flex; }
-    .catalog-filters { position: fixed; inset: 0 auto 0 0; z-index: 1061; display: flex; flex-direction: column; width: min(25rem, 88vw); padding: 1.2rem; overflow-y: auto; visibility: hidden; background: #fff; transform: translateX(-100%); transition: transform 220ms ease, visibility 220ms; }
+    .catalog-filters { position: fixed; inset: 0 auto 0 0; z-index: 1061; display: flex; flex-direction: column; width: min(26rem, calc(100vw - 1rem)); height: 100dvh; max-height: 100dvh; padding: 0; overflow: hidden; visibility: hidden; background: #fff; transform: translateX(-100%); transition: transform 220ms ease, visibility 220ms; }
     .catalog-filters.is-open { visibility: visible; transform: translateX(0); }
     .catalog-backdrop:not([hidden]) { position: fixed; inset: 0; z-index: 1060; display: block; background: rgba(0,0,0,.5); }
     .catalog-toolbar .catalog-filters__header { display: none; }
-    .catalog-filters__drawer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .4rem; }
+    .catalog-filters__drawer-header { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 1rem; padding: max(.75rem, env(safe-area-inset-top)) 1rem .75rem; border-bottom: 1px solid var(--brand-line); }
     .catalog-filters__drawer-header h2 { margin: 0; font-size: .94rem; font-weight: 700; text-transform: uppercase; }
     .catalog-filters__drawer-header button { width: 2.7rem; height: 2.7rem; border: 0; background: transparent; font-size: 1.8rem; line-height: 1; cursor: pointer; }
-    .catalog-filters__footer { position: sticky; bottom: -1.2rem; display: flex; gap: .5rem; margin: auto -1.2rem -1.2rem; padding: 1rem 1.2rem; background: #fff; border-top: 1px solid var(--brand-line); }
-    .catalog-filters__footer button { flex: 1; padding: .8rem .5rem; background: #fff; border: 1px solid var(--brand-black); border-radius: var(--control-radius); font-size: .73rem; font-weight: 700; text-transform: uppercase; cursor: pointer; }
+    .catalog-filters__body { flex: 1 1 auto; min-height: 0; padding: 0 1rem; overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-gutter: stable; }
+    .catalog-filters .catalog-facet__options { max-height: none; overflow: visible; }
+    .catalog-filters .catalog-facet__option { min-height: 2.75rem; font-size: .875rem; line-height: 1.4; }
+    .catalog-filters .catalog-facet__option input { flex: 0 0 1rem; }
+    .catalog-filters .catalog-facet__count { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+    .catalog-filters .catalog-category-tree__row { min-height: 2.75rem; }
+    .catalog-filters .catalog-category-tree__row .catalog-facet__option { min-width: 0; }
+    .catalog-filters .catalog-category-tree__toggle { width: 2.75rem; height: 2.75rem; }
+    .catalog-filters .catalog-facet summary { min-height: 2.75rem; font-size: .875rem; }
+    .catalog-filters .catalog-facet__option span:nth-child(2) { overflow-wrap: anywhere; }
+    .catalog-filters .catalog-active--drawer { margin-block: .75rem; }
+    .catalog-filters__footer { flex: 0 0 auto; display: flex; gap: .75rem; margin: 0; padding: 1rem 1rem max(1rem, env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--brand-line); }
+    .catalog-filters__footer button { flex: 1; min-height: 2.75rem; padding: .8rem .5rem; background: #fff; border: 1px solid var(--brand-black); border-radius: var(--control-radius); font-size: .73rem; font-weight: 700; text-transform: uppercase; cursor: pointer; }
     .catalog-filters__footer button:last-child { color: #fff; background: var(--brand-black); }
 }
 @media (max-width: 700px) {

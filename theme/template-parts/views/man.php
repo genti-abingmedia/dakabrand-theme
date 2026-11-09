@@ -4,6 +4,7 @@ if (!defined('ABSPATH')) {
 }
 
 $man_categories = array(
+    __('Black Friday', 'dakabrand') => '/product-category/black-friday/',
     __('New', 'dakabrand')      => '/product-category/man/',
     __('Puffers', 'dakabrand')  => '/product-category/man/clothing-man/?categories=jackets-man%3AJackets&page=1&limit=20&keyword=Puffer',
     __('Sneakers', 'dakabrand') => '/product-category/man/?categories=shoes-man%3ASHOES',
@@ -25,16 +26,15 @@ $man_collections = array(
 <main id="main" class="man-landing" data-static-view="man">
     <h1 class="screen-reader-text"><?php esc_html_e('Man', 'dakabrand'); ?></h1>
 
-    <section class="man-hero halloween-hero man-halloween-hero" aria-label="<?php esc_attr_e('Man', 'dakabrand'); ?>">
+    <section class="man-hero black-friday-hero" aria-label="<?php esc_attr_e('Black Friday', 'dakabrand'); ?>">
         <picture class="man-hero__media">
-            <source media="(max-width: 767.98px)" srcset="<?php echo esc_url(staticbridge_resize_image_url('https://dakabrand.uk/wp-content/uploads/2026/10/Rectangle-24-1.jpg', 1291, 1828)); ?>" width="1291" height="1828">
-            <img src="<?php echo esc_url(staticbridge_resize_image_url('https://dakabrand.uk/wp-content/uploads/2026/10/Rectangle-40-1.jpg', 1600, 685)); ?>" width="2480" height="1062" alt="" fetchpriority="high">
+            <img src="<?php echo esc_url(staticbridge_resize_image_url(get_template_directory_uri() . '/assets/images/man-editorial-primary.jpg', 1000, 1000)); ?>" width="1000" height="1000" alt="" fetchpriority="high">
         </picture>
-        <div class="halloween-hero__copy">
-            <h2 class="halloween-hero__title"><span><?php esc_html_e('Happy', 'dakabrand'); ?></span><span><?php esc_html_e('Halloween', 'dakabrand'); ?></span></h2>
-            <p><?php esc_html_e('Explore Our Halloween Drops', 'dakabrand'); ?></p>
+        <div class="black-friday-hero__copy">
+            <h2 class="black-friday-hero__title"><?php esc_html_e('Black Friday', 'dakabrand'); ?></h2>
+            <p><?php esc_html_e('Discover the Black Friday collection.', 'dakabrand'); ?></p>
+            <a class="black-friday-button black-friday-button--primary" href="<?php echo esc_url(home_url('/product-category/black-friday/')); ?>"><?php esc_html_e('Shop Black Friday', 'dakabrand'); ?></a>
         </div>
-        <a class="halloween-hero__cta" href="<?php echo esc_url(home_url('/product-category/man/')); ?>"><?php esc_html_e('Shop New Collection', 'dakabrand'); ?></a>
     </section>
 
     <nav class="man-category-nav site-shell" aria-label="<?php esc_attr_e('Shop men by category', 'dakabrand'); ?>">

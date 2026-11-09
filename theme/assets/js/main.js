@@ -554,61 +554,6 @@
         });
     }
 
-    function enhanceGatewaySwitcher() {
-        var gateway = document.querySelector('.home-gateway');
-        var switcher = document.querySelector('[data-gateway-switcher]');
-        var panels;
-        var links;
-        var reduceMotion;
-
-        if (!gateway || !switcher) {
-            return;
-        }
-
-        panels = Array.from(gateway.querySelectorAll('[data-gateway-panel]'));
-        links = Array.from(switcher.querySelectorAll('a'));
-        reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-        function selectPanel(panel) {
-            links.forEach(function (link) {
-                if (link.getAttribute('href') === '#' + panel.id) {
-                    link.setAttribute('aria-current', 'true');
-                } else {
-                    link.removeAttribute('aria-current');
-                }
-            });
-        }
-
-        links.forEach(function (link) {
-            link.addEventListener('click', function (event) {
-                var panel = document.querySelector(link.getAttribute('href'));
-                event.preventDefault();
-                if (panel) {
-                    panel.scrollIntoView({
-                        behavior: reduceMotion ? 'auto' : 'smooth',
-                        block: 'nearest',
-                        inline: 'start'
-                    });
-                    selectPanel(panel);
-                }
-            });
-        });
-
-        if ('IntersectionObserver' in window) {
-            var observer = new IntersectionObserver(function (entries) {
-                entries.forEach(function (entry) {
-                    if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-                        selectPanel(entry.target);
-                    }
-                });
-            }, { root: gateway, threshold: [0.6] });
-
-            panels.forEach(function (panel) {
-                observer.observe(panel);
-            });
-        }
-    }
-
     enhanceImageFallbacks();
     enhanceStockMode();
     enhanceMobileNavigation();
@@ -618,7 +563,6 @@
     enhanceSiteSearch();
     enhanceNewsletter();
     enhanceMobileTabs();
-    enhanceGatewaySwitcher();
     refreshCartCount();
 
     window.addEventListener('storage', function (event) {

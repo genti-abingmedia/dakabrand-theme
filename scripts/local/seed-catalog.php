@@ -9,6 +9,16 @@ $category_ids = array();
 foreach (array(
     'women' => array('name' => 'Women', 'parent' => ''),
     'man' => array('name' => 'Man', 'parent' => ''),
+    // These archive roots are linked by the shared navigation and campaign pages.
+    // Keep parents before children so a fresh local install has working routes.
+    'clothing' => array('name' => 'Clothing', 'parent' => 'women'),
+    'accessories' => array('name' => 'Accessories', 'parent' => 'women'),
+    'new-collection-women' => array('name' => 'New Collection Women', 'parent' => 'women'),
+    'bikini' => array('name' => 'Bikini', 'parent' => 'clothing'),
+    'clothing-man' => array('name' => 'Clothing', 'parent' => 'man'),
+    'accessories-man' => array('name' => 'Accessories', 'parent' => 'man'),
+    'new-collection-man' => array('name' => 'New Collection Man', 'parent' => 'man'),
+    'black-friday' => array('name' => 'Black Friday', 'parent' => ''),
     'watches' => array('name' => 'Watches', 'parent' => ''),
     'big-offer' => array('name' => 'Big Offer', 'parent' => 'man'),
     'big-offer-women' => array('name' => 'Big Offer Women', 'parent' => 'women'),

@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
             <a href="https://www.instagram.com/daka__man" target="_blank" rel="noopener noreferrer" class="site-promo__social">
                 <span aria-hidden="true">◎</span> <?php esc_html_e('100k Followers', 'dakabrand'); ?>
             </a>
-            <p><?php esc_html_e('Open the doors to a world of fashion', 'dakabrand'); ?> <span aria-hidden="true"></span> <a href="<?php echo esc_url(home_url('/shop/')); ?>"><?php esc_html_e('Discover more', 'dakabrand'); ?></a></p>
+            <p><?php esc_html_e('Black Friday', 'dakabrand'); ?> <span aria-hidden="true"></span> <a href="<?php echo esc_url(home_url('/product-category/black-friday/')); ?>"><?php esc_html_e('Shop Black Friday', 'dakabrand'); ?></a></p>
         </div>
     </div>
 
@@ -49,6 +49,7 @@ if (!defined('ABSPATH')) {
 
                 <div class="fashion-navigation__collections<?php echo 'women' === $active_fashion_department ? ' is-current' : ''; ?>" data-fashion-collection="women"<?php echo 'women' !== $active_fashion_department ? ' hidden' : ''; ?>>
                     <div class="fashion-navigation__links">
+                        <a href="<?php echo esc_url(home_url('/product-category/black-friday/')); ?>"><?php esc_html_e('Black Friday', 'dakabrand'); ?></a>
                         <a class="has-mega-menu" href="<?php echo esc_url(home_url('/product-category/women/new-collection-women/')); ?>" data-mega-trigger="women-new-in"><?php esc_html_e('New In', 'dakabrand'); ?></a>
                         <a class="has-mega-menu" href="<?php echo esc_url(staticbridge_catalog_category_url('/product-category/women/', 'clothing')); ?>" data-mega-trigger="women-clothing"><?php esc_html_e('Clothing', 'dakabrand'); ?></a>
                         <a class="has-mega-menu" href="<?php echo esc_url(staticbridge_catalog_category_url('/product-category/women/', 'shoes')); ?>" data-mega-trigger="women-shoes"><?php esc_html_e('Shoes', 'dakabrand'); ?></a>
@@ -83,6 +84,7 @@ if (!defined('ABSPATH')) {
 
                 <div class="fashion-navigation__collections<?php echo 'men' === $active_fashion_department ? ' is-current' : ''; ?>" data-fashion-collection="men"<?php echo 'men' !== $active_fashion_department ? ' hidden' : ''; ?>>
                     <div class="fashion-navigation__links">
+                        <a href="<?php echo esc_url(home_url('/product-category/black-friday/')); ?>"><?php esc_html_e('Black Friday', 'dakabrand'); ?></a>
                         <a class="has-mega-menu" href="<?php echo esc_url(home_url('/product-category/man/new-collection-man/')); ?>" data-mega-trigger="men-new-in"><?php esc_html_e('New In', 'dakabrand'); ?></a>
                         <a class="has-mega-menu" href="<?php echo esc_url(staticbridge_catalog_category_url('/product-category/man/', 'clothing-man')); ?>" data-mega-trigger="men-clothing"><?php esc_html_e('Clothing', 'dakabrand'); ?></a>
                         <a class="has-mega-menu" href="<?php echo esc_url(staticbridge_catalog_category_url('/product-category/man/', 'shoes-man')); ?>" data-mega-trigger="men-shoes"><?php esc_html_e('Shoes', 'dakabrand'); ?></a>
@@ -149,6 +151,7 @@ if (!defined('ABSPATH')) {
         <?php echo staticbridge_language_switcher('language-switcher--mobile'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
         <nav aria-label="<?php esc_attr_e('Mobile navigation', 'dakabrand'); ?>">
             <ul class="mobile-navigation__menu">
+                <li><a href="<?php echo esc_url(home_url('/product-category/black-friday/')); ?>"><?php esc_html_e('Black Friday', 'dakabrand'); ?></a></li>
                 <li class="menu-item-has-children">
                     <a href="<?php echo esc_url(staticbridge_department_page_url('woman')); ?>"><?php esc_html_e('Women', 'dakabrand'); ?></a>
                     <ul class="sub-menu">
