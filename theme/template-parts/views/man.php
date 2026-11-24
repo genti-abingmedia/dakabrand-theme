@@ -31,10 +31,12 @@ if ($man_term instanceof WP_Term) {
     }
 }
 
+$man_catalog_url = wp_make_link_relative(staticbridge_catalog_category_url('/product-category/man/', 'man'));
+
 $man_collections = array(
-    'new'     => array(__('New In', 'dakabrand'), '/product-category/man/'),
+    'new'     => array(__('New In', 'dakabrand'), add_query_arg('orderby', 'date_created-desc', $man_catalog_url)),
     'deals'   => array(__('Top Deals', 'dakabrand'), wp_make_link_relative(staticbridge_catalog_category_url('/product-category/man/', 'big-offer'))),
-    'limited' => array(__('Limited Stock', 'dakabrand'), '/product-category/man/?stock_status=instock%3Ainstock'),
+    'limited' => array(__('Limited Stock', 'dakabrand'), add_query_arg('stock_status', 'instock:instock', $man_catalog_url)),
 );
 
 ?>

@@ -586,16 +586,29 @@
         });
     }
 
+    function railSource(grid, storefront) {
+        var requested = new URL(grid.dataset.catalogSource, window.location.origin);
+        var source = new URL(requested.pathname + requested.search, storefront);
+        // Generated Man pages can retain older archive-only URLs. The service
+        // requires an explicit category token even when the path names Man.
+        var allowedSlugs = grid.dataset.catalogCategorySlugs === undefined
+            ? [] : JSON.parse(grid.dataset.catalogCategorySlugs);
+        if (allowedSlugs.includes('man')) {
+            if (!source.searchParams.has('categories')) source.searchParams.set('categories', 'man:MAN');
+            if (!source.searchParams.has('orderby')) source.searchParams.set('orderby', 'date_created-desc');
+        }
+        return source;
+    }
+
     function loadRail(grid) {
         var status = grid.parentElement.querySelector('[data-catalog-rail-status]');
         var limit = Math.max(1, Math.min(20, Number(grid.dataset.catalogLimit) || 10));
         var excluded = Number(grid.dataset.catalogExclude) || 0;
-        var requested = new URL(grid.dataset.catalogSource, window.location.origin);
         // Rails power related products and the smaller grids on the Man/Women
         // pages. Like the full catalog, they must point Gliterin at the public
         // storefront while this theme runs on localhost.
         var storefront = isLocalhost() ? LOCALHOST_FALLBACK_STOREFRONT : STOREFRONT;
-        var source = new URL(requested.pathname + requested.search, storefront);
+        var source = railSource(grid, storefront);
         source.searchParams.set('page', '1');
         source.searchParams.set('limit', String(limit + (excluded ? 1 : 0)));
         grid.setAttribute('aria-busy', 'true');

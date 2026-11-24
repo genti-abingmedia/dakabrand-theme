@@ -15,7 +15,7 @@ function fixture(href, config) {
     };
     // Expose the request functions without starting the DOM rendering lifecycle.
     const setup = source.slice(0, source.indexOf('    enhanceExistingCardImages();')) +
-        'window.catalog = { sourceUrl, fetchCatalogPage, storefrontCatalog, isStorefrontProduct, railProducts }; })();';
+        'window.catalog = { sourceUrl, fetchCatalogPage, storefrontCatalog, isStorefrontProduct, railProducts, railSource }; })();';
     vm.runInNewContext(setup, {
         window, document, URL, URLSearchParams,
         fetch(url, options) {
@@ -130,4 +130,20 @@ test('Man rails accept the category and descendants, rejecting unrelated and unc
     assert.deepEqual(Array.from(page.railProducts(products, { dataset: {} }), product => product.id), [1, 2, 3, 4, 5]);
     grid.dataset.catalogExclude = '2';
     assert.deepEqual(Array.from(page.railProducts(products, grid), product => product.id), [1, 5]);
+});
+
+
+test('generated Man rails send explicit category filters and newest ordering', () => {
+    const page = fixture('https://dakabrand.uk/man/');
+    for (const path of ['/product-category/man/', '/product-category/man/?stock_status=instock%3Ainstock']) {
+        const grid = { dataset: { catalogSource: path, catalogCategorySlugs: '["man","shoes-man"]' } };
+        const url = page.railSource(grid, 'https://dakabrand.uk');
+        assert.equal(url.searchParams.get('categories'), 'man:MAN');
+        assert.equal(url.searchParams.get('orderby'), 'date_created-desc');
+        assert.equal(url.searchParams.get('stock_status'), new URL(path, 'https://dakabrand.uk').searchParams.get('stock_status'));
+    }
+    const deals = { dataset: { catalogSource: '/product-category/man/?categories=big-offer%3ABIG%20OFFER', catalogCategorySlugs: '["man"]' } };
+    assert.equal(page.railSource(deals, 'https://dakabrand.uk').searchParams.get('categories'), 'big-offer:BIG OFFER');
+    const other = { dataset: { catalogSource: '/product-category/women/' } };
+    assert.equal(page.railSource(other, 'https://dakabrand.uk').searchParams.has('categories'), false);
 });
