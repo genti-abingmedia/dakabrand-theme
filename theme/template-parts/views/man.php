@@ -16,9 +16,24 @@ $man_categories = array(
     __('Watches', 'dakabrand')  => '/product-category/man/accessories-man/?categories=watches-man%3AWatches',
 );
 
+// Use the actual taxonomy tree, including descendants without a direct Man assignment.
+$man_category_slugs = array('man');
+$man_term = get_term_by('slug', 'man', 'product_cat');
+if ($man_term instanceof WP_Term) {
+    $man_descendants = get_terms(array(
+        'taxonomy' => 'product_cat',
+        'child_of' => $man_term->term_id,
+        'hide_empty' => false,
+        'fields' => 'slugs',
+    ));
+    if (!is_wp_error($man_descendants)) {
+        $man_category_slugs = array_merge($man_category_slugs, $man_descendants);
+    }
+}
+
 $man_collections = array(
     'new'     => array(__('New In', 'dakabrand'), '/product-category/man/'),
-    'deals'   => array(__('Top Deals', 'dakabrand'), '/product-category/big-offer/'),
+    'deals'   => array(__('Top Deals', 'dakabrand'), wp_make_link_relative(staticbridge_catalog_category_url('/product-category/man/', 'big-offer'))),
     'limited' => array(__('Limited Stock', 'dakabrand'), '/product-category/man/?stock_status=instock%3Ainstock'),
 );
 
@@ -61,7 +76,7 @@ $man_collections = array(
 
         <section class="man-collection site-shell" aria-labelledby="man-<?php echo esc_attr($collection_key); ?>-title">
             <h2 id="man-<?php echo esc_attr($collection_key); ?>-title"><?php echo esc_html($collection[0]); ?></h2>
-            <div class="man-product-grid product-grid" data-product-grid data-storefront-product-cards data-catalog-source="<?php echo esc_url($collection[1]); ?>" data-catalog-limit="10" aria-busy="true"></div>
+            <div class="man-product-grid product-grid" data-product-grid data-storefront-product-cards data-catalog-source="<?php echo esc_url($collection[1]); ?>" data-catalog-limit="10" data-catalog-category-slugs="<?php echo esc_attr(wp_json_encode($man_category_slugs)); ?>" aria-busy="true"></div>
             <p class="catalog-rail-status" role="status" data-catalog-rail-status><?php esc_html_e('Loading products…', 'dakabrand'); ?></p>
 
             <a class="man-collection__cta" href="<?php echo esc_url(home_url($collection[1])); ?>"><?php esc_html_e('View all', 'dakabrand'); ?></a>

@@ -15,7 +15,7 @@ function fixture(href, config) {
     };
     // Expose the request functions without starting the DOM rendering lifecycle.
     const setup = source.slice(0, source.indexOf('    enhanceExistingCardImages();')) +
-        'window.catalog = { sourceUrl, fetchCatalogPage, storefrontCatalog, isStorefrontProduct }; })();';
+        'window.catalog = { sourceUrl, fetchCatalogPage, storefrontCatalog, isStorefrontProduct, railProducts }; })();';
     vm.runInNewContext(setup, {
         window, document, URL, URLSearchParams,
         fetch(url, options) {
@@ -113,4 +113,21 @@ test('localhost requests keep Latest ordering when using the production fallback
     assert.equal(url.origin, 'https://dakabrand.uk');
     assert.equal(url.searchParams.get('orderby'), 'date_created-desc');
     assert.equal(url.searchParams.get('keyword'), 'shoes');
+});
+
+
+test('Man rails accept the category and descendants, rejecting unrelated and uncategorized products', () => {
+    const page = fixture('https://dakabrand.uk/man/', { hiddenProductCategorySlugs: [] });
+    const products = [
+        { id: 1, taxonomies: { categories: [{ slug: 'man' }] } },
+        { id: 2, taxonomies: { categories: [{ slug: 'nested-child' }] } },
+        { id: 3, taxonomies: { categories: [{ slug: 'women' }, { slug: 'big-offer' }] } },
+        { id: 4 },
+        { id: 5, taxonomies: { categories: [{ slug: 'women' }, { slug: 'nested-child' }] } }
+    ];
+    const grid = { dataset: { catalogCategorySlugs: JSON.stringify(['man', 'nested-child']) } };
+    assert.deepEqual(Array.from(page.railProducts(products, grid), product => product.id), [1, 2, 5]);
+    assert.deepEqual(Array.from(page.railProducts(products, { dataset: {} }), product => product.id), [1, 2, 3, 4, 5]);
+    grid.dataset.catalogExclude = '2';
+    assert.deepEqual(Array.from(page.railProducts(products, grid), product => product.id), [1, 5]);
 });

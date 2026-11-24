@@ -574,6 +574,18 @@
         return article;
     }
 
+    function railProducts(products, grid) {
+        var allowedSlugs = grid.dataset.catalogCategorySlugs === undefined
+            ? null : JSON.parse(grid.dataset.catalogCategorySlugs);
+        var excluded = Number(grid.dataset.catalogExclude) || 0;
+        return products.filter(isStorefrontProduct).filter(function (product) {
+            if (Number(product.id) === excluded) return false;
+            return allowedSlugs === null || ((product.taxonomies || {}).categories || []).some(function (category) {
+                return allowedSlugs.includes(String(category.slug));
+            });
+        });
+    }
+
     function loadRail(grid) {
         var status = grid.parentElement.querySelector('[data-catalog-rail-status]');
         var limit = Math.max(1, Math.min(20, Number(grid.dataset.catalogLimit) || 10));
@@ -593,8 +605,7 @@
                 var data = payload && payload.result;
                 if (!data || !Array.isArray(data.products)) throw new Error('Invalid catalog response');
                 var rules = Array.isArray(data.discount_rules) ? data.discount_rules : [];
-                var cards = data.products.filter(isStorefrontProduct)
-                    .filter(function (product) { return Number(product.id) !== excluded; })
+                var cards = railProducts(data.products, grid)
                     .slice(0, limit).map(function (product, index) {
                         return grid.dataset.storefrontProductCards !== undefined
                             ? makeStorefrontCard(product, rules, Boolean(data.include_out_of_stock), index, data.whatsapp_number)
